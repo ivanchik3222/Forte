@@ -66,7 +66,7 @@ jobs:
           printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
           git archive --format=tar HEAD | gzip > release.tar.gz
-          ssh -o StrictHostKeyChecking=yes -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "mkdir -p /opt/forte/releases/$GITHUB_SHA"
-          scp -o StrictHostKeyChecking=yes -P "$VPS_PORT" release.tar.gz "$VPS_USER@$VPS_HOST:/opt/forte/releases/$GITHUB_SHA/release.tar.gz"
+          ssh -o StrictHostKeyChecking=yes -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "test -f /root/Forte/.env || { echo '/root/Forte/.env not found' >&2; exit 1; }; mkdir -p /root/Forte/releases/$GITHUB_SHA"
+          scp -o StrictHostKeyChecking=yes -P "$VPS_PORT" release.tar.gz "$VPS_USER@$VPS_HOST:/root/Forte/releases/$GITHUB_SHA/release.tar.gz"
           ssh -o StrictHostKeyChecking=yes -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
-            "cd /opt/forte/releases/$GITHUB_SHA && tar -xzf release.tar.gz && ln -s /opt/forte/.env .env && docker compose -p forte -f compose.yaml up -d --build --wait --wait-timeout 120 --remove-orphans && ln -sfn /opt/forte/releases/$GITHUB_SHA /opt/forte/current"
+            "cd /root/Forte/releases/$GITHUB_SHA && tar -xzf release.tar.gz && ln -sfn /root/Forte/.env .env && docker compose -p forte -f compose.yaml up -d --build --wait --wait-timeout 120 --remove-orphans && ln -sfn /root/Forte/releases/$GITHUB_SHA /root/Forte/current"

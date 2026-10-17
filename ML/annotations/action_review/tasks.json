@@ -1,0 +1,1367 @@
+[
+  {
+    "video_ids": [
+      1
+    ],
+    "source_sha256": "8911a9219b9433091824e553a70bb80335f075fd8ac982d2062d2ecf023c16bc",
+    "source_file": "X-1.mov",
+    "split": "train",
+    "duration_sec": 25.933333,
+    "original_fps": 29.922879177377894,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      22
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      2
+    ],
+    "source_sha256": "9932ae0a10d3b9371bf52ea558dc19092fcf47adcd275a73a52a56b95464bca6",
+    "source_file": "X-2.mov",
+    "split": "train",
+    "duration_sec": 17.066667,
+    "original_fps": 29.8828125,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      10
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      3
+    ],
+    "source_sha256": "21468fcef4ea5f45ce7d465e620f84e09c8b50314f4ecdc06f69224c701b3a5b",
+    "source_file": "Х-3.mov",
+    "split": "train",
+    "duration_sec": 20.033021,
+    "original_fps": 29.90016638935108,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      4,
+      47
+    ],
+    "source_sha256": "5385be9420e6a70547d6bcfd0b13d60f9c0738877645afa277d09550a96b8445",
+    "source_file": "Х-4.mov",
+    "split": "train",
+    "duration_sec": 72.7,
+    "original_fps": 29.944979367262725,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      57,
+      68
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      5,
+      48
+    ],
+    "source_sha256": "1f5840bff58f298e89c4afa00cb1c18f6dafc5c4096c251d9b507604ebefe906",
+    "source_file": "Х-5.mov",
+    "split": "train",
+    "duration_sec": 71.6,
+    "original_fps": 29.95810055865922,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      8
+    ],
+    "source_sha256": "6a53e10acdcf52396ad5b1697eead32d8322c0911d792523a5c33fe5b388f4e7",
+    "source_file": "Х-8.mov",
+    "split": "train",
+    "duration_sec": 38.033021,
+    "original_fps": 29.97370727432077,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      10
+    ],
+    "source_sha256": "57a0e46c7a45f0e831f61d9c80722fefe4b74dbcfe1d3031ff58307d481f9a5c",
+    "source_file": "Х-10.mov",
+    "split": "train",
+    "duration_sec": 15.566667,
+    "original_fps": 30.0,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      11
+    ],
+    "source_sha256": "b3a954a5b761ad47943e061599315e3fe9d22573eeb92bb14bf315cdcd422fc5",
+    "source_file": "Х-11.mov",
+    "split": "train",
+    "duration_sec": 25.6,
+    "original_fps": 29.8828125,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      18
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      12
+    ],
+    "source_sha256": "955755baf54418b48ea645dcd98e7e8dcca1d1e227e9b286a9427062db304fd4",
+    "source_file": "Х-12.mov",
+    "split": "train",
+    "duration_sec": 42.3,
+    "original_fps": 29.95271867612293,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      13
+    ],
+    "source_sha256": "a37930cf119bb691be77d8624b18333b04d9c67066a7f4627d63e3208dfa6057",
+    "source_file": "Х-13.mov",
+    "split": "train",
+    "duration_sec": 65.3,
+    "original_fps": 29.95405819295559,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      47
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      14
+    ],
+    "source_sha256": "7d6890ecb4a2b28bbdd3b61b6711566eee84a53ab3439c40cd9b6a3a6714c681",
+    "source_file": "Х-14.mov",
+    "split": "train",
+    "duration_sec": 142.533021,
+    "original_fps": 29.978952291861553,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      15
+    ],
+    "source_sha256": "69caf59620fcd80bedcb664514730ab38f2f800da27000a8e037d7440be5dc7a",
+    "source_file": "Х-15.mov",
+    "split": "train",
+    "duration_sec": 20.866667,
+    "original_fps": 29.904153354632587,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      15
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      16
+    ],
+    "source_sha256": "3f516431cf37e3900b7eae857a7b09be258f485702ab56bc6e5b6129103f1fa5",
+    "source_file": "Х-16.mov",
+    "split": "val",
+    "duration_sec": 22.733021,
+    "original_fps": 29.912023460410555,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      17
+    ],
+    "source_sha256": "0378b8026b2e6afd1775a5d0fdd12dd09c491785b626e9c20428f7dc6bd59364",
+    "source_file": "Х-17.mov",
+    "split": "val",
+    "duration_sec": 14.733333,
+    "original_fps": 30.0,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      7
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      18
+    ],
+    "source_sha256": "90607b0b0cb772fcf29b0c7e0e56fa6af36da6fac0efe93b8a616b5de94a156c",
+    "source_file": "Х-18.mov",
+    "split": "train",
+    "duration_sec": 22.6,
+    "original_fps": 29.911504424778762,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      20
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      19
+    ],
+    "source_sha256": "16065504b21260bff18698c7bbf048ffa356c9de43d43b92643b6c2eddedac0f",
+    "source_file": "Х-19.mov",
+    "split": "train",
+    "duration_sec": 57.433021,
+    "original_fps": 29.947765525246663,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      20
+    ],
+    "source_sha256": "7e585e33517f7258bd2d1ed3e139556609bc997bb07b78355555060ef193b77a",
+    "source_file": "Х-20.mov",
+    "split": "train",
+    "duration_sec": 11.633333,
+    "original_fps": 30.0,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      5
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      21
+    ],
+    "source_sha256": "efd876a04224cac781ac64bf5d6e107ded67340b7b7715fd9ca3408b240a1075",
+    "source_file": "Х-21.mov",
+    "split": "train",
+    "duration_sec": 19.6,
+    "original_fps": 29.846938775510203,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      22
+    ],
+    "source_sha256": "c9a30d44907e4a41b3a8ccf101774cd2e0804de20927bfbc9e1ccba1f2326b78",
+    "source_file": "Х-22.mov",
+    "split": "train",
+    "duration_sec": 21.033021,
+    "original_fps": 29.857369255150555,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      14
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      23
+    ],
+    "source_sha256": "b637677ef5a7f0fa54d9f116ce6493cf74a4c99b8149a9c9916b96ef257535bd",
+    "source_file": "Х-23.mov",
+    "split": "train",
+    "duration_sec": 18.266667,
+    "original_fps": 29.835766423357665,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      24
+    ],
+    "source_sha256": "c175a683749401d5a9ecf6f1c188b64fa8a09543f41482c1e4eb2232255715d3",
+    "source_file": "Х-24.mov",
+    "split": "train",
+    "duration_sec": 14.7,
+    "original_fps": 30.0,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      8
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      25
+    ],
+    "source_sha256": "901f61cf1a1b8754dda56466308c19fc203a1a4c0e85d1e7827849d34e2d52f0",
+    "source_file": "Х-25.mov",
+    "split": "train",
+    "duration_sec": 31.7,
+    "original_fps": 29.968454258675077,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      26
+    ],
+    "source_sha256": "e3a00b6e0f38b1d9b5498140f14906c71e204359262a90ce7a9974d64bf081e9",
+    "source_file": "Х-26.mov",
+    "split": "train",
+    "duration_sec": 19.8,
+    "original_fps": 29.8989898989899,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      9
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      27
+    ],
+    "source_sha256": "d3d21494d74e40a7586fe4f6164e515f6621a2d413538c4e15c67d394e85fc2d",
+    "source_file": "Х-27.mov",
+    "split": "train",
+    "duration_sec": 26.433021,
+    "original_fps": 29.92433795712484,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      28
+    ],
+    "source_sha256": "d15ef04bcfae571bd2d7fc4e4d709ba595ae19f44136a43e7277f17e7b6e5b6d",
+    "source_file": "Х-28.mov",
+    "split": "train",
+    "duration_sec": 16.533021,
+    "original_fps": 29.758064516129032,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      7
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      29
+    ],
+    "source_sha256": "b9bfb76ac8ea47eb368fc78a2f6370e4d98e79185972f63cf301ee22f12b5941",
+    "source_file": "Х-29.mov",
+    "split": "train",
+    "duration_sec": 17.3,
+    "original_fps": 29.76878612716763,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      30
+    ],
+    "source_sha256": "05af66ce27b83d7c10c5d33b6f1847ec042c01ed21afdcbd43a13abcefd28199",
+    "source_file": "Х-30.mov",
+    "split": "val",
+    "duration_sec": 18.8,
+    "original_fps": 29.893617021276597,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      13
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      31
+    ],
+    "source_sha256": "6a9fa7dd2e6db4cbe57f3c96a6cb256f23c04aa4e6fd44622fdf5de662cc0649",
+    "source_file": "Х-31.mov",
+    "split": "val",
+    "duration_sec": 23.8,
+    "original_fps": 29.873949579831933,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      32
+    ],
+    "source_sha256": "bcc277cbf1a36245156b2bb9a0e0b826432390b42040c0b82201a8c21ab23ce9",
+    "source_file": "Х-32.mov",
+    "split": "val",
+    "duration_sec": 21.3,
+    "original_fps": 29.906103286384976,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      5
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      33
+    ],
+    "source_sha256": "209e8aaca88df59064e5f28b3bcc489fee3eea9eb920889b69c03c83d52430c6",
+    "source_file": "Х-33.mov",
+    "split": "test",
+    "duration_sec": 14.333333,
+    "original_fps": 30.0,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      6
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      34
+    ],
+    "source_sha256": "f3e351bea71150f4e8c76e2c8f0656a4e92063319d7cd39e264078c5ba9139c3",
+    "source_file": "Х-34.mov",
+    "split": "val",
+    "duration_sec": 17.733333,
+    "original_fps": 29.887218045112782,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      13
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      35
+    ],
+    "source_sha256": "26430119e074d6f0eb5dbc7ec3e26bbc31cf18903265bb4372bd7d7104908640",
+    "source_file": "Х-35.mov",
+    "split": "val",
+    "duration_sec": 56.766667,
+    "original_fps": 29.947152084556663,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      37
+    ],
+    "source_sha256": "ac4cf04844c0aa08a5e19f5f7fe984f1477943294922d6ef77bdc5b88b97160e",
+    "source_file": "Х-37.mov",
+    "split": "val",
+    "duration_sec": 15.866667,
+    "original_fps": 29.810924369747898,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      38
+    ],
+    "source_sha256": "5a6f6a13ef88191ec1d9a2a303f1be74d16aa3381a57aaadba8850aac715ff10",
+    "source_file": "Х-38.mov",
+    "split": "val",
+    "duration_sec": 58.966667,
+    "original_fps": 29.966082532504238,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      33
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      39
+    ],
+    "source_sha256": "deeeee54539fb894b17447296bd7f0807b9dc662bad9af4dcd27f4fbdd677187",
+    "source_file": "Х-39.mov",
+    "split": "val",
+    "duration_sec": 78.733021,
+    "original_fps": 29.9618966977138,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      40
+    ],
+    "source_sha256": "6a81739ced0efdcd4a4feb76ea16562a20ceb53a2232a801528716c450366c9f",
+    "source_file": "Х-40.mov",
+    "split": "test",
+    "duration_sec": 25.266667,
+    "original_fps": 29.88126649076517,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      17
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      43
+    ],
+    "source_sha256": "39e28d7be01cdb090ede1881ce3ef704fa413271deb69d6735c1953f340d6069",
+    "source_file": "Х-43.mov",
+    "split": "test",
+    "duration_sec": 23.366667,
+    "original_fps": 29.914407988587733,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      44
+    ],
+    "source_sha256": "9774ed882153af3ba1a7e71c9b9249619e2b3a97ae336aad6143369802ca3522",
+    "source_file": "Х-44.mov",
+    "split": "test",
+    "duration_sec": 20.433333,
+    "original_fps": 29.9510603588907,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      16
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      45
+    ],
+    "source_sha256": "524bf9ff2d5e81211dbbeff73129dbb5f3a5e5e35a64f443f53e16b1c2d471c7",
+    "source_file": "Х-45.mov",
+    "split": "test",
+    "duration_sec": 33.333021,
+    "original_fps": 29.88,
+    "source_binary_label": 0,
+    "source_positive_points_sec": [],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  },
+  {
+    "video_ids": [
+      46
+    ],
+    "source_sha256": "66fc5d28c2371592f9260305589bdc86636fdd2ebe7a7ec976eec00a23d43df4",
+    "source_file": "Х-46.mov",
+    "split": "test",
+    "duration_sec": 19.133021,
+    "original_fps": 29.89547038327526,
+    "source_binary_label": 1,
+    "source_positive_points_sec": [
+      11
+    ],
+    "source_label_does_not_label_additional_checks": true,
+    "transaction_intervals": [],
+    "checks": {
+      "identity_document_presentation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      },
+      "customer_hand_oscillation": {
+        "status": "unreviewed",
+        "intervals": [],
+        "evidence_frames": [],
+        "customer_role_verified": false,
+        "visibility": "unreviewed",
+        "notes": ""
+      }
+    },
+    "review_status": "unreviewed"
+  }
+]

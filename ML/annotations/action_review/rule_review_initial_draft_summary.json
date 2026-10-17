@@ -1,0 +1,61 @@
+{
+  "source_groups_reviewed": 40,
+  "source_ids_reviewed": 42,
+  "split_counts": {
+    "train": 24,
+    "val": 10,
+    "test": 6
+  },
+  "review_status_counts": {
+    "draft_ai_visual_review": 40
+  },
+  "weak_label_comparisons_completed": 40,
+  "rule_event_status_counts": {
+    "cash_count_without_customer": {
+      "not_applicable": 31,
+      "unobservable": 8,
+      "not_observed_in_complete_interval": 1
+    },
+    "previous_cash_left_on_desk": {
+      "not_applicable": 31,
+      "unobservable": 9
+    },
+    "cash_handover_without_visible_receipt": {
+      "not_applicable": 27,
+      "unobservable": 13
+    },
+    "collection_bag_not_visibly_checked": {
+      "not_applicable": 34,
+      "unobservable": 6
+    },
+    "counting_without_controller": {
+      "not_applicable": 33,
+      "unobservable": 5,
+      "not_observed_in_complete_interval": 2
+    }
+  },
+  "context_status_counts": {
+    "cash_room_door_context": {
+      "not_applicable": 14,
+      "observed": 26
+    },
+    "storage_keys_context": {
+      "not_applicable": 39,
+      "unobservable": 1
+    }
+  },
+  "identity_check_status_counts": {
+    "observed": 5,
+    "unobservable": 35
+  },
+  "hand_oscillation_status_counts": {
+    "unobservable": 39,
+    "not_observed_in_visible_interval": 1
+  },
+  "rule_event_training_labels": 0,
+  "context_training_labels": 0,
+  "legal_verdicts": 0,
+  "unreviewed_fields": 0,
+  "data_use_status": "draft_not_for_training",
+  "source_binary_label_is_not_rule_ground_truth": true
+}

@@ -1,0 +1,13 @@
+{
+  "unique_video_tasks": 40,
+  "original_video_ids": 42,
+  "splits": {
+    "train": 24,
+    "val": 10,
+    "test": 6
+  },
+  "checks_per_task": 2,
+  "labelled_action_intervals": 0,
+  "status": "unreviewed; no generated ground truth",
+  "source_binary_labels_are_not_identity_or_hand_oscillation_labels": true
+}

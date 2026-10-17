@@ -98,7 +98,8 @@ def _save_upload(key, directory):
             while chunk := upload.stream.read(1024 * 1024):
                 size += len(chunk)
                 if size > current_app.config['MAX_FILE_SIZE']:
-                    raise ApiError(413, 'file_too_large', 'Файл больше 200 МиБ.')
+                    raise ApiError(413, 'file_too_large',
+                                   f"Размер файла превышает лимит {current_app.config['MAX_FILE_SIZE']} байт.")
                 output.write(chunk)
                 digest.update(chunk)
         if not size:

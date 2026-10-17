@@ -38,7 +38,7 @@ class Config:
     JWT_COOKIE_CSRF_PROTECT = True
     JWT_CSRF_IN_COOKIES = False
     MEDIA_ROOT = os.environ.get('MEDIA_ROOT', os.path.join(BACKEND_DIR, 'media'))
-    MAX_FILE_SIZE = 200 * 1024 * 1024
+    MAX_FILE_SIZE = 1024 * 1024 * 1024
     MAX_CONTENT_LENGTH = MAX_FILE_SIZE + 1024 * 1024
     FFPROBE_PATH = os.environ.get('FFPROBE_PATH', 'ffprobe')
     PLAYBACK_TTL = 900

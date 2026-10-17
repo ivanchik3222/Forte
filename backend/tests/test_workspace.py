@@ -88,6 +88,58 @@ def test_upload_size_and_rate_limits(client, auth_headers, storage, app, monkeyp
     assert upload(client, auth_headers, key='another').status_code == 429
 
 
+def test_upload_capabilities_limit(client, auth_headers, app):
+    response = client.get('/api/v1/capabilities', headers=auth_headers)
+    assert response.status_code == 200
+    assert response.json['max_file_size'] == 1024 ** 3
+    assert app.config['MAX_CONTENT_LENGTH'] == 1024 ** 3 + 1024 ** 2
+
+
+def test_upload_exact_limit_and_overflow(client, auth_headers, storage, app, monkeypatch):
+    # Exercise multipart and the chunk boundary without a GiB allocation per test.
+    limit = 1024 * 1024
+    monkeypatch.setitem(app.config, 'MAX_FILE_SIZE', limit)
+    monkeypatch.setitem(app.config, 'MAX_CONTENT_LENGTH', limit + 1024 * 1024)
+    content = b'x' * limit
+    first = upload(client, auth_headers, content)
+    assert first.status_code == 201
+    assert MediaRecord.query.one().size_bytes == limit
+    assert next(storage.glob('*.mov')).read_bytes() == content
+    repeat = upload(client, auth_headers, content)
+    assert repeat.status_code == 200 and repeat.json['id'] == first.json['id']
+    rejected = upload(client, auth_headers, content + b'x', key='oversized')
+    assert rejected.status_code == 413
+    assert rejected.json['error']['code'] == 'file_too_large'
+    assert str(limit) in rejected.json['error']['message']
+    assert MediaRecord.query.count() == 1
+    assert len(list(storage.glob('*.mov'))) == 1
+    assert not list(storage.glob('.pending-*'))
+
+
+def test_upload_body_limit(client, auth_headers, storage, app, monkeypatch):
+    monkeypatch.setitem(app.config, 'MAX_CONTENT_LENGTH', 1024)
+    response = upload(client, auth_headers, b'x' * 1024)
+    assert response.status_code == 413
+    assert response.json['error']['code'] == 'http_413'
+    assert MediaRecord.query.count() == 0
+    assert not list(storage.glob('.pending-*'))
+    assert not list(storage.glob('*.mov'))
+
+
+def test_upload_xhr_cors_preflight(client, app):
+    origin = app.config['CORS_ORIGINS'][0]
+    response = client.options('/api/v1/media', headers={
+        'Origin': origin,
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'authorization,idempotency-key',
+    })
+    assert response.status_code == 200
+    assert response.headers['Access-Control-Allow-Origin'] == origin
+    assert response.headers['Access-Control-Allow-Credentials'] == 'true'
+    allowed = response.headers['Access-Control-Allow-Headers'].lower()
+    assert 'authorization' in allowed and 'idempotency-key' in allowed
+
+
 def test_commit_failure_removes_file(client, auth_headers, storage, monkeypatch):
     def fail():
         raise RuntimeError('Database write failed')

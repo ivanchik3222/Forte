@@ -24,7 +24,13 @@ def root():
 
 
 def media_query():
-    query = MediaRecord.query
+    query = MediaRecord.query.filter(MediaRecord.api_client_id.is_(None))
+    from models import AlertRecording, CameraAlert
+    from services.access import camera_ids
+    # A private upload linked to an out-of-scope camera is no longer visible,
+    # even to its uploader; one accessible association must not bypass another.
+    forbidden = db.select(AlertRecording.media_id).join(CameraAlert, CameraAlert.id == AlertRecording.alert_id).where(~CameraAlert.camera_id.in_(camera_ids()))
+    query = query.filter(~MediaRecord.id.in_(forbidden))
     return query if g.user.user_type == 'admin' else query.filter_by(owner_id=g.user.id)
 
 
@@ -72,7 +78,7 @@ def save_upload():
         raise ApiError(503, 'storage_unavailable', 'Хранилище временно недоступно.')
 
 
-def _save_upload(key, directory):
+def _save_upload(key, directory, api_client_id=None):
     if shutil.disk_usage(directory).free < current_app.config['MAX_FILE_SIZE'] + current_app.config['MIN_FREE_BYTES']:
         raise ApiError(503, 'storage_full', 'Недостаточно места для загрузки.')
     files = request.files.getlist('file')
@@ -92,31 +98,37 @@ def _save_upload(key, directory):
             while chunk := upload.stream.read(1024 * 1024):
                 size += len(chunk)
                 if size > current_app.config['MAX_FILE_SIZE']:
-                    raise ApiError(413, 'file_too_large', 'Файл больше 200 МиБ.')
+                    raise ApiError(413, 'file_too_large',
+                                   f"Размер файла превышает лимит {current_app.config['MAX_FILE_SIZE']} байт.")
                 output.write(chunk)
                 digest.update(chunk)
         if not size:
             raise ApiError(422, 'empty_file', 'Файл пустой.')
         fingerprint = digest.hexdigest()
-        existing = UploadRequest.query.filter_by(owner_id=g.user.id, key=key).first()
+        existing = UploadRequest.query.filter_by(owner_id=g.user.id, key=key).first() if api_client_id is None else None
         if existing:
             if existing.fingerprint != fingerprint:
                 raise ApiError(409, 'idempotency_conflict', 'Этот ключ уже использован для другого файла.')
             return db.session.get(MediaRecord, existing.media_id), 200
-        count = UploadRequest.query.filter(UploadRequest.owner_id == g.user.id,
+        count = (UploadRequest.query.filter(UploadRequest.owner_id == g.user.id,
                                           UploadRequest.created_at >= utcnow() - timedelta(hours=1)).count()
+                 if api_client_id is None else MediaRecord.query.filter(
+                     MediaRecord.api_client_id == api_client_id,
+                     MediaRecord.created_at >= utcnow() - timedelta(hours=1)).count())
         if count >= current_app.config['UPLOADS_PER_HOUR']:
             raise ApiError(429, 'upload_rate_limit', 'Лимит загрузок за час исчерпан.')
         duration = probe(temporary, extension)
-        record = MediaRecord(id=uid(), owner_id=g.user.id, original_name=name,
+        record = MediaRecord(id=uid(), owner_id=g.user.id if api_client_id is None else None,
+                             api_client_id=api_client_id, original_name=name,
                              storage_key=uid() + extension, size_bytes=size,
                              content_type=TYPES[extension], duration_sec=duration)
         destination = directory / record.storage_key
         temporary.replace(destination)
         db.session.add(record)
         db.session.flush()
-        db.session.add(UploadRequest(owner_id=g.user.id, key=key, fingerprint=fingerprint, media_id=record.id))
-        db.session.commit()
+        if api_client_id is None:
+            db.session.add(UploadRequest(owner_id=g.user.id, key=key, fingerprint=fingerprint, media_id=record.id))
+            db.session.commit()
         destination = None  # The committed record owns the file.
         return record, 201
     finally:
@@ -143,6 +155,8 @@ def authorize_file(kind, object_id, token):
     user = db.session.get(User, data.get('user'))
     if data.get('kind') != kind or data.get('id') != object_id or not user or not user.is_active or not session or session.user_id != user.id or session.revoked_at or as_utc(session.expires_at) <= utcnow():
         raise ApiError(401, 'link_invalid', 'Ссылка недействительна.')
+    from utils.decorators import validate_user_security
+    validate_user_security(user, session.id)
     g.user = user
     return user
 

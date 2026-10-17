@@ -16,7 +16,15 @@ test("validates actual upload constraints, including empty and oversized MOV", (
   expect(validateVideo(new File([], "empty.mov"))).toMatch(/пустой/);
   const largeFile = new File(["v"], "large.mov");
   Object.defineProperty(largeFile, "size", { value: MAX_FILE_SIZE + 1 });
-  expect(validateVideo(largeFile)).toMatch(/200/);
+  expect(validateVideo(largeFile)).toMatch(/1 ГБ/);
+});
+
+test("accepts videos above the previous limit and exactly 1 GB", () => {
+  for (const size of [300 * 1024 ** 2, 1024 ** 3]) {
+    const file = new File(["v"], "shift.mp4");
+    Object.defineProperty(file, "size", { value: size });
+    expect(validateVideo(file)).toBeNull();
+  }
 });
 
 test("rejects inconsistent verdicts and malformed evidence instead of inventing a result", () => {

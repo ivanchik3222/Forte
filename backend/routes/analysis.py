@@ -84,47 +84,11 @@ def latest(record_id):
 @analysis_bp.get('/jobs/<job_id>')
 def job_status(job_id):
     if 'X-API-Key' in request.headers:
-        authenticate_jury()
-        job = get_job(job_id)
-        finished = as_utc(job.finished_at) if job.finished_at else utcnow()
-        if (finished-as_utc(job.created_at)).total_seconds() > 300:
-            return jsonify(job_id=job.id,status='failed',error='Превышен лимит обработки 5 минут.',error_code='deadline_exceeded')
-        if job.status in ('queued','processing'):
-            return jsonify(job_id=job.id,status='processing')
-        if job.status == 'failed':
-            return jsonify(job_id=job.id,status='failed',error=job.error)
-        try:
-            return jsonify(final_answer(job.id,job.result or {},root()/'analysis'/job.id))
-        except DecisionUnavailable as exc:
-            return jsonify(job_id=job.id,status='failed',error=str(exc),error_code='classification_not_ready')
+        from services.api_keys import authenticate_key
+        from routes.public_api import public_job
+        authenticate_key()
+        return jsonify(public_job(job_id))
     return active_required(lambda: jsonify(job_dto(get_job(job_id))))()
-
-
-@analysis_bp.post('/analyze')
-@jury_required
-def jury_analyze():
-    if not available():
-        raise ApiError(503,'analysis_unavailable','Локальная модель недоступна.')
-    uploads = request.files.getlist('file')
-    if len(uploads) != 1 or not (uploads[0].filename or '').lower().endswith('.mov'):
-        raise ApiError(415,'unsupported_format','API жюри принимает один MOV в поле file.')
-    try:
-        with FileLock(str(root()/'.analysis-submit.lock'),timeout=0):
-            if AnalysisJob.query.filter(AnalysisJob.status.in_(['queued','processing'])).count() >= current_app.config['ML_QUEUE_LIMIT']:
-                raise ApiError(429,'analysis_busy','Очередь заполнена.')
-            # The required jury protocol does not require Idempotency-Key.
-            if not request.headers.get('Idempotency-Key'):
-                request.environ['HTTP_IDEMPOTENCY_KEY'] = uuid4().hex
-            from services.media import save_upload
-            media,_ = save_upload()
-            job = AnalysisJob.query.filter_by(media_id=media.id).first()
-            if not job:
-                # A new angle is allowed by the case; never apply the fixed native crop implicitly.
-                job = AnalysisJob(media_id=media.id,camera_profile='full_frame')
-                db.session.add(job); db.session.commit()
-            return jsonify(job_id=job.id),202
-    except Timeout:
-        raise ApiError(429,'analysis_busy','Повторите запрос через несколько секунд.')
 
 
 @analysis_bp.get('/jobs/<job_id>/evidence/<int:index>')

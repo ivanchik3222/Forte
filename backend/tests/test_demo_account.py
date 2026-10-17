@@ -41,6 +41,7 @@ def test_demo_session_refresh_logout_and_permissions(client):
     assert client.post('/api/v1/cameras', headers=headers, json={'name': 'Demo', 'location': 'Test'}).status_code == 403
     csrf = {'X-CSRF-TOKEN': response.json['csrf_token']}
     assert client.post('/api/auth/refresh', headers=csrf).status_code == 200
+    csrf = {'X-CSRF-TOKEN': client.get('/api/auth/session-csrf').json['csrf_token']}
     assert client.post('/api/auth/logout', headers=csrf).status_code == 200
     assert client.get('/api/auth/me', headers=headers).status_code == 401
 
@@ -97,7 +98,7 @@ def test_existing_conflicting_account_is_not_overwritten(app, create_user):
 
 def test_init_db_recreates_demo_after_database_reset(tmp_path):
     from app import create_app
-    fresh = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': f'sqlite:///{tmp_path / "demo.db"}'})
+    fresh = create_app({'TESTING': True, 'DEMO_MODE': True, 'SQLALCHEMY_DATABASE_URI': f'sqlite:///{tmp_path / "demo.db"}'})
     with fresh.app_context():
         runner = fresh.test_cli_runner()
         for _ in range(2):

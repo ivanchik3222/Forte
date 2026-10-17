@@ -29,8 +29,8 @@ class Config:
 
     # JWT
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'dev-jwt-secret-key-change-in-production')
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)
-    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(hours=12)
     JWT_COOKIE_SECURE = os.environ.get('COOKIE_SECURE', 'false').lower() == 'true'
     JWT_COOKIE_SAMESITE = os.environ.get('COOKIE_SAMESITE', 'Lax')
     JWT_REFRESH_COOKIE_PATH = os.environ.get('AUTH_COOKIE_PATH', '/api/auth')
@@ -38,12 +38,19 @@ class Config:
     JWT_COOKIE_CSRF_PROTECT = True
     JWT_CSRF_IN_COOKIES = False
     MEDIA_ROOT = os.environ.get('MEDIA_ROOT', os.path.join(BACKEND_DIR, 'media'))
-    MAX_FILE_SIZE = 200 * 1024 * 1024
+    MAX_FILE_SIZE = 1024 * 1024 * 1024
     MAX_CONTENT_LENGTH = MAX_FILE_SIZE + 1024 * 1024
     FFPROBE_PATH = os.environ.get('FFPROBE_PATH', 'ffprobe')
     PLAYBACK_TTL = 900
     UPLOADS_PER_HOUR = 30
     MIN_FREE_BYTES = 256 * 1024 * 1024
+    DEMO_MODE = os.environ.get('DEMO_MODE', 'true').lower() == 'true'
+    ADMIN_MFA_REQUIRED = False
+    AUTH_ACCOUNT_LIMIT = 10
+    AUTH_IP_LIMIT = 60
+    AUTH_WINDOW_SECONDS = 300
+    MIN_PASSWORD_LENGTH = 12
+    MAX_PASSWORD_LENGTH = 128
     PUBLIC_REGISTRATION = True
     ALLOW_TEST_EVENTS = False
     REQUIRE_SECURE_CONFIG = False
@@ -53,8 +60,11 @@ class Config:
     ML_DEVICE = os.environ.get('ML_DEVICE') or None
     ML_JOB_TIMEOUT = 300
     ML_QUEUE_LIMIT = 20
-    JURY_API_KEY = os.environ.get('JURY_API_KEY', '')
-    JURY_OWNER_ID = int(os.environ['JURY_OWNER_ID']) if os.environ.get('JURY_OWNER_ID') else None
+    API_KEY_DAYS = 30
+    API_KEY_ISSUE_LIMIT = 3
+    API_KEY_GLOBAL_ISSUE_LIMIT = 100
+    API_UPLOAD_IP_LIMIT = 10
+    API_JOB_DEADLINE = 300
 
 
 class DevelopmentConfig(Config):
@@ -65,6 +75,7 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     """Конфигурация для тестирования"""
     TESTING = True
+    DEMO_MODE = True
     ML_ENABLED = False
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=5)
@@ -75,6 +86,7 @@ class ProductionConfig(Config):
     DEBUG = False
     PUBLIC_REGISTRATION = False
     REQUIRE_SECURE_CONFIG = True
+    ADMIN_MFA_REQUIRED = True
     JWT_COOKIE_SECURE = os.environ.get('COOKIE_SECURE', 'true').lower() == 'true'
 
 

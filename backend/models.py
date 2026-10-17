@@ -77,10 +77,20 @@ class AuthSession(db.Model):
     revoked_at = db.Column(db.DateTime(timezone=True))
 
 
+class ApiClient(db.Model):
+    __tablename__ = 'api_clients'
+    id = db.Column(db.String(36), primary_key=True, default=uid)
+    key_hash = db.Column(db.String(64), nullable=False, unique=True)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+    expires_at = db.Column(db.DateTime(timezone=True), nullable=False)
+    revoked_at = db.Column(db.DateTime(timezone=True))
+
+
 class MediaRecord(db.Model):
     __tablename__ = 'media_records'
     id = db.Column(db.String(36), primary_key=True, default=uid)
-    owner_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='RESTRICT'), nullable=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='RESTRICT'), nullable=True)
+    api_client_id = db.Column(db.String(36), db.ForeignKey('api_clients.id', ondelete='RESTRICT'), index=True)
     original_name = db.Column(db.String(255), nullable=False)
     search_name = db.Column(db.String(510), nullable=False, default=lambda context: context.get_current_parameters()['original_name'].casefold())
     storage_key = db.Column(db.String(80), nullable=False, unique=True)
@@ -88,7 +98,8 @@ class MediaRecord(db.Model):
     content_type = db.Column(db.String(80), nullable=False)
     duration_sec = db.Column(db.Float)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
-    __table_args__ = (db.Index('ix_media_owner_created', 'owner_id', 'created_at', 'id'), db.CheckConstraint('size_bytes > 0', name='positive_media_size'))
+    __table_args__ = (db.Index('ix_media_owner_created', 'owner_id', 'created_at', 'id'), db.CheckConstraint('size_bytes > 0', name='positive_media_size'),
+        db.CheckConstraint('(owner_id IS NOT NULL AND api_client_id IS NULL) OR (owner_id IS NULL AND api_client_id IS NOT NULL)', name='media_exactly_one_owner'))
 
     def to_dict(self):
         analysis_status = db.session.query(AnalysisJob.status).filter_by(media_id=self.id).scalar()
@@ -220,3 +231,49 @@ class RegulatorySource(db.Model):
 
     def to_dict(self):
         return {k: getattr(self, k) for k in ('id', 'title', 'number', 'document_date', 'url', 'publisher')}
+
+
+class Branch(db.Model):
+    __tablename__ = 'branches'
+    id = db.Column(db.String(36), primary_key=True, default=uid)
+    name = db.Column(db.String(120), nullable=False)
+
+
+class CameraScope(db.Model):
+    __tablename__ = 'camera_scopes'
+    camera_id = db.Column(db.String(36), db.ForeignKey('cameras.id', ondelete='CASCADE'), primary_key=True)
+    branch_id = db.Column(db.String(36), db.ForeignKey('branches.id', ondelete='RESTRICT'), nullable=False)
+    is_demo = db.Column(db.Boolean, nullable=False, default=False)
+
+
+class BranchAccess(db.Model):
+    __tablename__ = 'branch_access'
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
+    branch_id = db.Column(db.String(36), db.ForeignKey('branches.id', ondelete='CASCADE'), primary_key=True)
+
+
+class CameraAccess(db.Model):
+    __tablename__ = 'camera_access'
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
+    camera_id = db.Column(db.String(36), db.ForeignKey('cameras.id', ondelete='CASCADE'), primary_key=True)
+
+
+class SessionSecurity(db.Model):
+    __tablename__ = 'session_security'
+    session_id = db.Column(db.String(36), db.ForeignKey('auth_sessions.id', ondelete='CASCADE'), primary_key=True)
+    refresh_jti = db.Column(db.String(36), nullable=False)
+    mfa_verified = db.Column(db.Boolean, nullable=False, default=False)
+
+
+class LoginBucket(db.Model):
+    __tablename__ = 'login_buckets'
+    key = db.Column(db.String(64), primary_key=True)
+    window = db.Column(db.BigInteger, nullable=False)
+    count = db.Column(db.Integer, nullable=False)
+
+
+class UserMFA(db.Model):
+    __tablename__ = 'user_mfa'
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
+    secret = db.Column(db.Text, nullable=False)
+    last_step = db.Column(db.BigInteger, nullable=False, default=-1)

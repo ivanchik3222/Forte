@@ -8,6 +8,8 @@ from utils.errors import ApiError
 from services.media import save_upload, media_query, get_media, sign_file, authorize_file, file_path
 from services.monitoring import latest_reports, camera_dto, monitoring_snapshot
 
+from services.access import camera_query, alert_query, get_alert
+
 workspace_bp = Blueprint('workspace', __name__)
 
 
@@ -38,7 +40,7 @@ def day_bounds():
 
 def alerts_for_day():
     _, start, end = day_bounds()
-    query = CameraAlert.query.filter(CameraAlert.detected_at >= start, CameraAlert.detected_at < end)
+    query = alert_query().filter(CameraAlert.detected_at >= start, CameraAlert.detected_at < end)
     camera = request.args.get('camera_id')
     if camera:
         query = query.filter_by(camera_id=camera)
@@ -139,7 +141,7 @@ def report(record_id):
 @active_required
 def cameras():
     reports, now = latest_reports(), utcnow()
-    return jsonify(pagination(Camera.query.order_by(Camera.name, Camera.id), lambda c: camera_dto(c, reports.get(c.id), now)))
+    return jsonify(pagination(camera_query().order_by(Camera.name, Camera.id), lambda c: camera_dto(c, reports.get(c.id), now)))
 
 
 @workspace_bp.post('/cameras')
@@ -185,7 +187,7 @@ def notifications():
 @workspace_bp.get('/notifications/<alert_id>')
 @active_required
 def notification_detail(alert_id):
-    alert = db.session.get(CameraAlert, alert_id)
+    alert = get_alert(alert_id)
     if not alert:
         raise ApiError(404, 'not_found', 'Событие не найдено.')
     return jsonify(alert_dto(alert, detail=True))
@@ -198,7 +200,7 @@ def mark_read():
     if not isinstance(ids, list) or len(ids) > 100 or any(not isinstance(i, str) for i in ids):
         raise ApiError(422, 'invalid_ids', 'Передайте до 100 ID событий.')
     ids = list(set(ids))
-    if CameraAlert.query.filter(CameraAlert.id.in_(ids)).count() != len(ids):
+    if alert_query().filter(CameraAlert.id.in_(ids)).count() != len(ids):
         raise ApiError(404, 'not_found', 'Событие не найдено.')
     # Database upsert prevents races between tabs and preserves the first read time.
     from sqlalchemy.dialects.sqlite import insert as sqlite_insert
@@ -217,6 +219,7 @@ def frame_content(frame_id):
     frame = db.session.get(EvidenceFrame, frame_id)
     if not frame:
         raise ApiError(404, 'not_found', 'Кадр не найден.')
+    get_alert(frame.alert_id)
     return send_file(file_path(frame.storage_key), mimetype='image/jpeg', conditional=True)
 
 
@@ -229,8 +232,8 @@ def overview():
     day, start, end = day_bounds()
     health = monitoring_snapshot(start, end)
     return jsonify(date=day, monitoring_summary=health['summary'], today_total=total, today_read=read, today_unread=total-read,
-                   unread_total=CameraAlert.query.filter(~is_read()).count(),
-                   camera_total=Camera.query.count(), media_total=media_query().count(),
+                   unread_total=alert_query().filter(~is_read()).count(),
+                   camera_total=camera_query().count(), media_total=media_query().count(),
                    recent_alerts=[alert_dto(a) for a in query.order_by(CameraAlert.detected_at.desc(), CameraAlert.id.desc()).limit(5)],
                    recent_media=[m.to_dict() for m in media_query().order_by(MediaRecord.created_at.desc(), MediaRecord.id.desc()).limit(3)])
 

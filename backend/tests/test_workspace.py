@@ -1,3 +1,4 @@
+from tests.access_helpers import grant_camera
 import io
 import json
 import os
@@ -87,6 +88,58 @@ def test_upload_size_and_rate_limits(client, auth_headers, storage, app, monkeyp
     assert upload(client, auth_headers, key='another').status_code == 429
 
 
+def test_upload_capabilities_limit(client, auth_headers, app):
+    response = client.get('/api/v1/capabilities', headers=auth_headers)
+    assert response.status_code == 200
+    assert response.json['max_file_size'] == 1024 ** 3
+    assert app.config['MAX_CONTENT_LENGTH'] == 1024 ** 3 + 1024 ** 2
+
+
+def test_upload_exact_limit_and_overflow(client, auth_headers, storage, app, monkeypatch):
+    # Exercise multipart and the chunk boundary without a GiB allocation per test.
+    limit = 1024 * 1024
+    monkeypatch.setitem(app.config, 'MAX_FILE_SIZE', limit)
+    monkeypatch.setitem(app.config, 'MAX_CONTENT_LENGTH', limit + 1024 * 1024)
+    content = b'x' * limit
+    first = upload(client, auth_headers, content)
+    assert first.status_code == 201
+    assert MediaRecord.query.one().size_bytes == limit
+    assert next(storage.glob('*.mov')).read_bytes() == content
+    repeat = upload(client, auth_headers, content)
+    assert repeat.status_code == 200 and repeat.json['id'] == first.json['id']
+    rejected = upload(client, auth_headers, content + b'x', key='oversized')
+    assert rejected.status_code == 413
+    assert rejected.json['error']['code'] == 'file_too_large'
+    assert str(limit) in rejected.json['error']['message']
+    assert MediaRecord.query.count() == 1
+    assert len(list(storage.glob('*.mov'))) == 1
+    assert not list(storage.glob('.pending-*'))
+
+
+def test_upload_body_limit(client, auth_headers, storage, app, monkeypatch):
+    monkeypatch.setitem(app.config, 'MAX_CONTENT_LENGTH', 1024)
+    response = upload(client, auth_headers, b'x' * 1024)
+    assert response.status_code == 413
+    assert response.json['error']['code'] == 'http_413'
+    assert MediaRecord.query.count() == 0
+    assert not list(storage.glob('.pending-*'))
+    assert not list(storage.glob('*.mov'))
+
+
+def test_upload_xhr_cors_preflight(client, app):
+    origin = app.config['CORS_ORIGINS'][0]
+    response = client.options('/api/v1/media', headers={
+        'Origin': origin,
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'authorization,idempotency-key',
+    })
+    assert response.status_code == 200
+    assert response.headers['Access-Control-Allow-Origin'] == origin
+    assert response.headers['Access-Control-Allow-Credentials'] == 'true'
+    allowed = response.headers['Access-Control-Allow-Headers'].lower()
+    assert 'authorization' in allowed and 'idempotency-key' in allowed
+
+
 def test_commit_failure_removes_file(client, auth_headers, storage, monkeypatch):
     def fail():
         raise RuntimeError('Database write failed')
@@ -112,6 +165,7 @@ def test_session_csrf_restore_logout_revokes_media(client, user1, storage):
     csrf = client.get('/api/auth/session-csrf').json['csrf_token']
     assert client.post('/api/auth/refresh', headers={'X-CSRF-TOKEN': csrf}).status_code == 200
     assert client.post('/api/auth/refresh', headers={'X-CSRF-TOKEN': csrf, 'Origin': 'https://evil.invalid'}).status_code == 403
+    csrf = client.get('/api/auth/session-csrf').json['csrf_token']
     assert client.post('/api/auth/logout', headers={'X-CSRF-TOKEN': csrf}).status_code == 200
     assert client.get('/api/v1/media', headers=headers).status_code == 401
     assert client.get(url).status_code == 401
@@ -135,9 +189,10 @@ def test_registration_can_be_disabled(client, app, monkeypatch):
     assert result.status_code == 403
 
 
-def test_notifications_date_read_scope_and_counts(client, auth_headers, user2):
+def test_notifications_date_read_scope_and_counts(client, auth_headers, user1, user2):
     camera = Camera(id='cam1', name='Cash 1', location='Office')
     db.session.add(camera); db.session.flush()
+    grant_camera(camera, user1, user2)
     for i, hour in enumerate([18, 19, 20]):
         db.session.add(CameraAlert(id=f'event{i}', camera_id=camera.id, source='test', type='Test', description='Test only', detected_at=datetime(2026,10,16,hour,tzinfo=timezone.utc)))
     db.session.commit()
@@ -161,7 +216,7 @@ def test_camera_admin_and_unavailable_analysis(client, auth_headers, admin_heade
     created = client.post('/api/v1/cameras', json={'name':'C','location':'L'}, headers=admin_headers)
     assert created.status_code == 201 and created.json['status'] == 'unknown'
     assert client.patch('/api/v1/cameras/'+created.json['id'], json={'status':'online'}, headers=admin_headers).status_code == 422
-    assert client.post('/api/v1/analyze', headers=auth_headers).json['error']['code'] == 'jury_not_configured'
+    assert client.post('/api/v1/analyze', headers=auth_headers).json['error']['code'] == 'ambiguous_auth'
 
 
 @pytest.mark.parametrize('path', ['/media?page=0','/media?per_page=101','/media?sort=no','/notifications?date=bad','/notifications?read=wrong'])
@@ -196,7 +251,7 @@ def test_legacy_adoption_preserves_users(tmp_path):
         result = fresh.test_cli_runner().invoke(args=['adopt-legacy-db','--backup-confirmed'])
         assert result.exit_code == 0, result.output
         assert User.query.filter_by(email='legacy@test.com').one()
-        assert db.session.execute(text('select version_num from alembic_version')).scalar() == '0004'
+        assert db.session.execute(text('select version_num from alembic_version')).scalar() == '0006'
         db.session.remove(); db.engine.dispose()
 
 
@@ -240,13 +295,14 @@ def test_import_test_events_is_idempotent_and_blocked_in_production(app, client,
     assert runner.invoke(args=['import-test-events',str(fixture)]).exit_code != 0
 
 
-def test_signed_url_expiration_and_frame_access(client, auth_headers, storage, app, monkeypatch):
+def test_signed_url_expiration_and_frame_access(client, auth_headers, storage, app, monkeypatch, user1):
     record=upload(client,auth_headers).json
     url=client.post(f'/api/v1/media/{record["id"]}/playback-url',headers=auth_headers).json['url']
     monkeypatch.setitem(app.config,'PLAYBACK_TTL',-1)
     assert client.get(url).status_code == 401
     monkeypatch.setitem(app.config,'PLAYBACK_TTL',900)
     camera=Camera(id='camera-frame',name='C',location='L'); db.session.add(camera); db.session.flush()
+    grant_camera(camera, user1)
     alert=CameraAlert(id='alert-frame',camera_id=camera.id,source='test',type='Frame',description='Fixture')
     db.session.add(alert); db.session.flush()
     frame=EvidenceFrame(id='frame1',alert_id=alert.id,timestamp_sec=0,storage_key='fixture.jpg')

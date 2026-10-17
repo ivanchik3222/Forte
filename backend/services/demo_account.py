@@ -1,4 +1,5 @@
 """The public, shared account used by the quick sign-in button."""
+from flask import current_app
 from sqlalchemy.exc import IntegrityError
 from models import db, User
 
@@ -12,6 +13,8 @@ def is_demo_user(user):
 
 
 def seed_demo_user():
+    if not current_app.config['DEMO_MODE']:
+        raise ValueError('Demo accounts are disabled in this deployment.')
     user = User.query.filter(db.func.lower(User.email) == DEMO_EMAIL).first()
     if user is None:
         user = User(email=DEMO_EMAIL, full_name='Тестовый пользователь',

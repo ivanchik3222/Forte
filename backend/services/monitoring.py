@@ -72,10 +72,11 @@ def ingest_health(camera_id, external_id, source, status, checked_at):
 
 def monitoring_snapshot(start, end, camera_id=None, now=None):
     now = now or utcnow()
-    cameras = Camera.query.order_by(Camera.name, Camera.id).all()
+    from services.access import camera_query, camera_ids
+    cameras = camera_query().order_by(Camera.name, Camera.id).all()
     reports = latest_reports()
     scope = [c for c in cameras if not camera_id or c.id == camera_id]
-    query = CameraHealthInterval.query.filter(CameraHealthInterval.started_at < min(end, now),
+    query = CameraHealthInterval.query.filter(CameraHealthInterval.camera_id.in_(camera_ids()), CameraHealthInterval.started_at < min(end, now),
         or_(CameraHealthInterval.ended_at.is_(None), CameraHealthInterval.ended_at > start))
     if camera_id:
         query = query.filter_by(camera_id=camera_id)

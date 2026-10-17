@@ -6,6 +6,8 @@ from models import (db, Camera, CameraAlert, CameraHealthReport, CameraHealthInt
                     AlertRecording, MediaRecord, User, AuthSession)
 from routes.auth import make_tokens
 
+from tests.access_helpers import grant_camera
+
 BASE = datetime(2026, 10, 17, 7, tzinfo=timezone.utc)
 
 
@@ -19,10 +21,11 @@ def clock(monkeypatch):
 
 
 @pytest.fixture
-def camera():
+def camera(user1, user2):
     item = Camera(name='Cash 1', location='Astana')
     db.session.add(item)
     db.session.commit()
+    grant_camera(item, user1, user2)
     return item
 
 
@@ -154,9 +157,10 @@ def test_invalid_health_input(client, admin_headers, camera, clock, field, value
     assert CameraHealthReport.query.count() == 0
 
 
-def test_health_day_clipping_camera_minutes_filters_pagination(client, auth_headers, admin_headers, camera, clock):
+def test_health_day_clipping_camera_minutes_filters_pagination(client, auth_headers, admin_headers, camera, clock, user1):
     other = Camera(name='Cash 2', location='Astana')
     db.session.add(other); db.session.commit()
+    grant_camera(other, user1)
     # 23:59 previous day in Astana; continuous reports cross the day boundary.
     start = datetime(2026, 10, 16, 18, 59, tzinfo=timezone.utc)
     for c in (camera, other):
@@ -266,11 +270,16 @@ def test_new_migration_preserves_existing_video_event_and_readiness(tmp_path):
     with app.app_context():
         upgrade(revision='0002')
         user = User(email='old@test.test'); db.session.add(user); db.session.flush()
-        media = MediaRecord(owner_id=user.id, original_name='old.mp4', storage_key='old.mp4', size_bytes=10, content_type='video/mp4')
-        camera = Camera(name='old', location='Astana'); db.session.add_all([media,camera]); db.session.flush()
+        # Insert using the historical schema, not today's ORM columns.
+        from sqlalchemy import Table, MetaData
+        old_media = Table('media_records', MetaData(), autoload_with=db.engine)
+        db.session.execute(old_media.insert().values(id='old-media', owner_id=user.id,
+            original_name='old.mp4', search_name='old.mp4', storage_key='old.mp4',
+            size_bytes=10, content_type='video/mp4', created_at=BASE))
+        camera = Camera(name='old', location='Astana'); db.session.add(camera); db.session.flush()
         alert = CameraAlert(camera_id=camera.id, source='old', type='old', description='old')
         db.session.add(alert); db.session.commit()
-        ids = user.id, media.id, alert.id
+        ids = user.id, 'old-media', alert.id
         upgrade()
         assert db.session.get(User, ids[0]) and db.session.get(MediaRecord, ids[1]) and db.session.get(CameraAlert, ids[2])
         assert app.test_client().get('/api/ready').status_code == 200

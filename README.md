@@ -54,3 +54,9 @@ JWT_SECRET_KEY=...
 5. После push в `main` проверьте GitHub Actions и оба публичных URL. Если изменили `REACT_APP_API_URL`, выполните новый деплой: это значение записывается в JavaScript при сборке.
 
 Файл `.env` остаётся на VPS и не передаётся workflow.
+
+## Swagger API
+
+Интерактивная документация backend: [Swagger UI](http://localhost:6767/api/docs/).
+Спецификация: [OpenAPI JSON](http://localhost:6767/api/openapi.json).
+Авторизация и запуск описаны в [backend/README.md](backend/README.md#swagger--openapi).

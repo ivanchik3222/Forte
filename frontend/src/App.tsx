@@ -6,6 +6,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { LandingPage } from "./pages/LandingPage";
+import { ApiAccessPage } from "./pages/ApiAccessPage";
 import { Icon, IconName } from "./components/Icon";
 import { Modal } from "./components/Modal";
 import { LoginPanel } from "./components/LoginPanel";
@@ -70,6 +71,7 @@ function WorkspaceApp() {
     navigation.find((item) => item.id === active)?.label ||
     (active === "settings" ? "Настройки" : "Обзор");
   const name = user?.full_name || user?.nickname || "Рабочее пространство";
+  if (pathname === "/api-access") return <ApiAccessPage />;
   if (pathname === "/") return <LandingPage />;
   if (mode === "api" || pathname === "/login") return <LiveWorkspace />;
   return (

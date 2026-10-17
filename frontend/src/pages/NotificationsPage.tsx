@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { NotificationFeed } from "../features/notifications/NotificationFeed";
 import { localDay, useCurrentDay } from "../features/notifications/types";
@@ -81,6 +82,18 @@ export function NotificationsPage({ onNew }: { onNew: () => void }) {
       <p role="status" className="notification-announcement">
         {announcement}
       </p>
+      <div className="notification-review-links">
+        <Link to="/shift">
+          <Icon name="play" size={17} />
+          Смотреть смену за минуту
+          <Icon name="arrow" size={16} />
+        </Link>
+        <Link to="/monitoring">
+          <Icon name="eye" size={18} />
+          Проверить доступность камер
+          <Icon name="arrow" size={16} />
+        </Link>
+      </div>
       <section className="panel inbox-panel" aria-label="Лента оповещений">
         <div className="inbox-toolbar">
           <div className="inbox-date">

@@ -5,6 +5,12 @@ import { AnalysisRecord } from "../features/analysis/types";
 import { NotificationFeed } from "../features/notifications/NotificationFeed";
 import { localDay, useCurrentDay } from "../features/notifications/types";
 import { useNotificationStore } from "../store/useNotificationStore";
+import {
+  cameraHealth,
+  healthLabels,
+  incidentWindow,
+  useMonitoringNow,
+} from "../features/monitoring/health";
 
 export function OverviewPage({
   records,
@@ -18,7 +24,16 @@ export function OverviewPage({
   onHelp: () => void;
 }) {
   const today = useCurrentDay();
-  const { alerts, cameras, connection } = useNotificationStore();
+  const { alerts, cameras, connection, healthSignals, healthIncidents } =
+    useNotificationStore();
+  const now = useMonitoringNow();
+  const interruptions = healthIncidents.filter((i) =>
+    incidentWindow(i, today, now),
+  );
+  const uncertainCameras = cameras.filter(
+    (c) =>
+      cameraHealth(c, healthSignals[c.id], connection, now) !== "observing",
+  ).length;
   const daily = alerts.filter((alert) => localDay(alert.detectedAt) === today);
   const fresh = daily.filter((alert) => !alert.readAt).length;
   return (
@@ -90,6 +105,58 @@ export function OverviewPage({
           </div>
         </dl>
       </section>
+      <div className="review-feature-grid">
+        <Link className="review-feature review-feature-shift" to="/shift">
+          <div className="review-feature-top">
+            <span>ВАЖНОЕ ЗА ДЕНЬ</span>
+            <Icon name="arrow" size={21} />
+          </div>
+          <div className="review-feature-main">
+            <span className="review-play-orb">
+              <Icon name="play" size={24} />
+            </span>
+            <div>
+              <h2>Смена за минуту</h2>
+              <p>
+                {daily.length
+                  ? `До ${Math.min(daily.length, 6)} эпизодов. Смотрите важное, открывайте контекст.`
+                  : "Короткая подборка появится, когда поступят события."}
+              </p>
+            </div>
+          </div>
+          <div className="review-feature-bottom">
+            <span>Смотреть обзор</span>
+            <span>Эпизоды → контекст</span>
+          </div>
+        </Link>
+        <Link className="review-feature review-feature-health" to="/monitoring">
+          <div className="review-feature-top">
+            <span>КОНТРОЛЬ КАМЕР</span>
+            <Icon name="arrow" size={21} />
+          </div>
+          <div className="review-feature-main">
+            <span className="review-health-number">
+              {String(uncertainCameras).padStart(2, "0")}
+            </span>
+            <div>
+              <h2>
+                {uncertainCameras
+                  ? "Наблюдение под вопросом"
+                  : "Доступность наблюдения"}
+              </h2>
+              <p>
+                {uncertainCameras
+                  ? "Камеры с проблемами или без свежего подтверждения."
+                  : "Проверки изображения и журнал перерывов за день."}
+              </p>
+            </div>
+          </div>
+          <div className="review-feature-bottom">
+            <span>Проверить камеры</span>
+            <span>Сбоев за день: {interruptions.length}</span>
+          </div>
+        </Link>
+      </div>
       <div className="operations-grid">
         <section className="panel overview-notifications">
           <div className="section-heading">
@@ -124,12 +191,18 @@ export function OverviewPage({
                     <p>{camera.location}</p>
                   </div>
                   <span
-                    className={`camera-state ${camera.status}`}
-                    aria-label={`${camera.name}: ${camera.status === "online" ? "наблюдение" : "нет связи"}`}
+                    className={`camera-health-tag health-${cameraHealth(camera, healthSignals[camera.id], connection, now)}`}
                   >
-                    <span className="visually-hidden">
-                      {camera.status === "online" ? "Наблюдение" : "Нет связи"}
-                    </span>
+                    {
+                      healthLabels[
+                        cameraHealth(
+                          camera,
+                          healthSignals[camera.id],
+                          connection,
+                          now,
+                        )
+                      ]
+                    }
                   </span>
                 </li>
               ))}

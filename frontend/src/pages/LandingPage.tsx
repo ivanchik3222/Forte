@@ -406,18 +406,19 @@ export function LandingPage() {
           </div>
         </section>
         <section className="landing-container landing-cta">
-          <div>
+          <div className="landing-cta-copy">
             <p className="landing-eyebrow">ПОСМОТРИТЕ НА ЗАПИСЬ ПО-НОВОМУ</p>
             <h2>
               Важное начинается
               <br />с вашего внимания.
             </h2>
             <p>Откройте рабочее пространство и попробуйте первую проверку.</p>
+            <Link to="/workspace" className="button button-primary">
+              Перейти к проверке
+              <Icon name="arrow" size={20} />
+            </Link>
           </div>
-          <Link to="/workspace" className="button button-primary">
-            Перейти к проверке
-            <Icon name="arrow" size={20} />
-          </Link>
+          <div className="landing-cta-art" aria-hidden="true" />
         </section>
       </main>
       <footer className="landing-footer landing-container">

@@ -19,6 +19,8 @@ export interface CameraAlert {
   mode: AnalysisMode;
   event: Violation;
   readAt?: string;
+  // timecode_sec and evidence timestamps are offsets from the start of this recording.
+  recording?: { url: string; durationSec: number };
 }
 
 const dayFormatter = new Intl.DateTimeFormat("en-CA", {

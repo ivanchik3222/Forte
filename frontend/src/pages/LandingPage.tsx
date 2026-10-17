@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAnalysisStore } from "../store/useAnalysisStore";
 import { Icon } from "../components/Icon";
 
 const capabilities = [
@@ -158,7 +159,15 @@ export function LandingPage() {
                   Начать проверку
                   <Icon name="arrow" size={18} />
                 </Link>
-                <Link to="/analysis/demo-001" className="landing-demo-button">
+                <Link
+                  to="/analysis/demo-001"
+                  className="landing-demo-button"
+                  onClick={() =>
+                    useAnalysisStore
+                      .getState()
+                      .setSettings({ mode: "demo", apiKey: "" })
+                  }
+                >
                   <span>
                     <Icon name="play" size={14} />
                   </span>
@@ -254,7 +263,15 @@ export function LandingPage() {
               <span>Кадр</span>
               <span>Обоснование</span>
             </div>
-            <Link to="/analysis/demo-001" className="button button-primary">
+            <Link
+              to="/analysis/demo-001"
+              className="button button-primary"
+              onClick={() =>
+                useAnalysisStore
+                  .getState()
+                  .setSettings({ mode: "demo", apiKey: "" })
+              }
+            >
               Открыть пример проверки
               <Icon name="arrow" size={18} />
             </Link>

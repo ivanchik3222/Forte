@@ -9,45 +9,181 @@ export interface User {
 interface AuthResponse {
   user: User;
   access_token: string;
-  refresh_token: string;
+  csrf_token?: string;
 }
-
-const apiBaseUrl = (
-  process.env.REACT_APP_API_URL || 'http://localhost:6767'
-).replace(/\/$/, '');
-
+export const apiBaseUrl = (
+  process.env.REACT_APP_API_URL || "http://localhost:6767"
+).replace(/\/$/, "");
 export class ApiError extends Error {
-  constructor(message: string, public readonly status: number) {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly code = "",
+  ) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
   }
 }
-
+let token: string | null = null;
+let csrf = "";
+let generation = 0;
+let refreshPromise: Promise<AuthResponse> | null = null;
+const requests = new Set<AbortController>();
+let onSession: (session: AuthResponse | null) => void = () => {};
+export function observeSession(callback: typeof onSession) {
+  onSession = callback;
+}
+function applySession(session: AuthResponse | null) {
+  if (
+    session &&
+    (!session.user ||
+      !Number.isInteger(session.user.id) ||
+      typeof session.access_token !== "string" ||
+      !session.access_token)
+  )
+    throw new Error("Некорректный ответ сервера авторизации.");
+  token = session?.access_token || null;
+  if (session?.csrf_token) csrf = session.csrf_token;
+  onSession(session);
+}
+function clearSession() {
+  generation++;
+  requests.forEach((c) => c.abort());
+  requests.clear();
+  csrf = "";
+  token = null;
+  refreshPromise = null;
+  applySession(null);
+  window.dispatchEvent(new Event("forte-session-cleared"));
+}
+async function raw<T>(
+  path: string,
+  options: RequestInit = {},
+  access?: string,
+): Promise<T> {
+  const headers = new Headers(options.headers);
+  headers.set("Accept", "application/json");
+  if (options.body && !(options.body instanceof FormData))
+    headers.set("Content-Type", "application/json");
+  if (access) headers.set("Authorization", `Bearer ${access}`);
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok)
+    throw new ApiError(
+      payload?.error?.message ||
+        payload?.message ||
+        (typeof payload?.error === "string"
+          ? payload.error
+          : "Не удалось выполнить запрос."),
+      response.status,
+      payload?.error?.code,
+    );
+  return payload as T;
+}
+async function refresh(): Promise<AuthResponse> {
+  if (!refreshPromise) {
+    const epoch = generation;
+    refreshPromise = (async () => {
+      if (!csrf)
+        csrf = (await raw<{ csrf_token: string }>("/api/auth/session-csrf"))
+          .csrf_token;
+      const session = await raw<AuthResponse>("/api/auth/refresh", {
+        method: "POST",
+        headers: { "X-CSRF-TOKEN": csrf },
+      });
+      if (epoch !== generation)
+        throw new DOMException("Session changed", "AbortError");
+      applySession(session);
+      return session;
+    })().finally(() => {
+      if (epoch === generation) refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+}
 export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
   accessToken?: string,
 ): Promise<T> {
-  const headers = new Headers(options.headers);
-  headers.set('Accept', 'application/json');
-  if (options.body) headers.set('Content-Type', 'application/json');
-  if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
-
-  const response = await fetch(`${apiBaseUrl}${path}`, { ...options, headers });
-  const payload: unknown = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    const error = payload as { error?: string; message?: string } | null;
-    throw new ApiError(error?.error || error?.message || 'Не удалось выполнить запрос.', response.status);
+  const epoch = generation;
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  if (options.signal?.aborted) controller.abort();
+  options.signal?.addEventListener("abort", abort, { once: true });
+  requests.add(controller);
+  try {
+    let result: T;
+    try {
+      result = await raw<T>(
+        path,
+        { ...options, signal: controller.signal },
+        accessToken || token || undefined,
+      );
+    } catch (error) {
+      if (
+        !(error instanceof ApiError) ||
+        error.status !== 401 ||
+        epoch !== generation ||
+        controller.signal.aborted
+      )
+        throw error;
+      try {
+        await refresh();
+      } catch (refreshError) {
+        if (
+          refreshError instanceof ApiError &&
+          refreshError.status === 401 &&
+          epoch === generation
+        )
+          clearSession();
+        throw refreshError;
+      }
+      result = await raw<T>(
+        path,
+        { ...options, signal: controller.signal },
+        token || undefined,
+      );
+    }
+    if (epoch !== generation)
+      throw new DOMException("Session changed", "AbortError");
+    return result;
+  } finally {
+    requests.delete(controller);
+    options.signal?.removeEventListener("abort", abort);
   }
-
-  return payload as T;
 }
-
 export const authApi = {
-  login: (identifier: string, password: string) =>
-    apiRequest<AuthResponse>('/api/auth/login', {
-      method: 'POST',
+  login: async (identifier: string, password: string) => {
+    clearSession();
+    const epoch = generation;
+    const session = await raw<AuthResponse>("/api/auth/login", {
+      method: "POST",
       body: JSON.stringify({ identifier, password }),
-    }),
+    });
+    if (epoch !== generation)
+      throw new DOMException("Session changed", "AbortError");
+    applySession(session);
+    return session;
+  },
+  restore: refresh,
+  logout: async () => {
+    if (!csrf)
+      csrf = (await raw<{ csrf_token: string }>("/api/auth/session-csrf"))
+        .csrf_token;
+    await raw("/api/auth/logout", {
+      method: "POST",
+      headers: { "X-CSRF-TOKEN": csrf },
+    });
+    clearSession();
+  },
 };
+export function mediaUrl(path: string): string {
+  if (!path.startsWith("/api/v1/"))
+    throw new Error("Некорректная ссылка на файл.");
+  return `${apiBaseUrl}${path}`;
+}

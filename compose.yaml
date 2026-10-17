@@ -7,11 +7,13 @@ services:
     environment:
       FLASK_ENV: production
       DATABASE_URL: sqlite:////app/database/database.db
+      MEDIA_ROOT: /app/media
     volumes:
       - database:/app/database
+      - media_data:/app/media
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:6767/api', timeout=5)"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:6767/api/ready', timeout=5)"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -34,3 +36,4 @@ services:
 
 volumes:
   database:
+  media_data:

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createDemoRecords, demoViolations } from "../data/demo";
-import { abortableDelay, analyzeVideo } from "../features/analysis/api";
+import { abortableDelay } from "../features/analysis/api";
 import {
   AnalysisRecord,
   ConnectionSettings,
@@ -30,8 +30,19 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => {
     }));
   return {
     records: createDemoRecords(),
-    settings: { mode: "demo", apiKey: "" },
-    setSettings: (settings) => set({ settings }),
+    settings: { mode: "api", apiKey: "" },
+    setSettings: (settings) => {
+      controllers.forEach((controller) => controller.abort());
+      controllers.clear();
+      get().records.forEach((record) => {
+        if (record.videoUrl?.startsWith("blob:"))
+          URL.revokeObjectURL(record.videoUrl);
+      });
+      set({
+        settings,
+        records: settings.mode === "demo" ? createDemoRecords() : [],
+      });
+    },
     setDuration: (id, duration) => {
       if (Number.isFinite(duration) && duration > 0) update(id, { duration });
     },
@@ -41,9 +52,9 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => {
         const error = validateVideo(file);
         if (error) throw new Error(error);
       }
-      const mode = file ? settings.mode : "demo";
-      if (mode === "api" && !settings.apiKey.trim())
-        throw new Error("Добавьте API-ключ в настройках подключения.");
+      if (settings.mode === "api")
+        throw new Error("Загрузите файл через рабочий кабинет.");
+      const mode = "demo" as const;
       const id = `check-${Date.now()}-${++sequence}`;
       const controller = new AbortController();
       controllers.set(id, controller);
@@ -53,7 +64,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => {
         fileSize: file?.size || 29.4 * 1024 * 1024,
         createdAt: new Date().toISOString(),
         mode,
-        status: mode === "api" ? "uploading" : "processing",
+        status: "processing",
         duration: file ? undefined : 82,
         violations: [],
         file,
@@ -79,36 +90,6 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => {
               verdict: demoVerdict,
               violations: demoVerdict === "violation" ? demoViolations : [],
             });
-          } else if (file) {
-            await analyzeVideo(
-              file,
-              settings.apiKey,
-              controller.signal,
-              (job) => {
-                if (job.status === "processing")
-                  update(id, {
-                    jobId: job.job_id,
-                    status: "processing",
-                    progress: job.progress,
-                    stage: job.stage,
-                  });
-                else if (job.status === "done")
-                  update(id, {
-                    jobId: job.job_id,
-                    status: "done",
-                    verdict: job.verdict,
-                    violations: job.violations,
-                    progress: 100,
-                  });
-                else
-                  update(id, {
-                    status: "failed",
-                    error:
-                      job.error ||
-                      "Не удалось обработать видео. Попробуйте другую запись.",
-                  });
-              },
-            );
           }
         } catch (error) {
           if (!controller.signal.aborted)

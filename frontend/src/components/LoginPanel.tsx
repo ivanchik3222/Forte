@@ -60,11 +60,12 @@ export function LoginPanel() {
             </p>
             <button
               type="button"
-              onClick={logout}
+              onClick={() => void logout()}
               className="mt-8 w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm font-semibold text-ink transition hover:border-forte-500 hover:text-forte-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forte-500"
             >
               Выйти
             </button>
+            {error && <p role="alert">{error}</p>}
           </div>
         ) : (
           <>

@@ -1,6 +1,8 @@
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
-from models import db, User
+from flask import Blueprint, request, jsonify, current_app, g
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt, set_refresh_cookies, unset_jwt_cookies, decode_token
+from models import db, User, AuthSession, MediaRecord, uid, utcnow, as_utc
+from utils.decorators import active_required, current_user
+from utils.errors import ApiError
 from datetime import datetime, timedelta, timezone
 import re
 
@@ -25,23 +27,35 @@ def is_email(identifier):
 
 
 def make_tokens(user):
-    """Создать пару access/refresh токенов для пользователя"""
-    access_token = create_access_token(
-        identity=str(user.id),
-        additional_claims={
-            'user_type': user.user_type,
-            'email': user.email,
-            'nickname': user.nickname,
-            'full_name': user.full_name,
-        }
-    )
-    refresh_token = create_refresh_token(identity=str(user.id))
-    return access_token, refresh_token
+    sid = uid()
+    session = AuthSession(id=sid, user_id=user.id,
+                          expires_at=utcnow() + current_app.config['JWT_REFRESH_TOKEN_EXPIRES'])
+    db.session.add(session)
+    db.session.commit()
+    claims = {'sid': sid, 'user_type': user.user_type}
+    return (create_access_token(identity=str(user.id), additional_claims=claims),
+            create_refresh_token(identity=str(user.id), additional_claims=claims))
+
+
+def session_response(user, access, refresh, status=200):
+    response = jsonify(user=user.to_dict(include_sensitive=True), access_token=access,
+                       csrf_token=decode_token(refresh)['csrf'])
+    set_refresh_cookies(response, refresh)
+    return response, status
+
+
+@auth_bp.before_request
+def check_origin():
+    origin = request.headers.get('Origin')
+    if origin and origin not in current_app.config['CORS_ORIGINS']:
+        raise ApiError(403, 'origin_rejected', 'Origin is not allowed.')
 
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
     """Регистрация пользователя по email или nickname"""
+    if not current_app.config['PUBLIC_REGISTRATION']:
+        raise ApiError(403, 'registration_disabled', 'Account registration is disabled.')
     data = request.get_json()
     if not data:
         return jsonify({'error': 'Данные не предоставлены'}), 400
@@ -97,11 +111,7 @@ def register():
 
         access_token, refresh_token = make_tokens(user)
 
-        return jsonify({
-            'user': user.to_dict(include_sensitive=True),
-            'access_token': access_token,
-            'refresh_token': refresh_token
-        }), 201
+        return session_response(user, access_token, refresh_token, 201)
 
     except Exception as e:
         db.session.rollback()
@@ -152,42 +162,42 @@ def login():
 
         access_token, refresh_token = make_tokens(user)
 
-        return jsonify({
-            'user': user.to_dict(include_sensitive=True),
-            'access_token': access_token,
-            'refresh_token': refresh_token
-        })
+        return session_response(user, access_token, refresh_token)
     except Exception as e:
         db.session.rollback()
         print(f'Ошибка входа: {e}')
         return jsonify({'error': 'Ошибка при входе'}), 500
 
 
-@auth_bp.route('/refresh', methods=['POST'])
-@jwt_required(refresh=True)
+@auth_bp.get('/session-csrf')
+@jwt_required(refresh=True, locations=['cookies'])
+def session_csrf():
+    current_user()
+    return jsonify(csrf_token=get_jwt()['csrf'])
+
+
+@auth_bp.post('/refresh')
+@jwt_required(refresh=True, locations=['cookies'])
 def refresh():
-    """Обновление токена"""
-    try:
-        current_user_id = int(get_jwt_identity())
-        user = db.session.get(User, current_user_id)
+    user = current_user()
+    access = create_access_token(identity=str(user.id), additional_claims={'sid': get_jwt()['sid']})
+    return jsonify(access_token=access, user=user.to_dict(include_sensitive=True))
 
-        if not user or not user.is_active:
-            return jsonify({'error': 'Пользователь не найден'}), 404
 
-        new_access_token, _ = make_tokens(user)
-
-        return jsonify({
-            'access_token': new_access_token,
-            'message': 'Токен обновлен'
-        })
-
-    except Exception as e:
-        print(f'Ошибка обновления токена: {e}')
-        return jsonify({'error': 'Ошибка обновления токена'}), 500
+@auth_bp.post('/logout')
+@jwt_required(refresh=True, locations=['cookies'])
+def logout():
+    session = db.session.get(AuthSession, get_jwt().get('sid'))
+    if session:
+        session.revoked_at = utcnow()
+        db.session.commit()
+    response = jsonify(message='Logged out')
+    unset_jwt_cookies(response)
+    return response
 
 
 @auth_bp.route('/me', methods=['GET'])
-@jwt_required()
+@active_required
 def get_current_user():
     """Получить данные текущего пользователя"""
     try:
@@ -209,7 +219,7 @@ def get_current_user():
 
 
 @auth_bp.route('/profile', methods=['PUT'])
-@jwt_required()
+@active_required
 def update_profile():
     """Обновление профиля пользователя"""
     try:
@@ -253,7 +263,7 @@ def update_profile():
 
 
 @auth_bp.route('/change-password', methods=['POST'])
-@jwt_required()
+@active_required
 def change_password():
     """Смена пароля"""
     try:
@@ -274,6 +284,7 @@ def change_password():
             return jsonify({'error': 'Новый пароль должен содержать минимум 6 символов'}), 400
 
         user.set_password(data['new_password'])
+        AuthSession.query.filter_by(user_id=user.id, revoked_at=None).update({'revoked_at': utcnow()})
         db.session.commit()
 
         return jsonify({'message': 'Пароль успешно изменен'})
@@ -326,7 +337,7 @@ def reset_password():
 
     user = User.query.filter_by(reset_token=data['token']).first()
 
-    if not user or not user.reset_token_expires or user.reset_token_expires < datetime.now(timezone.utc):
+    if not user or not user.reset_token_expires or as_utc(user.reset_token_expires) < datetime.now(timezone.utc):
         return jsonify({'error': 'Недействительный или истекший токен'}), 400
 
     if len(data['password']) < 6:
@@ -334,6 +345,7 @@ def reset_password():
 
     try:
         user.set_password(data['password'])
+        AuthSession.query.filter_by(user_id=user.id, revoked_at=None).update({'revoked_at': utcnow()})
         user.reset_token = None
         user.reset_token_expires = None
 
@@ -375,7 +387,7 @@ def verify_email():
 
 
 @auth_bp.route('/deactivate', methods=['POST'])
-@jwt_required()
+@active_required
 def deactivate_account():
     """Деактивация аккаунта"""
     try:
@@ -393,6 +405,7 @@ def deactivate_account():
             return jsonify({'error': 'Неверный пароль'}), 400
 
         user.is_active = False
+        AuthSession.query.filter_by(user_id=user.id, revoked_at=None).update({'revoked_at': utcnow()})
         db.session.commit()
 
         return jsonify({'message': 'Аккаунт деактивирован'})
@@ -404,7 +417,7 @@ def deactivate_account():
 
 
 @auth_bp.route('/deactivate', methods=['DELETE'])
-@jwt_required()
+@active_required
 def delete_account():
     """Удаление аккаунта"""
     try:
@@ -414,6 +427,8 @@ def delete_account():
         if not user:
             return jsonify({'error': 'Пользователь не найден'}), 404
 
+        if MediaRecord.query.filter_by(owner_id=user.id).first():
+            return jsonify({'error': 'Сначала требуется урегулировать хранение записей пользователя; используйте деактивацию.'}), 409
         db.session.delete(user)
         db.session.commit()
 

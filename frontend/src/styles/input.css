@@ -653,6 +653,29 @@ h1 {
   border: 1px solid var(--line);
   border-radius: var(--radius);
 }
+.live-workspace .main-content > .panel:not(.history-panel) {
+  padding: 24px;
+  margin-block: 20px;
+}
+.live-workspace .main-content > .panel > h2 {
+  margin: 0 0 20px;
+}
+.live-workspace .history-panel > h2 {
+  padding: 24px 24px 0;
+}
+.live-workspace .table-toolbar > input,
+.live-workspace .table-toolbar > select {
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  max-width: 100%;
+  background: var(--surface);
+}
+.status-stored {
+  color: var(--muted);
+  background: #f2f3f6;
+}
 .section-heading {
   display: flex;
   justify-content: space-between;

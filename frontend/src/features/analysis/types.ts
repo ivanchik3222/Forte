@@ -40,7 +40,7 @@ export interface AnalysisRecord {
   createdAt: string;
   duration?: number;
   mode: AnalysisMode;
-  status: "uploading" | "processing" | "done" | "failed" | "cancelled";
+  status: "stored" | "uploading" | "processing" | "done" | "failed" | "cancelled";
   progress?: number;
   stage?: string;
   verdict?: Verdict;

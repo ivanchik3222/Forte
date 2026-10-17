@@ -1,0 +1,11 @@
+[
+  {
+    "id": "integration-event-1",
+    "camera_id": "integration-camera-1",
+    "camera_name": "Тестовая касса",
+    "location": "Тестовое помещение",
+    "type": "Тестовое событие для просмотра",
+    "description": "Проверка доставки события через БД и API. Анализ видео не выполнялся.",
+    "timecode_sec": 0
+  }
+]

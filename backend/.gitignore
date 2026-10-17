@@ -16,6 +16,7 @@ env/
 # База данных
 database/*.db
 database/*.sqlite
+media/
 
 # IDE
 .vscode/

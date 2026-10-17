@@ -1,121 +1,125 @@
 import os
-
-# Подхватываем backend/.env до чтения любых os.environ
+import logging
 from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
-from flask_jwt_extended.exceptions import JWTExtendedException
 from werkzeug.exceptions import HTTPException
+from sqlalchemy import event, text
+from sqlalchemy.engine import Engine
+from sqlite3 import Connection
+from config import get_config
+from models import db
+from utils.errors import ApiError, error_response
+from utils.logging import RedactMediaSignature
 
-from config import get_config, DATABASE_DIR
-from models import db, User
+logging.getLogger('werkzeug').addFilter(RedactMediaSignature())
 
-# Инициализация расширений
 migrate = Migrate()
 jwt = JWTManager()
 
 
+@event.listens_for(Engine, 'connect')
+def sqlite_foreign_keys(connection, _):
+    if isinstance(connection, Connection):
+        connection.execute('PRAGMA foreign_keys=ON')
+
+
 def create_app(config_object=None):
     app = Flask(__name__)
-    app.config.from_object(config_object or get_config())
-    CORS(app, supports_credentials=True, origins=app.config['CORS_ORIGINS'])
-
-    # Создаём папку для БД, если её нет
-    os.makedirs(DATABASE_DIR, exist_ok=True)
-
+    app.config.from_object(get_config())
+    if isinstance(config_object, dict):
+        app.config.update(config_object)
+    elif config_object:
+        app.config.from_object(config_object)
+    if app.config['REQUIRE_SECURE_CONFIG'] and not app.testing:
+        for key in ('SECRET_KEY', 'JWT_SECRET_KEY'):
+            value = app.config.get(key, '')
+            if len(value) < 32 or value.startswith(('dev-', 'your-', 'replace-with-')):
+                raise RuntimeError(f'{key} must be a private random secret of at least 32 characters.')
+        if app.config['SECRET_KEY'] == app.config['JWT_SECRET_KEY']:
+            raise RuntimeError('SECRET_KEY and JWT_SECRET_KEY must be different.')
+    CORS(app, supports_credentials=True, origins=app.config['CORS_ORIGINS'],
+         expose_headers=['Content-Range', 'Accept-Ranges'])
     db.init_app(app)
-    migrate.init_app(app, db)
+    migrate.init_app(app, db, directory=os.path.join(app.root_path, 'migrations'))
     jwt.init_app(app)
 
-    with app.app_context():
-        db.create_all()
-
-    # Регистрация блюпринтов
     from routes import auth_bp, admin_bp
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
+    from routes.workspace import workspace_bp
+    app.register_blueprint(workspace_bp, url_prefix='/api/v1')
+    from cli import register_cli
+    register_cli(app)
 
-    # Главная страница API
-    @app.route('/api')
+    @app.before_request
+    def validate_json_object():
+        if request.is_json and request.content_length and request.method in ('POST', 'PUT', 'PATCH'):
+            data = request.get_json()
+            if not isinstance(data, dict):
+                raise ApiError(400, 'invalid_json', 'Ожидается JSON-объект.')
+            if request.path.startswith('/api/auth'):
+                for value in data.values():
+                    if value is not None and not isinstance(value, str):
+                        raise ApiError(400, 'invalid_field', 'Поля авторизации должны быть строками.')
+
+    @app.after_request
+    def normalize_errors(response):
+        if response.status_code >= 400 and response.is_json:
+            payload = response.get_json()
+            if not isinstance(payload.get('error'), dict):
+                response.set_data(app.json.dumps({'error': {'code': f'http_{response.status_code}', 'message': str(payload.get('message') or payload.get('error') or 'Request failed')}}))
+        if request.path.startswith('/api'):
+            response.headers['Cache-Control'] = 'no-store'
+            response.headers['X-Content-Type-Options'] = 'nosniff'
+        return response
+
+    @app.errorhandler(ApiError)
+    def handle_api(err):
+        return error_response(err.status, err.code, err.message)
+
+    @app.errorhandler(HTTPException)
+    def handle_http(err):
+        return error_response(err.code, f'http_{err.code}', err.description)
+
+    @app.errorhandler(Exception)
+    def handle_unexpected(err):
+        db.session.rollback()
+        app.logger.exception('Request failed')
+        return error_response(500, 'internal_error', 'Ошибка сервера. Повторите позже.')
+
+    @app.get('/api')
     def api_info():
-        return jsonify({
-            'message': 'API is alive',
-            'version': '1.0.0',
-            'endpoints': {
-                'auth': '/api/auth - авторизация и регистрация',
-                'admin': '/api/admin - администрирование пользователей',
-            },
-        })
+        return jsonify(message='API is alive', version='1.0.0')
+
+    @app.get('/api/ready')
+    def ready():
+        db.session.execute(text('SELECT 1 FROM media_records LIMIT 1'))
+        return jsonify(ready=True)
 
     return app
 
 
-app = create_app()
-
-
-# Обработчики ошибок
-@app.errorhandler(422)
-def handle_unprocessable_entity(err):
-    return jsonify({'error': 'Validation error', 'message': str(err)}), 422
-
-
-@app.errorhandler(JWTExtendedException)
-def handle_jwt_error(e):
-    return jsonify({'error': 'JWT Error', 'message': str(e)}), 401
-
-
-@app.errorhandler(HTTPException)
-def handle_http_exception(e):
-    return jsonify({'error': e.code, 'message': e.description}), e.code
-
-
 @jwt.expired_token_loader
-def expired_token_callback(jwt_header, jwt_payload):
-    return jsonify({'error': 'Токен истек'}), 401
+def expired_token_callback(*_):
+    return error_response(401, 'token_expired', 'Токен истёк.')
 
 
 @jwt.invalid_token_loader
-def invalid_token_callback(error):
-    return jsonify({'error': 'Недействительный токен'}), 401
+def invalid_token_callback(_):
+    return error_response(401, 'token_invalid', 'Недействительный токен.')
 
 
 @jwt.unauthorized_loader
-def missing_token_callback(error):
-    return jsonify({'error': 'Требуется авторизация'}), 401
+def missing_token_callback(_):
+    return error_response(401, 'auth_required', 'Требуется авторизация.')
 
 
-# CLI команды
-@app.cli.command()
-def init_db():
-    """Инициализация базы данных"""
-    print('Инициализация базы данных...')
-    db.create_all()
-    print('База данных инициализирована!')
-
-
-@app.cli.command()
-def create_admin():
-    """Создать администратора"""
-    email = input('Email администратора: ')
-    password = input('Пароль: ')
-    full_name = input('Полное имя: ')
-
-    if User.query.filter_by(email=email).first():
-        print('Пользователь с таким email уже существует')
-        return
-
-    admin = User(full_name=full_name, email=email, user_type='admin', is_verified=True)
-    admin.set_password(password)
-
-    db.session.add(admin)
-    db.session.commit()
-
-    print(f'Администратор {email} создан')
-
+app = create_app()
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 6767)))
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 6767)), debug=app.config['DEBUG'])

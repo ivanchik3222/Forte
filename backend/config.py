@@ -30,6 +30,22 @@ class Config:
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'dev-jwt-secret-key-change-in-production')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
+    JWT_COOKIE_SECURE = os.environ.get('COOKIE_SECURE', 'false').lower() == 'true'
+    JWT_COOKIE_SAMESITE = os.environ.get('COOKIE_SAMESITE', 'Lax')
+    JWT_REFRESH_COOKIE_PATH = os.environ.get('AUTH_COOKIE_PATH', '/api/auth')
+    JWT_REFRESH_CSRF_COOKIE_PATH = JWT_REFRESH_COOKIE_PATH
+    JWT_COOKIE_CSRF_PROTECT = True
+    JWT_CSRF_IN_COOKIES = False
+    MEDIA_ROOT = os.environ.get('MEDIA_ROOT', os.path.join(BACKEND_DIR, 'media'))
+    MAX_FILE_SIZE = 200 * 1024 * 1024
+    MAX_CONTENT_LENGTH = MAX_FILE_SIZE + 1024 * 1024
+    FFPROBE_PATH = os.environ.get('FFPROBE_PATH', 'ffprobe')
+    PLAYBACK_TTL = 900
+    UPLOADS_PER_HOUR = 30
+    MIN_FREE_BYTES = 256 * 1024 * 1024
+    PUBLIC_REGISTRATION = True
+    ALLOW_TEST_EVENTS = False
+    REQUIRE_SECURE_CONFIG = False
 
 
 class DevelopmentConfig(Config):
@@ -47,6 +63,9 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     """Конфигурация для продакшена"""
     DEBUG = False
+    PUBLIC_REGISTRATION = False
+    REQUIRE_SECURE_CONFIG = True
+    JWT_COOKIE_SECURE = os.environ.get('COOKIE_SECURE', 'true').lower() == 'true'
 
 
 config = {

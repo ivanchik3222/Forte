@@ -1,3 +1,4 @@
+import { useAnalysisStore } from "../../store/useAnalysisStore";
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import App from "../../App";
 import { createDemoAlerts, demoCameras } from "../../data/demoNotifications";
@@ -5,6 +6,7 @@ import { useNotificationStore } from "../../store/useNotificationStore";
 import { localDay } from "./types";
 
 beforeEach(() => {
+  useAnalysisStore.setState({settings:{mode:"demo",apiKey:""}});
   jest.useFakeTimers().setSystemTime(new Date("2026-10-17T09:00:00Z"));
   window.history.replaceState(null, "", "/notifications");
   window.scrollTo = jest.fn();

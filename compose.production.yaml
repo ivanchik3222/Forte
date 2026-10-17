@@ -2,6 +2,7 @@ services:
   backend:
     environment:
       DATABASE_URL: postgresql+psycopg://forte:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/forte
+      COOKIE_SECURE: "true"
     depends_on:
       postgres:
         condition: service_healthy

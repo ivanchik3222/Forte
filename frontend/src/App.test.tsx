@@ -19,6 +19,7 @@ const response = (payload: unknown) =>
 beforeEach(() => {
   window.history.replaceState(null, "", "/workspace");
   window.scrollTo = jest.fn();
+  useAuthStore.setState({initialized:true, status:"idle", user:null, error:null});
   useNotificationStore.setState({
     alerts: createDemoAlerts(),
     cameras: demoCameras,
@@ -33,7 +34,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  useAuthStore.getState().logout();
+  useAuthStore.setState({status:"idle", user:null, error:null});
   global.fetch = originalFetch;
   jest.useRealTimers();
 });
@@ -61,58 +62,6 @@ test("invalid files are rejected before analysis", () => {
   });
   expect(screen.getByRole("alert")).toHaveTextContent("MOV, MP4 или WebM");
   expect(global.fetch).not.toHaveBeenCalled();
-});
-
-test("API upload completes the full UI flow and shows real no-violation result", async () => {
-  useAnalysisStore.setState({ settings: { mode: "api", apiKey: "test-key" } });
-  global.fetch = jest
-    .fn()
-    .mockResolvedValueOnce(response({ job_id: "api-1" }))
-    .mockResolvedValueOnce(
-      response({
-        job_id: "api-1",
-        status: "done",
-        verdict: "no_violation",
-        violations: [],
-      }),
-    );
-  render(<App />);
-  fireEvent.click(screen.getByRole("button", { name: "Новая проверка" }));
-  fireEvent.change(screen.getByLabelText("Выбрать видеофайл"), {
-    target: { files: [new File(["video"], "camera.mov")] },
-  });
-  fireEvent.click(screen.getByRole("button", { name: "Начать проверку" }));
-  await waitFor(() =>
-    expect(
-      screen.getByRole("heading", { name: "Нарушение не обнаружено" }),
-    ).toBeInTheDocument(),
-  );
-  expect(
-    screen.queryByText("Демонстрационный результат."),
-  ).not.toBeInTheDocument();
-  expect(
-    screen.getByRole("button", { name: "Скачать JSON" }),
-  ).toBeInTheDocument();
-});
-
-test("API failure remains an error instead of falling back to demo", async () => {
-  useAnalysisStore.setState({ settings: { mode: "api", apiKey: "key" } });
-  global.fetch = jest.fn().mockRejectedValue(new TypeError("Network failure"));
-  render(<App />);
-  fireEvent.click(screen.getByRole("button", { name: "Новая проверка" }));
-  fireEvent.change(screen.getByLabelText("Выбрать видеофайл"), {
-    target: { files: [new File(["video"], "camera.mov")] },
-  });
-  fireEvent.click(screen.getByRole("button", { name: "Начать проверку" }));
-  await waitFor(() =>
-    expect(
-      screen.getByRole("heading", { name: "Проверка не завершена" }),
-    ).toBeInTheDocument(),
-  );
-  expect(screen.getByText(/Нет связи с API/)).toBeInTheDocument();
-  expect(
-    screen.queryByRole("button", { name: "Скачать JSON" }),
-  ).not.toBeInTheDocument();
 });
 
 test("event selection updates the evidence and shows missing rules honestly", () => {
@@ -144,19 +93,12 @@ test("history filtering has an empty state and can recover", () => {
   expect(screen.getByText("cash_desk_01.mov")).toBeInTheDocument();
 });
 
-test("API mode cannot be enabled without a key", () => {
+test("working mode requires login but no ML API key", () => {
   window.history.replaceState(null, "", "/settings");
   render(<App />);
-  fireEvent.click(screen.getByRole("radio", { name: /Подключённый сервис/ }));
-  fireEvent.click(screen.getByRole("button", { name: /Сохранить настройки/ }));
-  expect(screen.getByRole("alert")).toHaveTextContent("Введите API-ключ");
-  expect(useAnalysisStore.getState().settings.mode).toBe("demo");
-  fireEvent.change(screen.getByLabelText("API-ключ *"), {
-    target: { value: "session-key" },
-  });
-  fireEvent.click(screen.getByRole("button", { name: /Сохранить настройки/ }));
-  expect(screen.getByRole("status")).toHaveTextContent("Настройки сохранены");
-  expect(useAnalysisStore.getState().settings.mode).toBe("api");
+  fireEvent.click(screen.getByRole("button", {name:"Открыть рабочий режим"}));
+  expect(screen.getByRole("heading", {name:"Вход в рабочее пространство"})).toBeInTheDocument();
+  expect(screen.queryByLabelText(/API-ключ/)).not.toBeInTheDocument();
 });
 
 test("cancelling a mock job prevents late completion", async () => {

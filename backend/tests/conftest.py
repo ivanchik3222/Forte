@@ -16,25 +16,13 @@ from models import User
 
 
 def create_test_app():
-    """Создать Flask-приложение для тестов."""
-    app = Flask(__name__)
-    app.config['TESTING'] = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECRET_KEY'] = 'test-secret'
-    app.config['JWT_SECRET_KEY'] = 'test-jwt-secret'
-    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
-    app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=1)
-
-    _db.init_app(app)
-    JWTManager(app)
-
-    from routes.auth import auth_bp
-    from routes.admin import admin_bp
-
-    app.register_blueprint(auth_bp, url_prefix='/api/auth')
-    app.register_blueprint(admin_bp, url_prefix='/api/admin')
-
+    from app import create_app
+    from config import TestingConfig
+    app = create_app(TestingConfig)
+    if os.environ.get('TEST_DATABASE_URL'):
+        config = {key:getattr(TestingConfig, key) for key in dir(TestingConfig) if key.isupper()}
+        config['SQLALCHEMY_DATABASE_URI'] = os.environ['TEST_DATABASE_URL']
+        app = create_app(config)
     return app
 
 
@@ -104,17 +92,16 @@ def admin_user(create_user):
 @pytest.fixture
 def auth_headers(user1):
     """Заголовки авторизации для user1."""
-    token = create_access_token(identity=str(user1.id))
+    from routes.auth import make_tokens
+    token, _ = make_tokens(user1)
     return {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
 
 
 @pytest.fixture
 def admin_headers(admin_user):
     """Заголовки авторизации для администратора (с claim user_type)."""
-    token = create_access_token(
-        identity=str(admin_user.id),
-        additional_claims={'user_type': 'admin'}
-    )
+    from routes.auth import make_tokens
+    token, _ = make_tokens(admin_user)
     return {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
 
 

@@ -16,7 +16,9 @@ class TestRegister:
         body = resp.get_json()
         assert body['user']['email'] == 'new@test.com'
         assert 'access_token' in body
-        assert 'refresh_token' in body
+        assert 'refresh_token' not in body
+        assert 'csrf_token' in body
+        assert 'HttpOnly' in resp.headers['Set-Cookie']
 
     def test_register_with_nickname(self, client):
         resp = post_json(client, '/api/auth/register', {
@@ -83,8 +85,9 @@ class TestLogin:
 
 
 class TestTokens:
-    def test_refresh(self, client, refresh_headers):
-        resp = client.post('/api/auth/refresh', headers=refresh_headers)
+    def test_refresh(self, client, user1):
+        login = post_json(client, '/api/auth/login', {'identifier': 'user1', 'password': 'test1234'})
+        resp = client.post('/api/auth/refresh', headers={'X-CSRF-TOKEN': login.json['csrf_token']})
         assert resp.status_code == 200
         assert 'access_token' in resp.get_json()
 

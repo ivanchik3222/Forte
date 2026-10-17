@@ -18,6 +18,7 @@ export function StatusBadge({ record }: { record: AnalysisRecord }) {
         : "clear"
       : record.status;
   const config = {
+    stored: { icon: "video", text: "Без анализа" },
     review: { icon: "alert", text: "Требует внимания" },
     clear: { icon: "checkCircle", text: "Без признаков нарушений" },
     uploading: { icon: "upload", text: "Загрузка" },
@@ -37,34 +38,38 @@ export function HistoryTable({
   records,
   onOpen,
   full = false,
+  serverManaged = false,
 }: {
   records: AnalysisRecord[];
   onOpen: (id: string) => void;
   full?: boolean;
+  serverManaged?: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState("newest");
-  const filtered = records
-    .filter(
-      (record) =>
-        record.fileName.toLowerCase().includes(search.toLowerCase()) &&
-        (filter === "all" ||
-          (filter === "review" && record.verdict === "violation") ||
-          (filter === "clear" && record.verdict === "no_violation") ||
-          (filter === "processing" &&
-            ["uploading", "processing"].includes(record.status)) ||
-          (filter === "failed" &&
-            ["failed", "cancelled"].includes(record.status))),
-    )
-    .sort((a, b) =>
-      sort === "newest"
-        ? b.createdAt.localeCompare(a.createdAt)
-        : a.createdAt.localeCompare(b.createdAt),
-    );
+  const filtered = serverManaged
+    ? records
+    : records
+        .filter(
+          (record) =>
+            record.fileName.toLowerCase().includes(search.toLowerCase()) &&
+            (filter === "all" ||
+              (filter === "review" && record.verdict === "violation") ||
+              (filter === "clear" && record.verdict === "no_violation") ||
+              (filter === "processing" &&
+                ["uploading", "processing"].includes(record.status)) ||
+              (filter === "failed" &&
+                ["failed", "cancelled"].includes(record.status))),
+        )
+        .sort((a, b) =>
+          sort === "newest"
+            ? b.createdAt.localeCompare(a.createdAt)
+            : a.createdAt.localeCompare(b.createdAt),
+        );
   return (
     <>
-      {full && (
+      {full && !serverManaged && (
         <div className="table-toolbar">
           <label className="search-input">
             <Icon name="search" size={18} />
@@ -106,8 +111,8 @@ export function HistoryTable({
             <thead>
               <tr role="row">
                 <th role="columnheader">Видеозапись</th>
-                <th role="columnheader">Дата проверки</th>
-                <th role="columnheader">Результат</th>
+                <th role="columnheader">{serverManaged ? "Дата загрузки" : "Дата проверки"}</th>
+                <th role="columnheader">{serverManaged ? "Статус" : "Результат"}</th>
                 <th role="columnheader">События</th>
                 <th role="columnheader">
                   <span className="visually-hidden">Действие</span>
@@ -201,17 +206,19 @@ export function HistoryTable({
       ) : (
         <div className="empty-state">
           <Icon name="search" size={30} />
-          <h3>Проверки не найдены</h3>
+          <h3>{serverManaged ? "Записи не найдены" : "Проверки не найдены"}</h3>
           <p>Измените поисковый запрос или выберите другой статус.</p>
-          <button
-            className="text-button"
-            onClick={() => {
-              setSearch("");
-              setFilter("all");
-            }}
-          >
-            Сбросить фильтры
-          </button>
+          {!serverManaged && (
+            <button
+              className="text-button"
+              onClick={() => {
+                setSearch("");
+                setFilter("all");
+              }}
+            >
+              Сбросить фильтры
+            </button>
+          )}
         </div>
       )}
     </>

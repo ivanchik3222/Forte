@@ -1,14 +1,18 @@
-# Forte: два отдельных проекта
+# Forte Control
+
+Рабочий кабинет подключён к API: вход, сохранение видео без ИИ-анализа, история, просмотр оригиналов, оповещения и отметки просмотра.
+
+[Запуск и переход со старой БД](docs/RUNBOOK.md) · [Контракт API](docs/API_CONTRACT.md) · [План](docs/BACKEND_PLAN.md)
 
 Фронтенд и бэкенд работают на разных URL. Браузер обращается к API напрямую; между проектами нет прокси. Для всего проекта используется один корневой `compose.yaml`.
 
 ## Локальная разработка
 
-1. В `backend` скопируйте `.env.example` в `.env`, задайте собственные `SECRET_KEY` и `JWT_SECRET_KEY`, затем выполните `pip install -r requirements.txt` и `python app.py`.
+1. В `backend` скопируйте `.env.example` в `.env`, задайте собственные `SECRET_KEY` и `JWT_SECRET_KEY`, затем выполните `pip install -r requirements.txt`. Для пустой БД: `flask --app app db upgrade`, `flask --app app seed-sources`, `flask --app app create-user --admin`, затем `python app.py`. Для существующей БД сначала выполните переход по RUNBOOK. Для проверки видео требуется ffprobe.
 2. В `frontend` выполните `npm ci` и `npm start`.
 3. Фронтенд доступен на `http://localhost:3000`, API — на `http://localhost:6767/api`. Для другого адреса API задайте `REACT_APP_API_URL` в `frontend/.env.local`.
 
-Для проверки входа создайте демонстрационную учётную запись через `POST /api/auth/register`.
+В production аккаунты создаются командой `flask --app app create-user`; публичная регистрация отключена. Демонстрация интерфейса доступна отдельно без входа.
 
 ## Docker
 

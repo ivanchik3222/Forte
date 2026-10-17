@@ -1,5 +1,6 @@
 .env
 database
+media
 __pycache__
 .pytest_cache
 venv

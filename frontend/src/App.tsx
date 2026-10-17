@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BrowserRouter,
   Link,
@@ -14,7 +14,7 @@ import { useAnalysisStore } from "./store/useAnalysisStore";
 import { AnalysisDetail } from "./features/analysis/AnalysisDetail";
 import { HistoryTable } from "./features/analysis/HistoryTable";
 import { UploadPanel } from "./features/analysis/UploadPanel";
-import { API_BASE_URL, AnalysisMode } from "./features/analysis/types";
+import { LiveWorkspace } from "./features/workspace/LiveWorkspace";
 import { regulatorySource } from "./data/demo";
 import { OverviewPage } from "./pages/OverviewPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
@@ -64,6 +64,7 @@ function WorkspaceApp() {
     (active === "settings" ? "Настройки" : "Обзор");
   const name = user?.full_name || user?.nickname || "Рабочее пространство";
   if (pathname === "/") return <LandingPage />;
+  if (mode === "api") return <LiveWorkspace />;
   return (
     <div className="app-shell">
       <a
@@ -163,10 +164,7 @@ function WorkspaceApp() {
             <strong>{pageName}</strong>
           </div>
           <div className="topbar-actions">
-            <Link
-              to="/settings"
-              className={`mode-badge ${mode === "api" ? "mode-api" : ""}`}
-            >
+            <Link to="/settings" className="mode-badge">
               <span />
               {mode === "demo" ? "Демо-режим" : "Режим API"}
             </Link>
@@ -466,164 +464,30 @@ function Sources() {
 
 function Settings() {
   const navigate = useNavigate();
-  const settings = useAnalysisStore((state) => state.settings);
-  const save = useAnalysisStore((state) => state.setSettings);
-  const start = useAnalysisStore((state) => state.start);
-  const busy = useAnalysisStore((state) =>
-    state.records.some((item) =>
-      ["uploading", "processing"].includes(item.status),
-    ),
-  );
-  const [mode, setMode] = useState<AnalysisMode>(settings.mode);
-  const [apiKey, setApiKey] = useState(settings.apiKey);
-  const [saved, setSaved] = useState(false);
-  const [error, setError] = useState("");
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    if (mode === "api" && !apiKey.trim()) {
-      setError("Введите API-ключ для подключения сервиса.");
-      return;
-    }
-    save({ mode, apiKey: apiKey.trim() });
-    setSaved(true);
-    setError("");
-  };
   return (
     <div className="page-enter settings-page">
-      <div className="page-title-row">
-        <div>
-          <p className="eyebrow">ПАРАМЕТРЫ ПЛАТФОРМЫ</p>
-          <h1>Настройки подключения</h1>
-          <p>Выберите источник результатов проверки</p>
-        </div>
-      </div>
-      <form onSubmit={submit} className="panel settings-panel">
-        <div className="section-heading">
-          <h2>Режим работы</h2>
-          <Icon name="server" />
-        </div>
-        <fieldset className="mode-options">
-          <legend className="visually-hidden">Режим обработки видео</legend>
-          <label className={`mode-option ${mode === "demo" ? "selected" : ""}`}>
-            <input
-              type="radio"
-              name="mode"
-              value="demo"
-              checked={mode === "demo"}
-              onChange={() => {
-                setMode("demo");
-                setSaved(false);
-              }}
-            />
-            <span>
-              <strong>Демонстрационный</strong>
-              <small>
-                Готовые примеры. Файлы не отправляются, ML-анализ не
-                выполняется.
-              </small>
-            </span>
-            <Icon name="play" size={20} />
-          </label>
-          <label className={`mode-option ${mode === "api" ? "selected" : ""}`}>
-            <input
-              type="radio"
-              name="mode"
-              value="api"
-              checked={mode === "api"}
-              onChange={() => {
-                setMode("api");
-                setSaved(false);
-              }}
-            />
-            <span>
-              <strong>Подключённый сервис</strong>
-              <small>
-                Отправка видео и получение результата от API команды.
-              </small>
-            </span>
-            <Icon name="server" size={20} />
-          </label>
-        </fieldset>
-        <div className="form-field">
-          <label htmlFor="api-address">Адрес сервера</label>
-          <input id="api-address" value={API_BASE_URL} readOnly />
-          <small>Задаётся через REACT_APP_API_URL при сборке фронтенда.</small>
-        </div>
-        <div className="form-field">
-          <label htmlFor="api-key">API-ключ{mode === "api" ? " *" : ""}</label>
-          <input
-            id="api-key"
-            type="password"
-            autoComplete="off"
-            placeholder="Введите ключ, выданный вашей командой"
-            value={apiKey}
-            onChange={(event) => {
-              setApiKey(event.target.value);
-              setSaved(false);
-            }}
-            aria-required={mode === "api"}
-            aria-describedby="key-help"
-          />
-          <small id="key-help">
-            Хранится только в памяти вкладки. Передаётся серверу в заголовке
-            X-API-Key.
-          </small>
-        </div>
-        {error && (
-          <p className="inline-error" role="alert">
-            {error}
-          </p>
-        )}
-        <div className="settings-save">
-          <button className="button button-primary" type="submit">
-            Сохранить настройки
-            <Icon name="check" size={17} />
-          </button>
-          {saved && (
-            <span role="status" className="save-feedback">
-              <Icon name="checkCircle" size={16} />
-              Настройки сохранены
-            </span>
-          )}
-        </div>
-      </form>
-      <section className="panel integration-panel">
-        <h2>Контракт анализа</h2>
+      <h1>Настройки подключения</h1>
+      <section className="panel settings-panel">
+        <h2>Демонстрационный режим</h2>
         <p>
-          Фронтенд использует два эндпоинта из ТЗ. Оба запроса передают
-          X-API-Key.
+          Примеры показывают возможности интерфейса. Файлы остаются в браузере,
+          ИИ-анализ не выполняется.
         </p>
-        <div className="endpoint">
-          <span>POST</span>
-          <code>/api/v1/analyze</code>
-          <small>multipart/form-data · поле file</small>
-        </div>
-        <div className="endpoint">
-          <span>GET</span>
-          <code>/api/v1/jobs/&#123;job_id&#125;</code>
-          <small>processing → done / failed</small>
-        </div>
-        <p className="muted">
-          При ошибке API демонстрационный ответ не подставляется. Причина ошибки
-          появится на странице проверки.
-        </p>
-      </section>
-      <section className="panel demo-settings">
-        <div>
-          <h2>Проверить сценарий без событий</h2>
-          <p>Откройте пример результата «Нарушение не обнаружено».</p>
-        </div>
         <button
-          type="button"
-          className="button button-outline"
-          disabled={busy}
+          className="button button-primary"
           onClick={() => {
-            navigate(`/analysis/${start(undefined, "no_violation")}`);
+            useAnalysisStore
+              .getState()
+              .setSettings({ mode: "api", apiKey: "" });
+            navigate("/workspace");
           }}
         >
-          Посмотреть пример
-          <Icon name="arrow" size={16} />
+          Открыть рабочий режим
         </button>
+        <p>
+          Войдите в аккаунт команды, чтобы сохранять видео и получать историю с
+          сервера.
+        </p>
       </section>
     </div>
   );

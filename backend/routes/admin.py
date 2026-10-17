@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 
-from models import db, User
+from models import db, User, AuthSession, utcnow
+from utils.errors import ApiError
 from utils.decorators import admin_required
 
 admin_bp = Blueprint('admin', __name__)
@@ -10,8 +11,13 @@ admin_bp = Blueprint('admin', __name__)
 @admin_required
 def list_users():
     """Список пользователей с пагинацией и поиском"""
-    page = int(request.args.get('page', 1))
-    per_page = min(int(request.args.get('per_page', 20)), 100)
+    try:
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 20))
+        if page < 1 or not 1 <= per_page <= 100:
+            raise ValueError()
+    except ValueError:
+        raise ApiError(400, 'invalid_pagination', 'Некорректная пагинация.')
     search = request.args.get('search', '').strip()
 
     query = User.query.order_by(User.created_at.desc())
@@ -45,9 +51,16 @@ def update_user(user_id):
         return jsonify({'error': 'Пользователь не найден'}), 404
 
     data = request.get_json() or {}
+    for field in ('is_active', 'is_verified'):
+        if field in data and not isinstance(data[field], bool):
+            raise ApiError(422, 'invalid_field', f'{field} должен быть boolean.')
+    if 'user_type' in data and data['user_type'] not in ('user', 'admin'):
+        raise ApiError(422, 'invalid_role', 'Допустимы роли user и admin.')
 
     if 'is_active' in data:
         user.is_active = bool(data['is_active'])
+        if not user.is_active:
+            AuthSession.query.filter_by(user_id=user.id, revoked_at=None).update({'revoked_at': utcnow()})
     if 'is_verified' in data:
         user.is_verified = bool(data['is_verified'])
     if 'user_type' in data and data['user_type'] in ('user', 'admin'):

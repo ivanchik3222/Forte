@@ -78,6 +78,7 @@ class AuthSession(db.Model):
 
 
 class ApiClient(db.Model):
+    """Retain the schema and ownership records from deployed migration 0006."""
     __tablename__ = 'api_clients'
     id = db.Column(db.String(36), primary_key=True, default=uid)
     key_hash = db.Column(db.String(64), nullable=False, unique=True)

@@ -11,6 +11,14 @@ interface AuthResponse {
   access_token: string;
   csrf_token?: string;
 }
+export interface UploadProgress {
+  loaded: number;
+  total?: number;
+  transferred: boolean;
+}
+interface ApiRequestOptions extends RequestInit {
+  onUploadProgress?: (progress: UploadProgress) => void;
+}
 export const apiBaseUrl = (
   process.env.REACT_APP_API_URL || "http://localhost:6767"
 ).replace(/\/$/, "");
@@ -58,7 +66,7 @@ function clearSession() {
 }
 async function raw<T>(
   path: string,
-  options: RequestInit = {},
+  options: ApiRequestOptions = {},
   access?: string,
 ): Promise<T> {
   const headers = new Headers(options.headers);
@@ -66,8 +74,11 @@ async function raw<T>(
   if (options.body && !(options.body instanceof FormData))
     headers.set("Content-Type", "application/json");
   if (access) headers.set("Authorization", `Bearer ${access}`);
+  if (options.onUploadProgress && options.body instanceof FormData)
+    return upload<T>(path, options, headers);
+  const { onUploadProgress, ...requestOptions } = options;
   const response = await fetch(`${apiBaseUrl}${path}`, {
-    ...options,
+    ...requestOptions,
     headers,
     credentials: "include",
   });
@@ -83,6 +94,81 @@ async function raw<T>(
       payload?.error?.code,
     );
   return payload as T;
+}
+
+// Fetch cannot report upload progress. Keep the same session, retry and abort
+// handling above this transport, and let the browser set the multipart boundary.
+function upload<T>(
+  path: string,
+  options: ApiRequestOptions,
+  headers: Headers,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const signal = options.signal;
+    const aborted = () => new DOMException("Upload aborted", "AbortError");
+    if (signal?.aborted) {
+      reject(aborted());
+      return;
+    }
+    const abort = () => xhr.abort();
+    const cleanup = () => {
+      signal?.removeEventListener("abort", abort);
+      xhr.upload.onprogress = null;
+      xhr.upload.onload = null;
+    };
+    xhr.upload.onprogress = (event) =>
+      options.onUploadProgress?.({
+        loaded: event.loaded,
+        total: event.lengthComputable ? event.total : undefined,
+        transferred: false,
+      });
+    xhr.upload.onload = (event) =>
+      options.onUploadProgress?.({
+        loaded: event.loaded,
+        total: event.lengthComputable ? event.total : undefined,
+        transferred: true,
+      });
+    xhr.onload = () => {
+      cleanup();
+      const payload = xhr.response;
+      if (xhr.status >= 200 && xhr.status < 300) resolve(payload as T);
+      else
+        reject(
+          new ApiError(
+            payload?.error?.message ||
+              payload?.message ||
+              (typeof payload?.error === "string"
+                ? payload.error
+                : xhr.status === 413
+                  ? "Сервер не принял файл такого размера. Попробуйте файл меньше или повторите позже."
+                  : "Не удалось загрузить видео. Попробуйте ещё раз."),
+            xhr.status,
+            payload?.error?.code,
+          ),
+        );
+    };
+    xhr.onerror = () => {
+      cleanup();
+      reject(new TypeError("Нет связи с сервером."));
+    };
+    xhr.onabort = () => {
+      cleanup();
+      reject(aborted());
+    };
+    xhr.open(options.method || "POST", `${apiBaseUrl}${path}`);
+    xhr.withCredentials = true;
+    xhr.responseType = "json";
+    headers.forEach((value, key) => xhr.setRequestHeader(key, value));
+    signal?.addEventListener("abort", abort, { once: true });
+    options.onUploadProgress?.({ loaded: 0, transferred: false });
+    try {
+      xhr.send(options.body as FormData);
+    } catch (error) {
+      cleanup();
+      reject(error);
+    }
+  });
 }
 async function refresh(): Promise<AuthResponse> {
   if (!refreshPromise) {
@@ -107,7 +193,7 @@ async function refresh(): Promise<AuthResponse> {
 }
 export async function apiRequest<T>(
   path: string,
-  options: RequestInit = {},
+  options: ApiRequestOptions = {},
   accessToken?: string,
 ): Promise<T> {
   const epoch = generation;

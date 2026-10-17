@@ -70,6 +70,16 @@ class Detector:
         report['verdict'] = 'requires_review'
         report['violations'] = []
         report['rule_evaluation'] = 'not_performed'
+        report['classification_complete'] = False
+        report['additional_checks'] = {
+            'identity_document_presentation': dict(status='not_evaluated',
+                reason='No trained ID/passport/phone presentation model or verified transaction boundaries',
+                required_evidence='Customer presents physical or digital document toward cashier; object type and roles must be verified'),
+            'customer_hand_oscillation': dict(status='not_evaluated',
+                reason='2 FPS boxes cannot establish rapid hand oscillations or ownership of hands',
+                required_evidence='Original high-FPS hand trajectories, stable tracking and camera-motion compensation',
+                affects_violation_verdict=False),
+        }
         # Sample evidence throughout the recording, including observation starts.
         candidates = sorted({0, len(rows)-1} | {
             min(range(len(rows)), key=lambda i: abs(rows[i]['timestamp_sec']-e['start_sec']))

@@ -69,3 +69,26 @@ test('rejects observations returned for a different recording', async () => {
   expect(await screen.findByRole('alert')).toHaveTextContent('Сервер вернул анализ другой записи.');
   expect(screen.queryByText('Наблюдения готовы. Требуется ручная проверка.')).not.toBeInTheDocument();
 });
+
+test('identity and customer hand checks remain visibly unperformed', async () => {
+  request.mockResolvedValue({ ...complete, result: { ...complete.result,
+    additional_checks: {
+      identity_document_presentation: { status: 'not_evaluated', reason: 'No trained model' },
+      customer_hand_oscillation: { status: 'not_evaluated', reason: 'Needs original FPS' },
+    } } });
+  render(<MLAnalysisPanel mediaId="media-1" onSeek={jest.fn()} />);
+  await screen.findByText('Показ удостоверения кассиру:');
+  expect(screen.getByText('Колебания рук клиента:')).toBeInTheDocument();
+  expect(screen.getByText(/Итог по ТЗ пока не сформирован/)).toBeInTheDocument();
+  expect(screen.queryByRole('heading', { name: 'Нарушение не обнаружено' })).not.toBeInTheDocument();
+});
+
+test('renders only a completed event classification as the two-verdict final answer', async () => {
+  request.mockResolvedValue({ ...complete,
+    result: { ...complete.result, classification_complete: true, rule_evaluation: 'performed' },
+    final_answer: { job_id: complete.job_id, status: 'done', verdict: 'no_violation', violations: [] },
+  });
+  render(<MLAnalysisPanel mediaId="media-1" onSeek={jest.fn()} />);
+  expect(await screen.findByRole('heading', { name: 'Нарушение не обнаружено' })).toBeInTheDocument();
+  expect(screen.queryByText(/Итог по ТЗ пока не сформирован/)).not.toBeInTheDocument();
+});

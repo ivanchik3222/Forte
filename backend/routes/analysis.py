@@ -1,12 +1,15 @@
 """Authenticated object observations; automatic violation evaluation is disabled."""
 from flask import Blueprint, request, jsonify, current_app, g, url_for, send_file
+from uuid import uuid4
 from flask_jwt_extended import get_jwt
 from filelock import FileLock, Timeout
-from models import db, AnalysisJob, _utc_iso, utcnow
+from models import db, AnalysisJob, _utc_iso, utcnow, as_utc
 from services.media import get_media, root, sign_file, authorize_file
 from services.analysis import available
 from utils.decorators import active_required
 from utils.errors import ApiError
+from services.jury import jury_required, authenticate_jury
+from services.final_answer import final_answer, DecisionUnavailable
 
 analysis_bp = Blueprint('analysis', __name__)
 
@@ -26,7 +29,14 @@ def job_dto(job):
         result['evidence_frames'] = [dict(timestamp_sec=e['timestamp_sec'], boxes=e['boxes'],
             image_url=url_for('analysis.evidence', job_id=job.id, index=i, token=signed))
             for i, e in enumerate(result['evidence_frames'])]
+    answer = None
+    if job.status == 'done' and job.result:
+        try:
+            answer = final_answer(job.id,job.result,root()/'analysis'/job.id)
+        except DecisionUnavailable:
+            pass
     return dict(job_id=job.id, media_id=job.media_id, status=job.status, camera_profile=job.camera_profile,
+        final_answer=answer,
         created_at=_utc_iso(job.created_at), started_at=_utc_iso(job.started_at),
         finished_at=_utc_iso(job.finished_at), error=job.error, result=result)
 
@@ -72,9 +82,49 @@ def latest(record_id):
 
 
 @analysis_bp.get('/jobs/<job_id>')
-@active_required
 def job_status(job_id):
-    return jsonify(job_dto(get_job(job_id)))
+    if 'X-API-Key' in request.headers:
+        authenticate_jury()
+        job = get_job(job_id)
+        finished = as_utc(job.finished_at) if job.finished_at else utcnow()
+        if (finished-as_utc(job.created_at)).total_seconds() > 300:
+            return jsonify(job_id=job.id,status='failed',error='Превышен лимит обработки 5 минут.',error_code='deadline_exceeded')
+        if job.status in ('queued','processing'):
+            return jsonify(job_id=job.id,status='processing')
+        if job.status == 'failed':
+            return jsonify(job_id=job.id,status='failed',error=job.error)
+        try:
+            return jsonify(final_answer(job.id,job.result or {},root()/'analysis'/job.id))
+        except DecisionUnavailable as exc:
+            return jsonify(job_id=job.id,status='failed',error=str(exc),error_code='classification_not_ready')
+    return active_required(lambda: jsonify(job_dto(get_job(job_id))))()
+
+
+@analysis_bp.post('/analyze')
+@jury_required
+def jury_analyze():
+    if not available():
+        raise ApiError(503,'analysis_unavailable','Локальная модель недоступна.')
+    uploads = request.files.getlist('file')
+    if len(uploads) != 1 or not (uploads[0].filename or '').lower().endswith('.mov'):
+        raise ApiError(415,'unsupported_format','API жюри принимает один MOV в поле file.')
+    try:
+        with FileLock(str(root()/'.analysis-submit.lock'),timeout=0):
+            if AnalysisJob.query.filter(AnalysisJob.status.in_(['queued','processing'])).count() >= current_app.config['ML_QUEUE_LIMIT']:
+                raise ApiError(429,'analysis_busy','Очередь заполнена.')
+            # The required jury protocol does not require Idempotency-Key.
+            if not request.headers.get('Idempotency-Key'):
+                request.environ['HTTP_IDEMPOTENCY_KEY'] = uuid4().hex
+            from services.media import save_upload
+            media,_ = save_upload()
+            job = AnalysisJob.query.filter_by(media_id=media.id).first()
+            if not job:
+                # A new angle is allowed by the case; never apply the fixed native crop implicitly.
+                job = AnalysisJob(media_id=media.id,camera_profile='full_frame')
+                db.session.add(job); db.session.commit()
+            return jsonify(job_id=job.id),202
+    except Timeout:
+        raise ApiError(429,'analysis_busy','Повторите запрос через несколько секунд.')
 
 
 @analysis_bp.get('/jobs/<job_id>/evidence/<int:index>')

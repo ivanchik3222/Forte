@@ -26,6 +26,8 @@ def main():
         assert [r['timestamp_sec'] for r in report['frames']] == [0., .5, 1., 1.5]
         assert report['verdict'] == 'requires_review' and report['violations'] == []
         assert report['rule_evaluation'] == 'not_performed' and report['evidence_frames']
+        assert report['classification_complete'] is False
+        assert all(c['status']=='not_evaluated' for c in report['additional_checks'].values())
         print('Real-weight CPU inference, video PTS and evidence export: OK', flush=True)
 
 

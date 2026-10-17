@@ -1,0 +1,24 @@
+{
+  "status": "requires_interval_annotation_and_model_training",
+  "current_detector_classes_unchanged": true,
+  "identity_document_presentation": {
+    "target": "Customer visibly presents a physical identity document or a phone toward the cashier",
+    "annotation_states": ["unreviewed", "observed", "not_observed_in_complete_transaction", "unobservable"],
+    "objects_to_annotate": ["identity_document", "passport", "phone", "bank_card", "cash", "paper"],
+    "required_context": ["customer/cashier roles verified spatially without face identification", "transaction interval", "document approaches cashier or is held toward cashier", "physical document vs bank card/paper", "phone presentation marked separately; screen authenticity unknown"],
+    "negative_label_requirements": ["entire relevant transaction is visible", "no occlusion or missing beginning", "absence of paper document cannot exclude digital identification"],
+    "rule_candidate": "identity_check_not_observable",
+    "automatic_rule_enabled": false,
+    "read_document_content": false,
+    "recognize_or_compare_faces": false
+  },
+  "customer_hand_oscillation": {
+    "target": "Repeated visible oscillatory movement of a customer's hand",
+    "annotation_states": ["unreviewed", "observed", "not_observed_in_visible_interval", "unobservable"],
+    "use_original_video_fps": true,
+    "use_2fps_detections_for_oscillation_decision": false,
+    "required_context": ["hand belongs to customer", "hand and wrist visible", "original timestamps", "camera-motion compensation", "separate counting, gestures and reaching", "sufficient pixels and track continuity"],
+    "affects_violation_verdict": false,
+    "infer_emotions_intent_intoxication_or_diagnosis": false
+  }
+}

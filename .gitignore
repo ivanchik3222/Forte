@@ -15,6 +15,7 @@ ML/external/
 ML/datasets/
 ML/archive/external_interactions_20261017/artifacts/
 ML/annotations/corrected/
+ML/annotations/action_review/
 __pycache__/
 *.pyc
 ML/.venv

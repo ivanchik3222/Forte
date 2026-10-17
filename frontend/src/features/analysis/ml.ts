@@ -1,4 +1,9 @@
 import { mediaUrl } from '../../api/client';
+import { parseJobResponse } from './api';
+import { JobResponse } from './types';
+
+export type FinalAnswer = Extract<JobResponse, { status: 'done' }>;
+export interface AdditionalCheck { status: 'not_evaluated' | 'observed' | 'not_observed' | 'unobservable'; reason: string; }
 
 export interface MLBox {
   label: string;
@@ -7,9 +12,11 @@ export interface MLBox {
   xyxy: number[];
 }
 export interface MLResult {
-  verdict: 'requires_review';
-  violations: [];
-  rule_evaluation: 'not_performed';
+  verdict: 'requires_review' | 'violation' | 'no_violation';
+  violations: unknown[];
+  rule_evaluation: 'not_performed' | 'performed';
+  classification_complete?: boolean;
+  additional_checks?: { identity_document_presentation: AdditionalCheck; customer_hand_oscillation: AdditionalCheck };
   processed_frames: number;
   sampled_fps: number;
   elapsed_seconds: number;
@@ -25,6 +32,7 @@ export interface MLJob {
   camera_profile: 'forte_open' | 'full_frame';
   error: string | null;
   result: MLResult | null;
+  final_answer?: FinalAnswer | null;
 }
 const object = (v: any) => v && typeof v === 'object' && !Array.isArray(v);
 const number = (v: any) => typeof v === 'number' && Number.isFinite(v) && v >= 0;
@@ -41,12 +49,22 @@ export function parseMLJob(value: unknown): MLJob | null {
   const r = v.result;
   if (v.status === 'done') {
     check(object(r) && r);
-    check(r.verdict === 'requires_review' && r.rule_evaluation === 'not_performed' &&
-      Array.isArray(r.violations) && !r.violations.length && number(r.processed_frames) &&
+    if (v.final_answer != null) {
+      const final = parseJobResponse(v.final_answer);
+      check(final.status === 'done' && final.job_id === v.job_id &&
+        r.classification_complete === true && r.rule_evaluation === 'performed');
+    } else check(r.verdict === 'requires_review' && r.rule_evaluation === 'not_performed' &&
+      Array.isArray(r.violations) && !r.violations.length);
+    check(Array.isArray(r.violations) && number(r.processed_frames) &&
       number(r.sampled_fps) && r.sampled_fps > 0 && number(r.elapsed_seconds) &&
       typeof r.model_sha256 === 'string' && /^[a-f0-9]{64}$/.test(r.model_sha256) &&
       Array.isArray(r.frames) && r.frames.length === r.processed_frames &&
       Array.isArray(r.events) && Array.isArray(r.evidence_frames));
+    if (r.additional_checks != null) {
+      check(object(r.additional_checks));
+      [r.additional_checks.identity_document_presentation,r.additional_checks.customer_hand_oscillation].forEach(c =>
+        check(object(c) && ['not_evaluated','observed','not_observed','unobservable'].includes(c.status) && typeof c.reason === 'string'));
+    }
     const boxes = (items: MLBox[]) => {
       check(Array.isArray(items));
       items.forEach(b => check(object(b) && Number.isInteger(b.class_id) &&

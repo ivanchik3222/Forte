@@ -32,7 +32,8 @@
 | POST `/api/v1/media/{id}/playback-url` | `{url,expires_in:900}`; url относительный от корня API-сервера |
 | GET `/api/v1/media/{id}/content?token=...` | Подписанная выдача; Range → 206, неверный диапазон → 416, `download=1` для скачивания |
 | GET `/api/v1/media/{id}/report` | JSON метаданных с `notice`, Content-Disposition attachment |
-| POST `/api/v1/analyze` | 503, code=`analysis_unavailable`; задача не создаётся |
+| POST `/api/v1/analyze` | API жюри с `X-API-Key`: MOV в поле `file` → `{job_id}`. Нужны JURY_API_KEY и JURY_OWNER_ID |
+| GET `/api/v1/jobs/{job_id}` | С ключом жюри: `processing|done|failed`, бинарный итог и JPEG base64 по ТЗ. С JWT: внутренний DTO задачи |
 
 Запись имеет форму:
 

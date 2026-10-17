@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { apiRequest, mediaUrl } from '../../api/client';
 import { useResource } from '../workspace/useResource';
 import { MLJob, observationName, parseMLJob } from './ml';
-import { timecode } from './types';
+import { timecode, safeSourceUrl } from './types';
 
 export function MLAnalysisPanel({ mediaId, onSeek }: { mediaId: string; onSeek: (sec: number) => void }) {
   const [submitted, setSubmitted] = useState<MLJob | null>(null);
@@ -33,10 +33,15 @@ export function MLAnalysisPanel({ mediaId, onSeek }: { mediaId: string; onSeek: 
     finally { setBusy(false); }
   };
   const result = job?.result;
+  const final = job?.final_answer;
+  const checkStatus = (status?: string) => ({
+    observed: 'Наблюдалось', not_observed: 'Не наблюдалось в проверенном интервале',
+    unobservable: 'Невозможно оценить', not_evaluated: 'Проверка ещё не выполнена',
+  }[status || 'not_evaluated'] || 'Невозможно оценить');
   return <section className="panel ml-analysis" aria-labelledby="ml-analysis-title">
     <div className="section-heading"><div><h2 id="ml-analysis-title">Наблюдения модели</h2>
       <p>Объекты, движения рук и временные интервалы для ручной проверки.</p></div></div>
-    <p className="notice">Модель может пропускать деньги и руки. Отсутствие бокса не подтверждает отсутствие предмета. Автоматическая оценка нарушений отключена.</p>
+    <p className="notice">Отсутствие бокса не подтверждает отсутствие предмета. Итог о возможных нарушениях требует классификации событий и проверки правил.</p>
     {(!job || job.status === 'failed') && <div className="settings-save">
       <label>Профиль камеры <select aria-label="Профиль камеры" value={profile} onChange={e => setProfile(e.target.value)}>
         <option value="forte_open">Forte Open · 464×848</option><option value="full_frame">Другая камера · полный кадр</option>
@@ -47,7 +52,23 @@ export function MLAnalysisPanel({ mediaId, onSeek }: { mediaId: string; onSeek: 
     {(error || resource.error || job?.error) && <p role="alert">{error || resource.error || job?.error}</p>}
     {active && <p role="status">{job?.status === 'queued' ? 'Видео в очереди. Обработку выполняет локальный worker.' : 'Модель обрабатывает видео…'} Статус обновляется автоматически.</p>}
     {result && <>
-      <p role="status">Наблюдения готовы. Требуется ручная проверка.</p>
+      {final ? <section aria-label="Итог проверки">
+        <h3>{final.verdict === 'violation' ? 'Обнаружены признаки возможных нарушений' : 'Нарушение не обнаружено'}</h3>
+        {final.violations.map((v,i) => <article key={i}>
+          <h4>{v.type}</h4><button className="text-button" onClick={() => onSeek(v.timecode_sec)}>{timecode(v.timecode_sec)}</button>
+          <p>{v.description}</p>
+          {v.evidence_frames.map((f,j) => <img key={j} src={`data:image/jpeg;base64,${f.image_base64}`} alt={`Кадр-доказательство ${timecode(f.timestamp_sec)}`} style={{maxHeight:260,maxWidth:'100%'}} />)}
+          {v.rule && <p>{v.rule.title} · {v.rule.section}. {v.rule.explanation}{safeSourceUrl(v.rule.url) && <a href={safeSourceUrl(v.rule.url)} target="_blank" rel="noreferrer"> Нормативный источник</a>}</p>}
+        </article>)}
+      </section> : <>
+        <p role="status">Наблюдения готовы. Требуется ручная проверка.</p>
+        <p>Итог по ТЗ пока не сформирован: классификация событий ещё не выполнена.</p>
+      </>}
+      <div className="notice"><div>
+        <p><strong>Показ удостоверения кассиру:</strong> {checkStatus(result.additional_checks?.identity_document_presentation.status)}.</p>
+        <p><strong>Колебания рук клиента:</strong> {checkStatus(result.additional_checks?.customer_hand_oscillation.status)}.</p>
+        <p>Цифровое удостоверение учитывается отдельно. Движения рук сами по себе не подтверждают нарушение.</p>
+      </div></div>
       <p>{result.processed_frames} кадров · {result.sampled_fps} кадра/с · обработка {result.elapsed_seconds.toFixed(1)} с</p>
       <h3>Кадры с найденными объектами</h3>
       <div className="ml-evidence-grid">{result.evidence_frames.map((e, i) => <button key={i} className="ml-evidence-card" onClick={() => onSeek(e.timestamp_sec)}>

@@ -161,7 +161,7 @@ def test_camera_admin_and_unavailable_analysis(client, auth_headers, admin_heade
     created = client.post('/api/v1/cameras', json={'name':'C','location':'L'}, headers=admin_headers)
     assert created.status_code == 201 and created.json['status'] == 'unknown'
     assert client.patch('/api/v1/cameras/'+created.json['id'], json={'status':'online'}, headers=admin_headers).status_code == 422
-    assert client.post('/api/v1/analyze', headers=auth_headers).json['error']['code'] == 'analysis_unavailable'
+    assert client.post('/api/v1/analyze', headers=auth_headers).json['error']['code'] == 'jury_not_configured'
 
 
 @pytest.mark.parametrize('path', ['/media?page=0','/media?per_page=101','/media?sort=no','/notifications?date=bad','/notifications?read=wrong'])

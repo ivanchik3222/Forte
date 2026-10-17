@@ -53,6 +53,8 @@ class Config:
     ML_DEVICE = os.environ.get('ML_DEVICE') or None
     ML_JOB_TIMEOUT = 300
     ML_QUEUE_LIMIT = 20
+    JURY_API_KEY = os.environ.get('JURY_API_KEY', '')
+    JURY_OWNER_ID = int(os.environ['JURY_OWNER_ID']) if os.environ.get('JURY_OWNER_ID') else None
 
 
 class DevelopmentConfig(Config):

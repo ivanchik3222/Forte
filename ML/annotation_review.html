@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Разметка событий — Forte ML</title>
+  <style>
+    :root { color-scheme: light; font: 15px/1.45 "Segoe UI", sans-serif; background:#f4f6f8; color:#17212b; }
+    * { box-sizing: border-box; }
+    body { margin:0; }
+    header { padding:18px 24px; background:#102a43; color:#fff; }
+    header h1 { margin:0 0 4px; font-size:21px; }
+    header p { margin:0; color:#d9e2ec; }
+    main { display:grid; grid-template-columns:minmax(350px, 1fr) minmax(400px, 1fr); gap:18px; padding:18px; max-width:1500px; margin:auto; }
+    section { background:#fff; border:1px solid #d9e2ec; border-radius:10px; padding:16px; min-width:0; }
+    h2 { margin:0 0 12px; font-size:17px; }
+    label { display:block; font-weight:600; margin:10px 0 4px; }
+    input, select, textarea, button { font:inherit; }
+    input[type=file] { width:100%; }
+    input[type=text], input[type=number], select, textarea { width:100%; padding:8px; border:1px solid #bcccdc; border-radius:6px; background:#fff; }
+    textarea { min-height:68px; resize:vertical; }
+    button { padding:8px 11px; border:0; border-radius:6px; background:#1769aa; color:white; cursor:pointer; }
+    button.secondary { background:#52606d; }
+    button.danger { background:#b42318; }
+    button:disabled { opacity:.5; cursor:default; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .controls { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+    .small { font-size:13px; color:#52606d; }
+    .note { background:#fff4ce; border:1px solid #f0d264; padding:9px 11px; border-radius:7px; margin-top:12px; }
+    video { display:block; width:100%; max-height:58vh; background:#111; border-radius:7px; margin-top:10px; }
+    .interval { display:flex; align-items:center; justify-content:space-between; gap:8px; border-bottom:1px solid #e4e7eb; padding:6px 0; }
+    .interval span { font-variant-numeric:tabular-nums; }
+    .status { padding:8px; border-radius:6px; background:#eef4f8; margin:10px 0; }
+    .checkrow { display:flex; gap:14px; flex-wrap:wrap; margin-top:8px; }
+    .checkrow label { display:flex; gap:6px; align-items:center; margin:0; font-weight:400; }
+    @media (max-width:900px) { main { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Локальная разметка событий</h1>
+    <p>Видео остаются на этом компьютере. Экспортируйте очередь в JSON после внесения изменений.</p>
+  </header>
+  <main>
+    <section>
+      <h2>Источник и ролик</h2>
+      <label for="tasksFile">Очередь rule_review_tasks.json</label>
+      <input id="tasksFile" type="file" accept=".json,application/json">
+      <label for="videoFolder">Папка ML/open/open/videos</label>
+      <input id="videoFolder" type="file" webkitdirectory multiple accept="video/*,.mov,.mp4">
+      <label for="proposalsFile">Подсказки X-CLIP (необязательно)</label>
+      <input id="proposalsFile" type="file" accept=".json,application/json">
+      <div class="row">
+        <div><label for="taskSelect">Ролик</label><select id="taskSelect" disabled></select></div>
+        <div><label for="itemSelect">Событие / проверка</label><select id="itemSelect" disabled></select></div>
+      </div>
+      <div id="taskInfo" class="status">Загрузите очередь и папку видео.</div>
+      <video id="player" controls playsinline></video>
+      <div class="row">
+        <div><label for="startSec">Начало, сек</label><input id="startSec" type="number" min="0" step="0.01"></div>
+        <div><label for="endSec">Конец, сек</label><input id="endSec" type="number" min="0" step="0.01"></div>
+      </div>
+      <div class="controls">
+        <button id="markStart" class="secondary" type="button">Поставить начало по плееру</button>
+        <button id="markEnd" class="secondary" type="button">Поставить конец по плееру</button>
+        <button id="addInterval" type="button">Добавить интервал</button>
+      </div>
+      <div id="intervalList" class="small" style="margin-top:8px">Интервалы ещё не добавлены.</div>
+      <h2 style="margin-top:18px">Полные операции</h2>
+      <label for="transactionType">Вид операции</label>
+      <select id="transactionType">
+        <option value="unknown">Не определён</option>
+        <option value="cash_acceptance">Приём наличных</option>
+        <option value="cash_payout">Выдача наличных</option>
+        <option value="collection_bag_acceptance">Приём инкассаторской сумки</option>
+        <option value="internal_counting">Внутренний пересчёт</option>
+      </select>
+      <div class="checkrow"><label><input id="txVisible" type="checkbox"> Вся операция видна без перекрытия/обрезки</label></div>
+      <div class="row">
+        <div><label for="txStartSec">Начало операции, сек</label><input id="txStartSec" type="number" min="0" step="0.01"></div>
+        <div><label for="txEndSec">Конец операции, сек</label><input id="txEndSec" type="number" min="0" step="0.01"></div>
+      </div>
+      <div class="controls">
+        <button id="txMarkStart" class="secondary" type="button">Поставить начало по плееру</button>
+        <button id="txMarkEnd" class="secondary" type="button">Поставить конец по плееру</button>
+        <button id="txAdd" type="button">Добавить операцию</button>
+      </div>
+      <div id="transactionList" class="small" style="margin-top:8px">Операции ещё не размечены.</div>
+    </section>
+    <section>
+      <h2>Разметка текущего события</h2>
+      <label for="statusSelect">Статус</label>
+      <select id="statusSelect" disabled></select>
+      <div id="presentationWrap" hidden>
+        <label for="presentationType">Что показал клиент</label>
+        <select id="presentationType">
+          <option value="unknown">Не определено</option>
+          <option value="physical_id">Физическое удостоверение</option>
+          <option value="phone">Телефон</option>
+          <option value="none_visible">Ничего из этого не видно</option>
+        </select>
+      </div>
+      <label for="evidence">Кадры-доказательства, секунды через запятую</label>
+      <input id="evidence" type="text" placeholder="например: 12.40, 13.10">
+      <label for="visibility">Видимость целевого участка</label>
+      <select id="visibility">
+        <option value="unreviewed">Не проверено</option>
+        <option value="clearly_visible">Действие и участники хорошо видны</option>
+        <option value="partially_occluded">Частично перекрыто</option>
+        <option value="outside_frame">Участник или действие вне кадра</option>
+        <option value="unclear_context">Операция или роль неясна</option>
+        <option value="insufficient_resolution">Недостаточное разрешение</option>
+      </select>
+      <div class="checkrow">
+        <label><input id="customerVerified" type="checkbox"> Роль клиента подтверждена</label>
+        <label><input id="cashierVerified" type="checkbox"> Роль кассира подтверждена</label>
+      </div>
+      <div class="row">
+        <div><label for="actors">Участники/роли через запятую</label><input id="actors" type="text" placeholder="customer, cashier"></div>
+        <div><label for="objects">Объекты через запятую</label><input id="objects" type="text" placeholder="cash, phone"></div>
+      </div>
+      <label for="prerequisites">Проверенные предпосылки (JSON)</label>
+      <textarea id="prerequisites" spellcheck="false">{}</textarea>
+      <label for="exclusions">Исключения / причины неопределённости (JSON)</label>
+      <textarea id="exclusions" spellcheck="false">{}</textarea>
+      <label for="notes">Заметки разметчика</label>
+      <textarea id="notes"></textarea>
+      <label>Окна-кандидаты модели</label>
+      <div id="proposalList" class="small">Подсказки не загружены. Это только shortlist для просмотра.</div>
+      <div id="formError" class="small" style="color:#b42318"></div>
+      <div class="controls">
+        <button id="saveJson" type="button" disabled>Скачать размеченный JSON</button>
+        <button id="downloadOriginal" class="secondary" type="button" disabled>Скачать копию очереди</button>
+      </div>
+      <div class="note small">Подсказки модели не являются метками. Не ставьте «не наблюдалось», если соответствующая полная операция не видна. Юридический вердикт этим инструментом не выставляется.</div>
+    </section>
+  </main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const ui = Object.fromEntries(['tasksFile','videoFolder','proposalsFile','taskSelect','itemSelect','taskInfo','player','startSec','endSec','markStart','markEnd','addInterval','intervalList','txStartSec','txEndSec','txMarkStart','txMarkEnd','txAdd','transactionType','txVisible','transactionList','statusSelect','presentationWrap','presentationType','evidence','visibility','customerVerified','cashierVerified','actors','objects','prerequisites','exclusions','notes','proposalList','formError','saveJson','downloadOriginal'].map(id => [id, $(id)]));
+  const labels = {
+    cash_count_without_customer: 'Пересчёт без клиента',
+    previous_cash_left_on_desk: 'Деньги прошлого клиента на столе',
+    cash_handover_without_visible_receipt: 'Передача наличных / документ',
+    collection_bag_not_visibly_checked: 'Осмотр инкассаторской сумки',
+    counting_without_controller: 'Пересчёт без контролёра',
+    cash_room_door_context: 'Контекст двери кассовой комнаты',
+    storage_keys_context: 'Контекст обращения с ключами',
+    identity_document_presentation: 'Показ удостоверения / телефона',
+    customer_hand_oscillation: 'Колебания рук клиента'
+  };
+  const commonStatuses = ['unreviewed','observed','not_observed_in_complete_interval','unobservable','not_applicable'];
+  let tasks = [], proposals = {}, files = new Map(), taskIndex = -1, itemKey = '', currentUrl = null;
+
+  function currentTask() { return tasks[taskIndex]; }
+  function getRecord(task, key) {
+    if (task.events[key]) return task.events[key];
+    if (task.context_observations[key]) return task.context_observations[key];
+    return task.checks[key];
+  }
+  function categoryKeys(task) { return [...Object.keys(task.events || {}), ...Object.keys(task.context_observations || {}), ...Object.keys(task.checks || {})]; }
+  function isIdentity(key) { return key === 'identity_document_presentation'; }
+  function intervalField(record, key) {
+    if (!isIdentity(key)) return 'intervals';
+    return record.presentation_type === 'physical_id' ? 'physical_id_intervals' : record.presentation_type === 'phone' ? 'phone_presentation_intervals' : null;
+  }
+  function visibilityField(key) {
+    if (isIdentity(key)) return 'complete_relevant_transaction_visible';
+    if (key === 'customer_hand_oscillation') return 'hand_and_wrist_visible';
+    return 'visibility';
+  }
+  function setVideo(task) {
+    const file = files.get(task.source_file);
+    if (currentUrl) URL.revokeObjectURL(currentUrl);
+    currentUrl = file ? URL.createObjectURL(file) : null;
+    ui.player.src = currentUrl || '';
+    ui.taskInfo.textContent = `${task.source_file} · ID ${task.video_ids.join(', ')} · ${task.split} · ${Number(task.duration_sec).toFixed(2)} сек · ${file ? 'видео загружено локально' : 'видео не найдено — выберите папку с исходниками'}`;
+  }
+  function flushForm() {
+    if (taskIndex < 0 || !itemKey) return true;
+    const task = currentTask(), record = getRecord(task, itemKey);
+    if (!record) return true;
+    const parsed = {};
+    try {
+      parsed.prerequisites = JSON.parse(ui.prerequisites.value || '{}');
+      parsed.exclusions = JSON.parse(ui.exclusions.value || '{}');
+    } catch (err) {
+      ui.formError.textContent = 'Проверьте JSON в предпосылках и исключениях: ' + err.message;
+      return false;
+    }
+    ui.formError.textContent = '';
+    record.status = ui.statusSelect.value;
+    if (isIdentity(itemKey)) record.presentation_type = ui.presentationType.value;
+    record[visibilityField(itemKey)] = ui.visibility.value;
+    record.evidence_frames_sec = ui.evidence.value.split(',').map(x => Number(x.trim())).filter(Number.isFinite);
+    record.customer_role_verified = ui.customerVerified.checked;
+    record.cashier_role_verified = ui.cashierVerified.checked;
+    record.actors = ui.actors.value.split(',').map(x => x.trim()).filter(Boolean);
+    record.objects = ui.objects.value.split(',').map(x => x.trim()).filter(Boolean);
+    record.prerequisites = parsed.prerequisites;
+    record.exclusions = parsed.exclusions;
+    record.reviewer_notes = ui.notes.value;
+    return true;
+  }
+  function fillForm() {
+    const task = currentTask(); if (!task || !itemKey) return;
+    const record = getRecord(task, itemKey); if (!record) return;
+    ui.statusSelect.replaceChildren();
+    const options = itemKey === 'customer_hand_oscillation' ? ['unreviewed','observed','not_observed_in_visible_interval','unobservable'] : commonStatuses;
+    for (const status of options) {
+      const option = document.createElement('option'); option.value = status; option.textContent = status;
+      ui.statusSelect.appendChild(option);
+    }
+    ui.statusSelect.value = record.status || 'unreviewed';
+    ui.statusSelect.disabled = false;
+    ui.presentationWrap.hidden = !isIdentity(itemKey);
+    ui.presentationType.value = record.presentation_type || 'unknown';
+    ui.evidence.value = (record.evidence_frames_sec || []).join(', ');
+    ui.visibility.value = record[visibilityField(itemKey)] || 'unreviewed';
+    ui.customerVerified.checked = Boolean(record.customer_role_verified);
+    ui.cashierVerified.checked = Boolean(record.cashier_role_verified);
+    ui.actors.value = Array.isArray(record.actors) ? record.actors.join(', ') : '';
+    ui.objects.value = Array.isArray(record.objects) ? record.objects.join(', ') : '';
+    ui.prerequisites.value = JSON.stringify(record.prerequisites || {}, null, 2);
+    ui.exclusions.value = JSON.stringify(record.exclusions || {}, null, 2);
+    ui.notes.value = record.reviewer_notes || record.notes || '';
+    ui.startSec.value = ''; ui.endSec.value = '';
+    renderIntervals();
+    renderProposals();
+  }
+  function activeIntervals() {
+    const record = getRecord(currentTask(), itemKey), field = intervalField(record, itemKey);
+    if (!field) return [];
+    if (!Array.isArray(record[field])) record[field] = [];
+    return record[field];
+  }
+  function renderIntervals() {
+    if (taskIndex < 0 || !itemKey) { ui.intervalList.textContent = 'Интервалы ещё не добавлены.'; return; }
+    const spans = activeIntervals();
+    ui.intervalList.replaceChildren();
+    if (!spans.length) { ui.intervalList.textContent = 'Интервалы ещё не добавлены.'; return; }
+    spans.forEach((span, index) => {
+      const row = document.createElement('div'); row.className = 'interval';
+      const text = document.createElement('span');
+      text.textContent = `${Number(span.start_sec ?? span.start).toFixed(2)}–${Number(span.end_sec ?? span.end).toFixed(2)} сек`;
+      const remove = document.createElement('button'); remove.className = 'danger'; remove.type = 'button'; remove.textContent = 'Удалить';
+      remove.onclick = () => { spans.splice(index, 1); renderIntervals(); };
+      row.append(text, remove); ui.intervalList.appendChild(row);
+    });
+  }
+  function renderTransactions() {
+    const task = currentTask();
+    if (!task) return;
+    if (!Array.isArray(task.transaction_intervals)) task.transaction_intervals = [];
+    ui.transactionList.replaceChildren();
+    if (!task.transaction_intervals.length) {
+      ui.transactionList.textContent = 'Операции ещё не размечены.';
+      return;
+    }
+    task.transaction_intervals.forEach((span, index) => {
+      const row = document.createElement('div'); row.className = 'interval';
+      const text = document.createElement('span');
+      text.textContent = `${span.transaction_type || 'unknown'} · ${Number(span.start_sec).toFixed(2)}–${Number(span.end_sec).toFixed(2)} сек · ${span.complete_and_visible ? 'полная' : 'не подтверждена целиком'}`;
+      const remove = document.createElement('button'); remove.className = 'danger'; remove.type = 'button'; remove.textContent = 'Удалить';
+      remove.onclick = () => { task.transaction_intervals.splice(index, 1); renderTransactions(); };
+      row.append(text, remove); ui.transactionList.appendChild(row);
+    });
+  }
+  function renderProposals() {
+    ui.proposalList.replaceChildren();
+    const task = currentTask();
+    const rows = task && proposals.top_windows_by_video_sha256
+      ? (proposals.top_windows_by_video_sha256[task.source_sha256]?.[itemKey] || []) : [];
+    if (!rows.length) {
+      ui.proposalList.textContent = proposals.top_windows_by_video_sha256
+        ? 'Для этого ролика и события модельных окон нет.'
+        : 'Подсказки не загружены. Это только shortlist для просмотра.';
+      return;
+    }
+    const disclaimer = document.createElement('div');
+    disclaimer.textContent = 'Оценки — ранжирование, не вероятности и не метки. Проверьте весь соответствующий интервал.';
+    ui.proposalList.appendChild(disclaimer);
+    for (const row of rows) {
+      const line = document.createElement('div'); line.className = 'interval';
+      const text = document.createElement('span');
+      text.textContent = `#${row.score_rank} · ${Number(row.start_sec).toFixed(2)}–${Number(row.end_sec).toFixed(2)} сек · score ${Number(row.scores[itemKey]).toFixed(3)}`;
+      const go = document.createElement('button'); go.type = 'button'; go.className = 'secondary'; go.textContent = 'Перейти';
+      go.onclick = () => {
+        ui.startSec.value = Number(row.start_sec).toFixed(2);
+        ui.endSec.value = Number(row.end_sec).toFixed(2);
+        ui.player.currentTime = Number(row.start_sec);
+      };
+      line.append(text, go); ui.proposalList.appendChild(line);
+    }
+  }
+  function populateTasks() {
+    ui.taskSelect.replaceChildren();
+    tasks.forEach((task, i) => {
+      const option = document.createElement('option'); option.value = i;
+      option.textContent = `${task.video_ids.join('/')} · ${task.source_file} · ${task.split}`;
+      ui.taskSelect.appendChild(option);
+    });
+    ui.taskSelect.disabled = !tasks.length;
+    ui.itemSelect.disabled = !tasks.length;
+    ui.saveJson.disabled = !tasks.length;
+    ui.downloadOriginal.disabled = !tasks.length;
+    if (tasks.length) selectTask(0);
+  }
+  function selectTask(index) {
+    if (!flushForm()) return;
+    taskIndex = Number(index); const task = currentTask();
+    ui.taskSelect.value = String(taskIndex);
+    ui.itemSelect.replaceChildren();
+    for (const key of categoryKeys(task)) {
+      const option = document.createElement('option'); option.value = key;
+      option.textContent = labels[key] || key; ui.itemSelect.appendChild(option);
+    }
+    itemKey = ui.itemSelect.value;
+    setVideo(task); renderTransactions(); fillForm();
+  }
+  function selectItem(key) {
+    if (!flushForm()) { ui.itemSelect.value = itemKey; return; }
+    itemKey = key; fillForm();
+  }
+  function saveFile(name) {
+    if (!flushForm()) return;
+    const blob = new Blob([JSON.stringify(tasks, null, 2) + '\n'], {type:'application/json;charset=utf-8'});
+    const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = name;
+    link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  }
+
+  ui.tasksFile.addEventListener('change', async () => {
+    const file = ui.tasksFile.files[0]; if (!file) return;
+    try { tasks = JSON.parse(await file.text()); populateTasks(); }
+    catch (err) { ui.taskInfo.textContent = 'Не удалось открыть JSON: ' + err.message; }
+  });
+  ui.videoFolder.addEventListener('change', () => {
+    files = new Map([...ui.videoFolder.files].map(file => [file.name, file]));
+    if (taskIndex >= 0) setVideo(currentTask());
+  });
+  ui.proposalsFile.addEventListener('change', async () => {
+    const file = ui.proposalsFile.files[0]; if (!file) return;
+    try {
+      proposals = JSON.parse(await file.text());
+      renderProposals();
+    } catch (err) {
+      ui.proposalList.textContent = 'Не удалось открыть файл подсказок: ' + err.message;
+    }
+  });
+  ui.taskSelect.addEventListener('change', () => selectTask(ui.taskSelect.value));
+  ui.itemSelect.addEventListener('change', () => selectItem(ui.itemSelect.value));
+  ui.statusSelect.addEventListener('change', flushForm);
+  ui.presentationType.addEventListener('change', () => { flushForm(); renderIntervals(); });
+  for (const id of ['evidence','customerVerified','cashierVerified','actors','objects','prerequisites','exclusions','notes']) {
+    ui[id].addEventListener('change', flushForm);
+  }
+  ui.markStart.onclick = () => { ui.startSec.value = ui.player.currentTime.toFixed(2); };
+  ui.markEnd.onclick = () => { ui.endSec.value = ui.player.currentTime.toFixed(2); };
+  ui.txMarkStart.onclick = () => { ui.txStartSec.value = ui.player.currentTime.toFixed(2); };
+  ui.txMarkEnd.onclick = () => { ui.txEndSec.value = ui.player.currentTime.toFixed(2); };
+  ui.txAdd.onclick = () => {
+    const start = Number(ui.txStartSec.value), end = Number(ui.txEndSec.value);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+      ui.formError.textContent = 'Укажите корректные границы полной операции.'; return;
+    }
+    const task = currentTask();
+    if (!Array.isArray(task.transaction_intervals)) task.transaction_intervals = [];
+    task.transaction_intervals.push({start_sec:start, end_sec:end, transaction_type:ui.transactionType.value, complete_and_visible:ui.txVisible.checked});
+    ui.formError.textContent = ''; renderTransactions();
+  };
+  ui.addInterval.onclick = () => {
+    if (!flushForm()) return;
+    const start = Number(ui.startSec.value), end = Number(ui.endSec.value);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+      ui.formError.textContent = 'Укажите корректные границы: конец должен быть позже начала.'; return;
+    }
+    if (!intervalField(getRecord(currentTask(), itemKey), itemKey)) {
+      ui.formError.textContent = 'Для интервала выберите тип: физическое удостоверение или телефон.'; return;
+    }
+    activeIntervals().push({start_sec:start, end_sec:end}); ui.formError.textContent = ''; renderIntervals();
+  };
+  ui.saveJson.onclick = () => saveFile('rule_review_tasks_annotated.json');
+  ui.downloadOriginal.onclick = () => saveFile('rule_review_tasks_copy.json');
+})();
+</script>
+</body>
+</html>

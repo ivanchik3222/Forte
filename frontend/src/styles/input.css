@@ -253,9 +253,18 @@
   border-radius: 12px;
 }
 .local-card-icon {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   color: var(--brand);
   margin-bottom: 12px;
+}
+.local-card-icon::after {
+  content: "";
+  width: 36px;
+  height: 30px;
+  background: url("../assets/forte-oyu.png") center / contain no-repeat;
+  pointer-events: none;
 }
 .local-card > strong {
   display: block;
@@ -3078,6 +3087,8 @@ h1 {
   line-height: 1.95;
 }
 .landing-cta {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3087,6 +3098,16 @@ h1 {
   background: #f7edf2;
   border: 1px solid #efdee7;
   margin-bottom: 75px;
+}
+.landing-cta-copy {
+  width: 64%;
+}
+.landing-cta-art {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 36%;
+  background: url("../assets/forte-oyu.png") left center / 420px no-repeat;
+  pointer-events: none;
 }
 .landing-cta .landing-eyebrow {
   font-size: 9px;
@@ -3102,6 +3123,7 @@ h1 {
   margin-top: 17px;
 }
 .landing-cta .button {
+  margin-top: 28px;
   padding: 16px 24px;
   min-height: 54px;
   font-size: 13px;
@@ -3365,6 +3387,9 @@ h1 {
   .landing-cta {
     padding: 35px;
     gap: 22px;
+  }
+  .landing-cta-art {
+    background-size: 350px;
   }
   .landing-cta .button {
     font-size: 12px;
@@ -3641,6 +3666,18 @@ h1 {
     padding: 30px 25px;
     gap: 25px;
     margin-bottom: 40px;
+  }
+  .landing-cta-copy {
+    width: 100%;
+  }
+  .landing-cta-art {
+    position: relative;
+    inset: auto;
+    width: calc(100% + 50px);
+    height: 125px;
+    margin: -5px -25px -30px;
+    background-size: 260px;
+    background-position: right -10px top -55px;
   }
   .landing-cta .landing-eyebrow {
     font-size: 8px;
@@ -4935,6 +4972,14 @@ h1 {
   font-size: 9px;
   letter-spacing: 1.4px;
   color: #e0b3c7;
+}
+.monitoring-kicker::after {
+  content: "";
+  flex: 0 0 48px;
+  height: 42px;
+  margin-left: auto;
+  background: url("../assets/forte-oyu.png") center / contain no-repeat;
+  pointer-events: none;
 }
 .monitoring-kicker > span {
   padding: 3px 7px;

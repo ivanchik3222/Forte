@@ -7563,3 +7563,81 @@ h1 {
 .ml-extra-observations { margin: 1.25rem 0; }
 .ml-extra-observations > summary { cursor: pointer; padding-block: .8rem; font-weight: 600; }
 @media (max-width: 540px) { .ml-finding .ml-evidence-grid { grid-template-columns: 1fr; } }
+
+/* Extended Cyrillic includes Ә, Ғ, Қ, Ң, Ө, Ұ, Ү, Һ and І. Served locally. */
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url("../assets/fonts/open-sans-cyrillic-ext.woff2") format("woff2");
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+.language-switcher {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid #e8dfe5;
+  border-radius: 12px;
+  background: #fcfafb;
+  color: #715c6a;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background .18s, border-color .18s;
+}
+.language-switcher:hover { background: #f7edf2; border-color: #cda9ba; }
+.language-switcher:focus-within { outline: 2px solid #a31551; outline-offset: 3px; }
+.language-switcher select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font: inherit;
+}
+.language-code { letter-spacing: .035em; }
+.language-settings { padding: 24px; margin: 20px 0; }
+.language-settings p { font-size: 13px; color: #827785; margin: 12px 0 0; }
+.language-switcher-expanded { display: flex; justify-content: flex-start; background: transparent; border: 0; padding: 0; gap: 12px; font-size: 15px; }
+.language-switcher-expanded select {
+  position: static;
+  opacity: 1;
+  width: auto;
+  max-width: 50%;
+  min-height: 44px;
+  margin-left: auto;
+  border: 1px solid #e8dfe5;
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: #a31551;
+  background: white;
+}
+.language-switcher-expanded .language-chevron { display: none; }
+@media (max-width: 1100px) {
+  .landing-nav { gap: 12px; }
+  .landing-links { gap: 18px; }
+}
+@media (max-width: 700px) {
+  .landing-nav { gap: 8px; }
+  .landing-nav .language-switcher { margin-left: auto; }
+  .landing-login { margin-left: 0; }
+  .landing-nav .language-switcher > svg:first-child { display: none; }
+  .language-switcher { min-height: 44px; padding-inline: 9px; gap: 5px; }
+  .topbar-actions { gap: 8px; }
+  .language-settings { padding: 20px; }
+}
+@media (max-width: 560px) {
+  .landing-nav .landing-brand > span { display: none; }
+  .landing-nav .landing-brand img { width: 72px; }
+  .landing-nav .landing-login { font-size: 10px; padding-inline: 9px; }
+  .topbar-actions .mode-badge, .topbar-divider { display: none; }
+  .language-switcher-expanded { font-size: 13px; }
+  .language-switcher-expanded > svg:first-child { display: none; }
+}

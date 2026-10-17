@@ -1,3 +1,4 @@
+import { t, useLocale } from "../../i18n";
 import { UploadProgress as TransferProgress } from "../../api/client";
 import { fileSize } from "./types";
 
@@ -14,6 +15,7 @@ export function UploadProgress({
   file: File;
   progress: TransferProgress;
 }) {
+  useLocale();
   const percent = uploadPercent(progress);
   const saving = progress.transferred;
   const label = saving ? "Сохраняем запись" : "Загружаем видео";
@@ -26,7 +28,7 @@ export function UploadProgress({
         </span>
         <div>
           <strong title={file.name}>{file.name}</strong>
-          <span>{fileSize(file.size)} · Ваша запись</span>
+          <span>{fileSize(file.size)}{t(" · Ваша запись")}</span>
         </div>
         <span className="transfer-live" aria-hidden="true" />
       </div>
@@ -34,17 +36,15 @@ export function UploadProgress({
         <div
           className={`transfer-dial ${percent === undefined ? "is-indeterminate" : ""}`}
           role="progressbar"
-          aria-label="Передача видео"
+          aria-label={t("Передача видео")}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={percent}
-          aria-valuetext={
-            saving
+          aria-valuetext={t(saving
               ? "Файл передан. Ожидаем сохранения на сервере."
               : percent === undefined
-                ? `Передано ${fileSize(loaded)}`
-                : `${percent}% · ${fileSize(loaded)} из ${fileSize(file.size)}`
-          }
+                ? t("Передано {0}", [fileSize(loaded)])
+                : t("{0}% · {1} из {2}", [percent, fileSize(loaded), fileSize(file.size)]))}
         >
           <svg viewBox="0 0 160 160" aria-hidden="true">
             <circle className="transfer-ring-track" cx="80" cy="80" r="69" />
@@ -60,43 +60,41 @@ export function UploadProgress({
           <span className="transfer-orbit" aria-hidden="true" />
           <div className="transfer-number" aria-hidden="true">
             <strong>
-              {percent ?? "…"}
+              {t(percent ?? "…")}
               {percent !== undefined && <small>%</small>}
             </strong>
-            <span>{saving ? "передано" : "загружено"}</span>
+            <span>{t(saving ? "передано" : "загружено")}</span>
           </div>
         </div>
         <div className="transfer-copy">
           <span className="transfer-eyebrow">
-            {saving ? "Последний шаг" : "Видео в пути"}
+            {t(saving ? "Последний шаг" : "Видео в пути")}
           </span>
           <div role="status" aria-live="polite">
-            <h3>{label}</h3>
+            <h3>{t(label)}</h3>
           </div>
           <p>
-            {saving
+            {t(saving
               ? "Видео уже передано. Сервер проверяет файл и добавляет его в историю."
-              : "Передаём запись в рабочее пространство. Пожалуйста, оставьте вкладку открытой."}
+              : "Передаём запись в рабочее пространство. Пожалуйста, оставьте вкладку открытой.")}
           </p>
           <div className="transfer-volume">
             <strong>{fileSize(loaded)}</strong>
-            <span>из {fileSize(file.size)}</span>
+            <span>{t("из ")}{fileSize(file.size)}</span>
           </div>
         </div>
       </div>
-      <ol className="transfer-stages" aria-label="Этапы загрузки">
+      <ol className="transfer-stages" aria-label={t("Этапы загрузки")}>
         <li
           className={saving ? "is-complete" : "is-current"}
           aria-current={!saving ? "step" : undefined}
         >
-          <span aria-hidden="true">{saving ? "✓" : "01"}</span> Передача видео
-        </li>
+          <span aria-hidden="true">{t(saving ? "✓" : "01")}</span>{t(" Передача видео")}</li>
         <li
           className={saving ? "is-current" : ""}
           aria-current={saving ? "step" : undefined}
         >
-          <span aria-hidden="true">02</span> Сохранение
-        </li>
+          <span aria-hidden="true">02</span>{t(" Сохранение")}</li>
       </ol>
     </div>
   );

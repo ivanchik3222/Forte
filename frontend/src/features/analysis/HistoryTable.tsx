@@ -1,16 +1,10 @@
+import { formatDate, eventLabel, localeCode, t, useLocale } from "../../i18n";
 import { useState } from "react";
 import { Icon } from "../../components/Icon";
 import { AnalysisRecord, fileSize, timecode } from "./types";
 
-const eventPlural = new Intl.PluralRules("ru");
-const eventLabels: Record<string, string> = {
-  one: "событие",
-  few: "события",
-  many: "событий",
-  other: "событий",
-};
-
 export function StatusBadge({ record }: { record: AnalysisRecord }) {
+  useLocale();
   const status =
     record.status === "done"
       ? record.verdict === "violation"
@@ -30,7 +24,7 @@ export function StatusBadge({ record }: { record: AnalysisRecord }) {
   return (
     <span className={`status-badge status-${status}`}>
       <Icon name={config[status].icon} size={14} />
-      {config[status].text}
+      {t(config[status].text)}
     </span>
   );
 }
@@ -46,6 +40,7 @@ export function HistoryTable({
   full?: boolean;
   serverManaged?: boolean;
 }) {
+  useLocale();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState("newest");
@@ -75,33 +70,33 @@ export function HistoryTable({
           <label className="search-input">
             <Icon name="search" size={18} />
             <input
-              aria-label="Поиск по имени файла"
-              placeholder="Поиск по названию файла"
+              aria-label={t("Поиск по имени файла")}
+              placeholder={t("Поиск по названию файла")}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
           </label>
           <label className="filter-label">
-            <span className="visually-hidden">Статус проверки</span>
+            <span className="visually-hidden">{t("Статус проверки")}</span>
             <select
               value={filter}
               onChange={(event) => setFilter(event.target.value)}
             >
-              <option value="all">Все статусы</option>
-              <option value="review">Требует внимания</option>
-              <option value="clear">Без признаков нарушений</option>
-              <option value="processing">Обрабатывается</option>
-              <option value="failed">Ошибки и остановленные</option>
+              <option value="all">{t("Все статусы")}</option>
+              <option value="review">{t("Требует внимания")}</option>
+              <option value="clear">{t("Без признаков нарушений")}</option>
+              <option value="processing">{t("Обрабатывается")}</option>
+              <option value="failed">{t("Ошибки и остановленные")}</option>
             </select>
           </label>
           <label className="filter-label">
-            <span className="visually-hidden">Порядок проверок</span>
+            <span className="visually-hidden">{t("Порядок проверок")}</span>
             <select
               value={sort}
               onChange={(event) => setSort(event.target.value)}
             >
-              <option value="newest">Сначала новые</option>
-              <option value="oldest">Сначала старые</option>
+              <option value="newest">{t("Сначала новые")}</option>
+              <option value="oldest">{t("Сначала старые")}</option>
             </select>
           </label>
         </div>
@@ -111,12 +106,12 @@ export function HistoryTable({
           <table className="history-table" role="table">
             <thead>
               <tr role="row">
-                <th role="columnheader">Видеозапись</th>
-                <th role="columnheader">{serverManaged ? "Дата загрузки" : "Дата проверки"}</th>
-                <th role="columnheader">{serverManaged ? "Статус" : "Результат"}</th>
-                <th role="columnheader">События</th>
+                <th role="columnheader">{t("Видеозапись")}</th>
+                <th role="columnheader">{t(serverManaged ? "Дата загрузки" : "Дата проверки")}</th>
+                <th role="columnheader">{t(serverManaged ? "Статус" : "Результат")}</th>
+                <th role="columnheader">{t("События")}</th>
                 <th role="columnheader">
-                  <span className="visually-hidden">Действие</span>
+                  <span className="visually-hidden">{t("Действие")}</span>
                 </th>
               </tr>
             </thead>
@@ -126,7 +121,7 @@ export function HistoryTable({
                   <td role="cell">
                     <button
                       className="file-cell"
-                      aria-label={`Открыть ${record.fileName}`}
+                      aria-label={t("Открыть {0}", [record.fileName])}
                       onClick={() => onOpen(record.id)}
                     >
                       <span className="file-icon">
@@ -138,11 +133,11 @@ export function HistoryTable({
                         </strong>
                         <small>
                           {fileSize(record.fileSize)}
-                          {record.duration
+                          {t(record.duration
                             ? ` · ${timecode(record.duration)}`
-                            : ""}
+                            : "")}
                           {record.mode === "demo" && (
-                            <span className="demo-label">Демо</span>
+                            <span className="demo-label">{t("Демо")}</span>
                           )}
                         </small>
                       </span>
@@ -155,14 +150,14 @@ export function HistoryTable({
                   </td>
                   <td role="cell">
                     <span className="table-date">
-                      {new Date(record.createdAt).toLocaleDateString("ru-RU", {
+                      {formatDate(record.createdAt, {
                         day: "2-digit",
                         month: "short",
                         timeZone: "Asia/Almaty",
                       })}
                     </span>
                     <small>
-                      {new Date(record.createdAt).toLocaleTimeString("ru-RU", {
+                      {new Date(record.createdAt).toLocaleTimeString(localeCode(), {
                         hour: "2-digit",
                         minute: "2-digit",
                         timeZone: "Asia/Almaty",
@@ -176,16 +171,12 @@ export function HistoryTable({
                     <span
                       className={`event-count ${record.violations.length ? "has-events" : ""} ${record.status !== "done" ? "event-count-pending" : ""}`}
                     >
-                      {record.status === "done"
+                      {t(record.status === "done"
                         ? record.violations.length.toString().padStart(2, "0")
-                        : "—"}
+                        : "—")}
                       {record.status === "done" && (
                         <span className="mobile-event-caption">
-                          {
-                            eventLabels[
-                              eventPlural.select(record.violations.length)
-                            ]
-                          }
+                          {eventLabel(record.violations.length)}
                         </span>
                       )}
                     </span>
@@ -193,7 +184,7 @@ export function HistoryTable({
                   <td role="cell">
                     <button
                       className="icon-button"
-                      aria-label={`Открыть ${record.fileName}`}
+                      aria-label={t("Открыть {0}", [record.fileName])}
                       onClick={() => onOpen(record.id)}
                     >
                       <Icon name="arrow" size={18} />
@@ -207,8 +198,8 @@ export function HistoryTable({
       ) : (
         <div className="empty-state">
           <Icon name="search" size={30} />
-          <h3>{serverManaged ? "Записи не найдены" : "Проверки не найдены"}</h3>
-          <p>Измените поисковый запрос или выберите другой статус.</p>
+          <h3>{t(serverManaged ? "Записи не найдены" : "Проверки не найдены")}</h3>
+          <p>{t("Измените поисковый запрос или выберите другой статус.")}</p>
           {!serverManaged && (
             <button
               className="text-button"
@@ -216,9 +207,7 @@ export function HistoryTable({
                 setSearch("");
                 setFilter("all");
               }}
-            >
-              Сбросить фильтры
-            </button>
+            >{t("Сбросить фильтры")}</button>
           )}
         </div>
       )}

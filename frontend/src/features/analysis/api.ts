@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { API_BASE_URL, JobResponse, Violation } from "./types";
 
 const POLL_INTERVAL = 1800;
@@ -117,7 +118,7 @@ async function readResponse(response: Response): Promise<unknown> {
     throw new Error(
       isObject(payload) && typeof payload.error === "string"
         ? payload.error
-        : `Ошибка сервера (${response.status}). Повторите проверку позже.`,
+        : t("Ошибка сервера ({0}). Повторите проверку позже.", [response.status]),
     );
   }
   return payload;

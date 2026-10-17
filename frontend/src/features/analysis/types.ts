@@ -1,3 +1,4 @@
+import { localeCode, t } from "../../i18n";
 export type AnalysisMode = "demo" | "api";
 export type Verdict = "violation" | "no_violation";
 
@@ -72,7 +73,7 @@ export function validateVideo(file: File): string | null {
     return "Выберите видео в формате MOV, MP4 или WebM.";
   if (!file.size) return "Файл пустой. Выберите другую запись.";
   if (file.size > MAX_FILE_SIZE)
-    return `Файл больше ${MAX_FILE_SIZE_LABEL}. Загрузите более короткий фрагмент.`;
+    return t("Файл больше {0}. Загрузите более короткий фрагмент.", [MAX_FILE_SIZE_LABEL]);
   return null;
 }
 
@@ -88,8 +89,8 @@ export function timecode(seconds: number): string {
 
 export function fileSize(bytes: number): string {
   if (bytes >= 1024 ** 3)
-    return `${(bytes / 1024 ** 3).toLocaleString("ru-RU", { maximumFractionDigits: 2 })} ГБ`;
-  return `${(bytes / 1024 / 1024).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} МБ`;
+    return t("{0} ГБ", [(bytes / 1024 ** 3).toLocaleString(localeCode(), { maximumFractionDigits: 2 })]);
+  return t("{0} МБ", [(bytes / 1024 / 1024).toLocaleString(localeCode(), { maximumFractionDigits: 1 })]);
 }
 
 export function safeSourceUrl(value?: string): string | undefined {

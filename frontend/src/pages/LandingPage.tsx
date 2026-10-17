@@ -1,3 +1,5 @@
+import { LanguageSwitcher } from "../components/LanguageSwitcher";
+import { t, useLocale } from "../i18n";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAnalysisStore } from "../store/useAnalysisStore";
@@ -32,6 +34,7 @@ function ProductArt({
   name: string;
   className?: string;
 }) {
+  useLocale();
   return (
     <img
       className={className}
@@ -51,7 +54,7 @@ function ProductArt({
   );
 }
 
-const questions = [
+const questions = () => [
   {
     question: "Что именно проверяет сервис?",
     answer:
@@ -64,7 +67,7 @@ const questions = [
   },
   {
     question: "Какие видео можно загрузить?",
-    answer: `Интерфейс принимает MOV, MP4 и WebM до ${MAX_FILE_SIZE_LABEL}. Основной формат кейса — MOV. Поддержка дополнительных форматов зависит от подключённого сервера. Если кодек не воспроизводится в браузере, исходный MOV всё равно можно отправить на анализ.`,
+    answer: t("Интерфейс принимает MOV, MP4 и WebM до {0}. Основной формат кейса — MOV. Поддержка дополнительных форматов зависит от подключённого сервера. Если кодек не воспроизводится в браузере, исходный MOV всё равно можно отправить на анализ.", [MAX_FILE_SIZE_LABEL]),
   },
   {
     question: "Видео передаётся в облачные AI-сервисы?",
@@ -79,18 +82,17 @@ const questions = [
 ];
 
 export function LandingPage() {
+  useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <div className="landing-page">
-      <a className="skip-link" href="#landing-main">
-        Перейти к содержимому
-      </a>
+      <a className="skip-link" href="#landing-main">{t("Перейти к содержимому")}</a>
       <header className="landing-header">
         <div className="landing-container landing-nav">
           <Link
             className="brand landing-brand"
             to="/"
-            aria-label="Forte Control — главная"
+            aria-label={t("Forte Control — главная")}
           >
             <img src="/forte-logo.svg" alt="Forte" width="112" height="34" />
             <span className="brand-divider" />
@@ -98,29 +100,20 @@ export function LandingPage() {
           </Link>
           <nav
             className={`landing-links ${menuOpen ? "is-open" : ""}`}
-            aria-label="Навигация по проекту"
+            aria-label={t("Навигация по проекту")}
           >
-            <a href="#capabilities" onClick={() => setMenuOpen(false)}>
-              Возможности
-            </a>
-            <a href="#workflow" onClick={() => setMenuOpen(false)}>
-              Как работает
-            </a>
-            <a href="#security" onClick={() => setMenuOpen(false)}>
-              Безопасность
-            </a>
-            <a href="#questions" onClick={() => setMenuOpen(false)}>
-              Вопросы
-            </a>
-            <Link to="/api-access">API</Link>
+            <a href="#capabilities" onClick={() => setMenuOpen(false)}>{t("Возможности")}</a>
+            <a href="#workflow" onClick={() => setMenuOpen(false)}>{t("Как работает")}</a>
+            <a href="#security" onClick={() => setMenuOpen(false)}>{t("Безопасность")}</a>
+            <a href="#questions" onClick={() => setMenuOpen(false)}>{t("Вопросы")}</a>
+            <Link to="/api-access" onClick={() => setMenuOpen(false)}>API</Link>
           </nav>
-          <Link to="/workspace" className="button button-primary landing-login">
-            Открыть кабинет
-            <Icon name="arrow" size={17} />
+          <LanguageSwitcher />
+          <Link to="/workspace" className="button button-primary landing-login">{t("Открыть кабинет")}<Icon name="arrow" size={17} />
           </Link>
           <button
             className="icon-button landing-menu"
-            aria-label={menuOpen ? "Закрыть меню" : "Открыть меню"}
+            aria-label={t(menuOpen ? "Закрыть меню" : "Открыть меню")}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen(!menuOpen)}
           >
@@ -134,7 +127,7 @@ export function LandingPage() {
             <div className="landing-hero-art">
               <img
                 src="/images/forte-control-hero.jpg"
-                alt="Скульптурный объектив из стекла и металла в бордовой палитре Forte"
+                alt={t("Скульптурный объектив из стекла и металла в бордовой палитре Forte")}
                 width="1536"
                 height="1024"
                 fetchPriority="high"
@@ -142,23 +135,13 @@ export function LandingPage() {
             </div>
             <div className="landing-hero-copy">
               <span className="landing-kicker">
-                <span />
-                ВИДЕОКОНТРОЛЬ КАССОВЫХ ОПЕРАЦИЙ
-              </span>
-              <h1>
-                Всё важное.
-                <br />
-                <span>В поле зрения.</span>
+                <span />{t("ВИДЕОКОНТРОЛЬ КАССОВЫХ ОПЕРАЦИЙ")}</span>
+              <h1>{t("Всё важное.")}<br />
+                <span>{t("В поле зрения.")}</span>
               </h1>
-              <p>
-                Превращаем видеозапись в понятный результат: событие, точный
-                момент и доказательство. Чтобы ваше внимание оставалось на
-                главном.
-              </p>
+              <p>{t("Превращаем видеозапись в понятный результат: событие, точный момент и доказательство. Чтобы ваше внимание оставалось на главном.")}</p>
               <div className="landing-hero-actions">
-                <Link to="/workspace" className="button button-primary">
-                  Начать проверку
-                  <Icon name="arrow" size={18} />
+                <Link to="/workspace" className="button button-primary">{t("Начать проверку")}<Icon name="arrow" size={18} />
                 </Link>
                 <Link
                   to="/analysis/demo-001"
@@ -171,45 +154,43 @@ export function LandingPage() {
                 >
                   <span>
                     <Icon name="play" size={14} />
-                  </span>
-                  Посмотреть демо
-                </Link>
+                  </span>{t("Посмотреть демо")}</Link>
               </div>
               <div className="landing-hero-note">
                 <Icon name="shield" size={15} />
-                <span>Локальная обработка. Решение — за человеком.</span>
+                <span>{t("Локальная обработка. Решение — за человеком.")}</span>
               </div>
             </div>
             <div className="hero-bottom-caption">
               <span>FORTE CONTROL</span>
-              <span>Технология внимательного контроля</span>
+              <span>{t("Технология внимательного контроля")}</span>
               <span>DATATHON 2026</span>
             </div>
           </div>
         </section>
         <section
           className="landing-principles landing-container"
-          aria-label="Принципы проекта"
+          aria-label={t("Принципы проекта")}
         >
           <div>
             <Icon name="server" size={23} />
             <span>
-              <strong>Внутри вашего контура</strong>
-              <small>Без облачных AI-сервисов</small>
+              <strong>{t("Внутри вашего контура")}</strong>
+              <small>{t("Без облачных AI-сервисов")}</small>
             </span>
           </div>
           <div>
             <Icon name="scan" size={23} />
             <span>
-              <strong>Проверяемый результат</strong>
-              <small>От события до кадра и источника</small>
+              <strong>{t("Проверяемый результат")}</strong>
+              <small>{t("От события до кадра и источника")}</small>
             </span>
           </div>
           <div>
             <Icon name="user" size={23} />
             <span>
-              <strong>Человек принимает решение</strong>
-              <small>Технология помогает заметить</small>
+              <strong>{t("Человек принимает решение")}</strong>
+              <small>{t("Технология помогает заметить")}</small>
             </span>
           </div>
         </section>
@@ -219,18 +200,12 @@ export function LandingPage() {
         >
           <div className="landing-section-intro">
             <div>
-              <p className="landing-eyebrow">01 / ВОЗМОЖНОСТИ</p>
-              <h2>
-                Меньше просмотра.
-                <br />
-                <span>Больше ясности.</span>
+              <p className="landing-eyebrow">{t("01 / ВОЗМОЖНОСТИ")}</p>
+              <h2>{t("Меньше просмотра.")}<br />
+                <span>{t("Больше ясности.")}</span>
               </h2>
             </div>
-            <p>
-              В полной записи легко упустить важную деталь. Forte Control
-              помогает перейти от долгого поиска к конкретным фрагментам,
-              которые стоит проверить.
-            </p>
+            <p>{t("В полной записи легко упустить важную деталь. Forte Control помогает перейти от долгого поиска к конкретным фрагментам, которые стоит проверить.")}</p>
           </div>
           <div className="capability-grid">
             {capabilities.map((item) => (
@@ -239,8 +214,8 @@ export function LandingPage() {
                 className={`capability-card capability-${item.color}`}
               >
                 <div className="capability-copy">
-                  <h3>{item.title}</h3>
-                  <p>{item.text}</p>
+                  <h3>{t(item.title)}</h3>
+                  <p>{t(item.text)}</p>
                 </div>
                 <ProductArt name={item.art} className="capability-art" />
               </article>
@@ -249,20 +224,13 @@ export function LandingPage() {
         </section>
         <section className="landing-showcase landing-container">
           <div className="showcase-copy">
-            <p className="landing-eyebrow">ДЕТАЛИ СКЛАДЫВАЮТСЯ В КАРТИНУ</p>
-            <h2>
-              Каждый вывод
-              <br />
-              можно проверить.
-            </h2>
-            <p>
-              Важен не только сигнал, но и то, что за ним стоит. Изучите момент
-              на записи, посмотрите кадры и проверьте связь с правилом.
-            </p>
+            <p className="landing-eyebrow">{t("ДЕТАЛИ СКЛАДЫВАЮТСЯ В КАРТИНУ")}</p>
+            <h2>{t("Каждый вывод")}<br />{t("можно проверить.")}</h2>
+            <p>{t("Важен не только сигнал, но и то, что за ним стоит. Изучите момент на записи, посмотрите кадры и проверьте связь с правилом.")}</p>
             <div className="showcase-points">
-              <span>Событие</span>
-              <span>Кадр</span>
-              <span>Обоснование</span>
+              <span>{t("Событие")}</span>
+              <span>{t("Кадр")}</span>
+              <span>{t("Обоснование")}</span>
             </div>
             <Link
               to="/analysis/demo-001"
@@ -272,36 +240,28 @@ export function LandingPage() {
                   .getState()
                   .setSettings({ mode: "demo", apiKey: "" })
               }
-            >
-              Открыть пример проверки
-              <Icon name="arrow" size={18} />
+            >{t("Открыть пример проверки")}<Icon name="arrow" size={18} />
             </Link>
-            <span className="showcase-demo-note">
-              Демонстрационный отчёт · без загрузки видео
-            </span>
+            <span className="showcase-demo-note">{t("Демонстрационный отчёт · без загрузки видео")}</span>
           </div>
           <div className="showcase-art">
             <ProductArt name="review" />
             <span className="showcase-timecode">
               <Icon name="play" size={15} />
               <strong>00:18</strong>
-              <span>Пример таймкода</span>
+              <span>{t("Пример таймкода")}</span>
             </span>
           </div>
         </section>
         <section className="landing-section landing-container" id="workflow">
           <div className="landing-section-intro">
             <div>
-              <p className="landing-eyebrow">02 / КАК ЭТО РАБОТАЕТ</p>
-              <h2>
-                От записи к ответу.
-                <br />
-                <span>Три простых шага.</span>
+              <p className="landing-eyebrow">{t("02 / КАК ЭТО РАБОТАЕТ")}</p>
+              <h2>{t("От записи к ответу.")}<br />
+                <span>{t("Три простых шага.")}</span>
               </h2>
             </div>
-            <Link to="/workspace" className="button button-outline">
-              Попробовать сервис
-              <Icon name="arrow" size={17} />
+            <Link to="/workspace" className="button button-outline">{t("Попробовать сервис")}<Icon name="arrow" size={17} />
             </Link>
           </div>
           <div className="workflow-grid">
@@ -327,9 +287,9 @@ export function LandingPage() {
                   <span>0{index + 1}</span>
                   {index < 2 && <Icon name="arrow" size={23} />}
                 </div>
-                <h3>{step.title}</h3>
-                <p>{step.text}</p>
-                <span className="workflow-detail">{step.detail}</span>
+                <h3>{t(step.title)}</h3>
+                <p>{t(step.text)}</p>
+                <span className="workflow-detail">{t(step.detail)}</span>
               </article>
             ))}
           </div>
@@ -337,21 +297,13 @@ export function LandingPage() {
         <section className="landing-security" id="security">
           <div className="landing-container security-inner">
             <div>
-              <p className="landing-eyebrow">03 / ДОВЕРИЕ И БЕЗОПАСНОСТЬ</p>
-              <h2>
-                Ваши записи.
-                <br />
-                <span>Ваш контур.</span>
+              <p className="landing-eyebrow">{t("03 / ДОВЕРИЕ И БЕЗОПАСНОСТЬ")}</p>
+              <h2>{t("Ваши записи.")}<br />
+                <span>{t("Ваш контур.")}</span>
               </h2>
-              <p>
-                Контроль не должен создавать новые риски. Проект рассчитан на
-                локальную обработку видео внутри инфраструктуры команды или
-                банка.
-              </p>
+              <p>{t("Контроль не должен создавать новые риски. Проект рассчитан на локальную обработку видео внутри инфраструктуры команды или банка.")}</p>
               <span className="security-signature">
-                <Icon name="shield" size={21} />
-                Продумано для банковского контекста
-              </span>
+                <Icon name="shield" size={21} />{t("Продумано для банковского контекста")}</span>
             </div>
             <div className="security-list">
               {[
@@ -373,8 +325,8 @@ export function LandingPage() {
                     <Icon name="check" size={18} />
                   </span>
                   <div>
-                    <h3>{item.title}</h3>
-                    <p>{item.text}</p>
+                    <h3>{t(item.title)}</h3>
+                    <p>{t(item.text)}</p>
                   </div>
                 </div>
               ))}
@@ -386,37 +338,30 @@ export function LandingPage() {
           id="questions"
         >
           <div>
-            <p className="landing-eyebrow">04 / ВОПРОСЫ И ОТВЕТЫ</p>
-            <h2>
-              Важные детали.
-              <br />
-              <span>Без мелкого шрифта.</span>
+            <p className="landing-eyebrow">{t("04 / ВОПРОСЫ И ОТВЕТЫ")}</p>
+            <h2>{t("Важные детали.")}<br />
+              <span>{t("Без мелкого шрифта.")}</span>
             </h2>
-            <p>Что умеет сервис и где проходят границы его возможностей.</p>
+            <p>{t("Что умеет сервис и где проходят границы его возможностей.")}</p>
           </div>
           <div className="faq-list">
-            {questions.map((item) => (
+            {questions().map((item) => (
               <details key={item.question}>
                 <summary>
-                  {item.question}
+                  {t(item.question)}
                   <Icon name="plus" size={19} />
                 </summary>
-                <p>{item.answer}</p>
+                <p>{t(item.answer)}</p>
               </details>
             ))}
           </div>
         </section>
         <section className="landing-container landing-cta">
           <div className="landing-cta-copy">
-            <p className="landing-eyebrow">ПОСМОТРИТЕ НА ЗАПИСЬ ПО-НОВОМУ</p>
-            <h2>
-              Важное начинается
-              <br />с вашего внимания.
-            </h2>
-            <p>Откройте рабочее пространство и попробуйте первую проверку.</p>
-            <Link to="/workspace" className="button button-primary">
-              Перейти к проверке
-              <Icon name="arrow" size={20} />
+            <p className="landing-eyebrow">{t("ПОСМОТРИТЕ НА ЗАПИСЬ ПО-НОВОМУ")}</p>
+            <h2>{t("Важное начинается")}<br />{t("с вашего внимания.")}</h2>
+            <p>{t("Откройте рабочее пространство и попробуйте первую проверку.")}</p>
+            <Link to="/workspace" className="button button-primary">{t("Перейти к проверке")}<Icon name="arrow" size={20} />
             </Link>
           </div>
           <div className="landing-cta-art" aria-hidden="true" />
@@ -427,21 +372,19 @@ export function LandingPage() {
           <Link
             className="brand landing-brand"
             to="/"
-            aria-label="Forte Control — главная"
+            aria-label={t("Forte Control — главная")}
           >
             <img src="/forte-logo.svg" alt="Forte" width="112" height="34" />
             <span className="brand-divider" />
             <span>control</span>
           </Link>
-          <p>Технология внимательного контроля.</p>
+          <p>{t("Технология внимательного контроля.")}</p>
         </div>
         <div>
-          <span>Проект для кейса ForteBank · Datathon 2026</span>
-          <p>Демонстрационный прототип. Не официальный банковский продукт.</p>
+          <span>{t("Проект для кейса ForteBank · Datathon 2026")}</span>
+          <p>{t("Демонстрационный прототип. Не официальный банковский продукт.")}</p>
         </div>
-        <a href="https://forte.kz" target="_blank" rel="noreferrer">
-          О ForteBank
-          <Icon name="external" size={14} />
+        <a href="https://forte.kz" target="_blank" rel="noreferrer">{t("О ForteBank")}<Icon name="external" size={14} />
         </a>
       </footer>
     </div>

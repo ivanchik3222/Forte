@@ -1,9 +1,11 @@
+import { t, useLocale } from "../../i18n";
 import { DragEvent, useRef, useState } from "react";
 import { Icon } from "../../components/Icon";
 import { useAnalysisStore } from "../../store/useAnalysisStore";
 import { fileSize, MAX_FILE_SIZE_LABEL, validateVideo } from "./types";
 
 export function UploadPanel({ onOpen }: { onOpen: (id: string) => void }) {
+  useLocale();
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState("");
@@ -48,8 +50,8 @@ export function UploadPanel({ onOpen }: { onOpen: (id: string) => void }) {
     <section className="panel upload-panel" aria-labelledby="upload-title">
       <div className="section-heading">
         <div>
-          <h2 id="upload-title">Добавьте запись с камеры</h2>
-          <p>Загрузите запись работы кассира</p>
+          <h2 id="upload-title">{t("Добавьте запись с камеры")}</h2>
+          <p>{t("Загрузите запись работы кассира")}</p>
         </div>
         <span className="subtle-icon">
           <Icon name="video" size={21} />
@@ -65,7 +67,7 @@ export function UploadPanel({ onOpen }: { onOpen: (id: string) => void }) {
           select(event.target.files);
           event.target.value = "";
         }}
-        aria-label="Выбрать видеофайл"
+        aria-label={t("Выбрать видеофайл")}
       />
       <div
         className={`dropzone ${dragging ? "dragging" : ""} ${file ? "has-file" : ""}`}
@@ -85,12 +87,11 @@ export function UploadPanel({ onOpen }: { onOpen: (id: string) => void }) {
               <Icon name="video" size={29} />
             </div>
             <strong className="selected-filename">{file.name}</strong>
-            <p>{fileSize(file.size)} · Готов к проверке</p>
+            <p>{fileSize(file.size)}{t(" · Готов к проверке")}</p>
             <button
               className="text-button"
               onClick={() => input.current?.click()}
-            >
-              Выбрать другой файл <Icon name="refresh" size={14} />
+            >{t("Выбрать другой файл ")}<Icon name="refresh" size={14} />
             </button>
           </>
         ) : (
@@ -98,65 +99,54 @@ export function UploadPanel({ onOpen }: { onOpen: (id: string) => void }) {
             <div className="upload-file-icon">
               <Icon name="upload" size={29} />
             </div>
-            <strong>Перетащите видео сюда</strong>
-            <p>или выберите файл на устройстве</p>
+            <strong>{t("Перетащите видео сюда")}</strong>
+            <p>{t("или выберите файл на устройстве")}</p>
             <button
               className="button button-outline"
               onClick={() => input.current?.click()}
             >
-              <Icon name="plus" size={16} />
-              Выбрать видео
-            </button>
-            <span className="file-hint">
-              MOV, MP4, WebM · до {MAX_FILE_SIZE_LABEL}
+              <Icon name="plus" size={16} />{t("Выбрать видео")}</button>
+            <span className="file-hint">{t("MOV, MP4, WebM · до {0}", [MAX_FILE_SIZE_LABEL])}
             </span>
           </>
         )}
       </div>
-      {error && (
+      {t(error && (
         <p role="alert" className="inline-error">
           <Icon name="alert" size={17} />
-          {error}
+          {t(error)}
         </p>
-      )}
+      ))}
       <div className="upload-bottom">
         <span>
           <Icon name="lock" size={14} />
-          {mode === "demo"
+          {t(mode === "demo"
             ? "Файл остаётся в браузере"
-            : "Обработка на сервере команды"}
+            : "Обработка на сервере команды")}
         </span>
         <button
           className="button button-primary"
           disabled={!file || busy}
           onClick={() => run()}
         >
-          {mode === "demo" ? "Запустить демо" : "Начать проверку"}
+          {t(mode === "demo" ? "Запустить демо" : "Начать проверку")}
           <Icon name="arrow" size={17} />
         </button>
       </div>
       {mode === "demo" && (
-        <p className="demo-upload-note">
-          Демо показывает заранее заданный результат, без анализа содержимого
-          видео.
-        </p>
+        <p className="demo-upload-note">{t("Демо показывает заранее заданный результат, без анализа содержимого видео.")}</p>
       )}
       {busy && (
-        <p className="demo-upload-note">
-          Дождитесь завершения текущей проверки или остановите ожидание на её
-          странице.
-        </p>
+        <p className="demo-upload-note">{t("Дождитесь завершения текущей проверки или остановите ожидание на её странице.")}</p>
       )}
       <div className="demo-link-row">
-        <span>Хотите сначала посмотреть, как это работает?</span>
+        <span>{t("Хотите сначала посмотреть, как это работает?")}</span>
         <button
           className="text-button"
           onClick={() => run(true)}
           disabled={busy}
         >
-          <Icon name="play" size={13} />
-          Открыть демо
-        </button>
+          <Icon name="play" size={13} />{t("Открыть демо")}</button>
       </div>
     </section>
   );

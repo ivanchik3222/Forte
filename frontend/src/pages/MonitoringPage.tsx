@@ -1,3 +1,4 @@
+import { localeCode, t, useLocale } from "../i18n";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../components/Icon";
@@ -18,6 +19,7 @@ import { useResource } from "../features/workspace/useResource";
 import { Camera } from "../api/workspace";
 
 export function MonitoringPage({ live = false }: { live?: boolean }) {
+  useLocale();
   const today = useCurrentDay();
   const now = useMonitoringNow();
   const [selectedDay, setSelectedDay] = useState("");
@@ -77,95 +79,87 @@ export function MonitoringPage({ live = false }: { live?: boolean }) {
     <div className="page-enter health-page">
       <div className="page-title-row workspace-title">
         <div>
-          <p className="eyebrow">КОНТРОЛЬ САМОГО КОНТРОЛЯ</p>
-          <h1>Всё ли в поле зрения?</h1>
-          <p>Проверяем не только события, но и возможность их заметить.</p>
+          <p className="eyebrow">{t("КОНТРОЛЬ САМОГО КОНТРОЛЯ")}</p>
+          <h1>{t("Всё ли в поле зрения?")}</h1>
+          <p>{t("Проверяем не только события, но и возможность их заметить.")}</p>
         </div>
         <Link className="button button-outline" to="/shift">
-          <Icon name="play" size={17} />
-          Смена за минуту
-        </Link>
+          <Icon name="play" size={17} />{t("Смена за минуту")}</Link>
       </div>
       {live && resource.loading && (
-        <p role="status">Загрузка проверок камер…</p>
+        <p role="status">{t("Загрузка проверок камер…")}</p>
       )}
-      {live && resource.error && (
+      {t(live && resource.error && (
         <div className="notice" role="alert">
-          {resource.error}{" "}
-          <button className="text-button" onClick={resource.refresh}>
-            Повторить
-          </button>
+          {t(resource.error)}{" "}
+          <button className="text-button" onClick={resource.refresh}>{t("Повторить")}</button>
         </div>
-      )}
+      ))}
       <div className="health-intro">
         <span className="health-intro-symbol">
           <Icon name="eye" size={30} />
         </span>
         <div>
-          <strong>Нет событий — ещё не значит, что всё спокойно.</strong>
+          <strong>{t("Нет событий — ещё не значит, что всё спокойно.")}</strong>
           <p>
-            {connection === "demo"
+            {t(connection === "demo"
               ? "Демо: примеры сбоев и проверок качества. Реальные камеры не подключены."
               : live && resource.loading && !resource.error
                 ? "Получаем состояние камер и историю проверок."
                 : connection === "disconnected"
                   ? "Связь с сервисом потеряна. Текущее состояние камер неизвестно."
-                  : "Свежая проверка изображения подтверждает наблюдение. Без неё состояние камеры неизвестно."}
+                  : "Свежая проверка изображения подтверждает наблюдение. Без неё состояние камеры неизвестно.")}
           </p>
         </div>
         <span className="health-mode">
-          {connection === "demo" ? "ДЕМО" : "МОНИТОРИНГ"}
+          {t(connection === "demo" ? "ДЕМО" : "МОНИТОРИНГ")}
         </span>
       </div>
       <div className="health-metrics">
         <div>
-          <span>Требуют внимания сейчас</span>
+          <span>{t("Требуют внимания сейчас")}</span>
           <strong>
-            {live && !resource.data ? "—" : String(problems).padStart(2, "0")}
+            {t(live && !resource.data ? "—" : String(problems).padStart(2, "0"))}
           </strong>
-          <small>Среди выбранных камер</small>
+          <small>{t("Среди выбранных камер")}</small>
         </div>
         <div>
-          <span>Нет свежих данных</span>
+          <span>{t("Нет свежих данных")}</span>
           <strong>
-            {live && !resource.data ? "—" : String(unknown).padStart(2, "0")}
+            {t(live && !resource.data ? "—" : String(unknown).padStart(2, "0"))}
           </strong>
-          <small>Доступность не подтверждена</small>
+          <small>{t("Доступность не подтверждена")}</small>
         </div>
         <div>
-          <span>Перерывы за выбранный день</span>
+          <span>{t("Перерывы за выбранный день")}</span>
           <strong>
-            {live && !resource.data
+            {t(live && !resource.data
               ? "—"
               : (live
                   ? (resource.data?.summary.unavailable_minutes ?? 0)
                   : unavailableMinutes(incidents, day, now)
-                ).toLocaleString("ru-RU", {
+                ).toLocaleString(localeCode(), {
                   maximumFractionDigits: 1,
-                })}
-            <em>камера·мин</em>
+                }))}
+            <em>{t("камера·мин")}</em>
           </strong>
-          <small>Сумма перерывов по камерам, без двойного счёта</small>
+          <small>{t("Сумма перерывов по камерам, без двойного счёта")}</small>
         </div>
       </div>
       {live && resource.data && (
-        <p className="notification-session-note">
-          За выбранный день: без подтверждения наблюдения —{" "}
-          {resource.data.summary.unknown_minutes.toLocaleString("ru-RU", {
+        <p className="notification-session-note">{t("За выбранный день: без подтверждения наблюдения —")}{" "}
+          {t(resource.data.summary.unknown_minutes.toLocaleString(localeCode(), {
             maximumFractionDigits: 1,
-          })}{" "}
-          камера·мин; сниженная видимость —{" "}
-          {resource.data.summary.degraded_minutes.toLocaleString("ru-RU", {
+          }))}{" "}{t("камера·мин; сниженная видимость —")}{" "}
+          {t(resource.data.summary.degraded_minutes.toLocaleString(localeCode(), {
             maximumFractionDigits: 1,
-          })}{" "}
-          камера·мин. Время до первой проверки камеры не включено в расчёт.
-        </p>
+          }))}{" "}{t("камера·мин. Время до первой проверки камеры не включено в расчёт.")}</p>
       )}
-      <section className="panel health-cameras" aria-label="Состояние камер">
+      <section className="panel health-cameras" aria-label={t("Состояние камер")}>
         <div className="section-heading">
           <div>
-            <h2>Камеры сейчас</h2>
-            <p>Связь, движение кадра и видимость рабочей зоны</p>
+            <h2>{t("Камеры сейчас")}</h2>
+            <p>{t("Связь, движение кадра и видимость рабочей зоны")}</p>
           </div>
         </div>
         <div className="health-camera-grid">
@@ -182,22 +176,22 @@ export function MonitoringPage({ live = false }: { live?: boolean }) {
                 key={camera.id}
               >
                 <div className="health-camera-top">
-                  <span className="health-camera-number">{camera.name}</span>
+                  <span className="health-camera-number">{t(camera.name)}</span>
                   <span className="health-dot" />
                 </div>
-                <p className="health-location">{camera.location}</p>
+                <p className="health-location">{t(camera.location)}</p>
                 <strong className="health-state-label">
-                  {healthLabels[status]}
+                  {t(healthLabels[status])}
                 </strong>
                 <p className="health-description">
-                  {healthDescriptions[status]}
+                  {t(healthDescriptions[status])}
                 </p>
                 <div className="health-last-check">
-                  {camera.mode === "demo"
+                  {t(camera.mode === "demo"
                     ? "Демонстрационное состояние"
                     : healthSignals[camera.id]
-                      ? `Последняя проверка · ${alertTime(healthSignals[camera.id].checkedAt)}`
-                      : "Проверка качества не передана"}
+                      ? t("Последняя проверка · {0}", [alertTime(healthSignals[camera.id].checkedAt)])
+                      : "Проверка качества не передана")}
                 </div>
                 {connection === "demo" &&
                   camera.mode === "demo" &&
@@ -208,32 +202,27 @@ export function MonitoringPage({ live = false }: { live?: boolean }) {
                       onClick={() => {
                         restoreDemoCamera(camera.id);
                         setAnnouncement(
-                          `${camera.name}: наблюдение восстановлено в демо.`,
+                          t("{0}: наблюдение восстановлено в демо.", [camera.name]),
                         );
                       }}
-                    >
-                      Восстановить в демо
-                      <Icon name="refresh" size={15} />
+                    >{t("Восстановить в демо")}<Icon name="refresh" size={15} />
                     </button>
                   )}
               </article>
             );
           })}
           {!scope.length && (
-            <p className="health-empty">Камеры пока не переданы сервисом.</p>
+            <p className="health-empty">{t("Камеры пока не переданы сервисом.")}</p>
           )}
         </div>
       </section>
       {connection === "demo" && (
         <details className="health-demo-controls">
-          <summary>
-            Проверить сценарий сбоя <span>Демо для презентации</span>
+          <summary>{t("Проверить сценарий сбоя ")}<span>{t("Демо для презентации")}</span>
           </summary>
           <div className="health-demo-form">
-            <label>
-              Камера
-              <select
-                aria-label="Камера для демо-сбоя"
+            <label>{t("Камера")}<select
+                aria-label={t("Камера для демо-сбоя")}
                 value={demoId}
                 onChange={(e) => setDemoCamera(e.target.value)}
               >
@@ -241,21 +230,19 @@ export function MonitoringPage({ live = false }: { live?: boolean }) {
                   .filter((c) => c.mode === "demo")
                   .map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.name}
+                      {t(c.name)}
                     </option>
                   ))}
               </select>
             </label>
-            <label>
-              Что произошло
-              <select
-                aria-label="Тип демо-сбоя"
+            <label>{t("Что произошло")}<select
+                aria-label={t("Тип демо-сбоя")}
                 value={demoKind}
                 onChange={(e) => setDemoKind(e.target.value as HealthIssue)}
               >
                 {issueKinds.map((kind) => (
                   <option key={kind} value={kind}>
-                    {healthLabels[kind]}
+                    {t(healthLabels[kind])}
                   </option>
                 ))}
               </select>
@@ -271,27 +258,23 @@ export function MonitoringPage({ live = false }: { live?: boolean }) {
                   "Демо-сбой начался. Состояние камеры и журнал обновлены.",
                 );
               }}
-            >
-              Показать сбой
-            </button>
+            >{t("Показать сбой")}</button>
           </div>
         </details>
       )}
       <p role="status" className="notification-announcement">
-        {announcement}
+        {t(announcement)}
       </p>
       <section className="panel health-journal">
         <div className="section-heading">
           <div>
-            <h2>Когда наблюдение прерывалось</h2>
-            <p>Эти интервалы нужно учитывать при проверке смены</p>
+            <h2>{t("Когда наблюдение прерывалось")}</h2>
+            <p>{t("Эти интервалы нужно учитывать при проверке смены")}</p>
           </div>
         </div>
         <div className="review-filters">
-          <label>
-            День
-            <input
-              aria-label="День контроля камер"
+          <label>{t("День")}<input
+              aria-label={t("День контроля камер")}
               type="date"
               max={today}
               value={day}
@@ -301,20 +284,18 @@ export function MonitoringPage({ live = false }: { live?: boolean }) {
               }}
             />
           </label>
-          <label>
-            Камера
-            <select
-              aria-label="Камера контроля"
+          <label>{t("Камера")}<select
+              aria-label={t("Камера контроля")}
               value={cameraId}
               onChange={(e) => {
                 setCameraId(e.target.value);
                 setPage(1);
               }}
             >
-              <option value="all">Все камеры</option>
+              <option value="all">{t("Все камеры")}</option>
               {cameras.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} · {c.location}
+                  {t(c.name)} · {t(c.location)}
                 </option>
               ))}
             </select>
@@ -329,46 +310,46 @@ export function MonitoringPage({ live = false }: { live?: boolean }) {
             return (
               <li key={incident.id} className={degraded ? "is-degraded" : ""}>
                 <div className="health-incident-time">
-                  <time>{alertTime(new Date(window.start).toISOString())}</time>
+                  <time>{t(alertTime(new Date(window.start).toISOString()))}</time>
                   <span>
-                    {ongoing
+                    {t(ongoing
                       ? "сейчас"
-                      : alertTime(new Date(window.end).toISOString())}
+                      : alertTime(new Date(window.end).toISOString()))}
                   </span>
                 </div>
                 <div className="health-incident-copy">
                   <span>
-                    {cameras.find((c) => c.id === incident.cameraId)?.name ||
-                      incident.cameraId}{" "}
-                    · {healthLabels[incident.kind]}
-                    {incident.mode === "demo" && " · Демо"}
+                    {t(cameras.find((c) => c.id === incident.cameraId)?.name ||
+                      incident.cameraId)}{" "}
+                    · {t(healthLabels[incident.kind])}
+                    {t(incident.mode === "demo" && " · Демо")}
                   </span>
                   <h3>
-                    {incident.kind === "unknown"
+                    {t(incident.kind === "unknown"
                       ? "Доступность наблюдения не подтверждена"
                       : degraded
                         ? "Видимость рабочей зоны снижена"
-                        : "Наблюдение было недоступно"}
+                        : "Наблюдение было недоступно")}
                   </h3>
                   <p>
-                    {ongoing
+                    {t(ongoing
                       ? incident.kind === "unknown"
                         ? "Новые проверки не поступали"
                         : "Проблема ещё не устранена"
                       : window.end - window.start < 60_000
                         ? "Меньше минуты в выбранном дне"
-                        : `${Math.round((window.end - window.start) / 60_000)} мин в выбранном дне`}
-                    {!degraded && " · События могли остаться незамеченными"}
+                        : t("{0} мин в выбранном дне", [Math.round((window.end - window.start) / 60_000)]))}
+                    {t(!degraded && " · События могли остаться незамеченными")}
                   </p>
                 </div>
                 <span
                   className={`health-incident-badge ${ongoing ? "is-open" : ""}`}
                 >
-                  {ongoing
+                  {t(ongoing
                     ? "Открыт"
                     : incident.endedAt
                       ? "Завершён"
-                      : "Продолжался"}
+                      : "Продолжался")}
                 </span>
               </li>
             );
@@ -377,43 +358,31 @@ export function MonitoringPage({ live = false }: { live?: boolean }) {
         {!incidents.length &&
           (!live || (!resource.loading && !resource.error)) && (
             <div className="health-empty">
-              <h3>В журнале нет сбоев за этот день</h3>
-              <p>
-                Это не подтверждает непрерывное наблюдение: для него нужна
-                история проверок качества.
-              </p>
+              <h3>{t("В журнале нет сбоев за этот день")}</h3>
+              <p>{t("Это не подтверждает непрерывное наблюдение: для него нужна история проверок качества.")}</p>
             </div>
           )}
         {live && resource.data && resource.data.incidents.total > 50 && (
           <div className="table-toolbar">
-            <span>
-              Интервалов: {resource.data.incidents.total} · Страница {page}
+            <span>{t("Интервалов: ")}{resource.data.incidents.total}{t(" · Страница ")}{page}
             </span>
             <button
               className="button button-outline"
               disabled={page <= 1}
               onClick={() => setPage(page - 1)}
-            >
-              Назад
-            </button>
+            >{t("Назад")}</button>
             <button
               className="button button-outline"
               disabled={page * 50 >= resource.data.incidents.total}
               onClick={() => setPage(page + 1)}
-            >
-              Далее
-            </button>
+            >{t("Далее")}</button>
           </div>
         )}
       </section>
       <p className="notification-session-note">
-        {live &&
+        {t(live &&
           resource.data &&
-          `Журнал обновлён в ${alertTime(resource.data.as_of)}. `}
-        Время по Астане. Проблемы видимости не считаются полным перерывом. Без
-        обновления проверки более 90 секунд состояние реальной камеры становится
-        неизвестным.
-      </p>
+          t("Журнал обновлён в {0}. ", [alertTime(resource.data.as_of)]))}{t("Время по Астане. Проблемы видимости не считаются полным перерывом. Без обновления проверки более 90 секунд состояние реальной камеры становится неизвестным.")}</p>
     </div>
   );
 }

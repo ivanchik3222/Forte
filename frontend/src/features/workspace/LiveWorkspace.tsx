@@ -1,3 +1,5 @@
+import { LanguageSwitcher, LanguageSettings } from "../../components/LanguageSwitcher";
+import { formatDate, localeCode, t, useLocale } from "../../i18n";
 import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -53,7 +55,7 @@ const message = (e: unknown) =>
       ? e.message
       : "Ошибка запроса.";
 const dateTime = (v: string) =>
-  new Date(v).toLocaleString("ru-RU", {
+  formatDate(v, {
     timeZone: "Asia/Almaty",
     dateStyle: "medium",
     timeStyle: "short",
@@ -68,19 +70,18 @@ function StateNotice({
   loading?: boolean;
   retry?: () => void;
 }) {
+  useLocale();
   return (
     <>
-      {loading && <p role="status">Загрузка…</p>}
-      {error && (
+      {loading && <p role="status">{t("Загрузка…")}</p>}
+      {t(error && (
         <div className="notice" role="alert">
-          <span>{error}</span>
+          <span>{t(error)}</span>
           {retry && (
-            <button className="text-button" onClick={retry}>
-              Повторить
-            </button>
+            <button className="text-button" onClick={retry}>{t("Повторить")}</button>
           )}
         </div>
-      )}
+      ))}
     </>
   );
 }
@@ -95,30 +96,27 @@ function Pager({
   perPage?: number;
   onPage: (page: number) => void;
 }) {
+  useLocale();
   return (
     <div className="table-toolbar">
-      <span>
-        Всего: {total} · Страница {page}
+      <span>{t("Всего: ")}{total}{t(" · Страница ")}{page}
       </span>
       <button
         className="button button-outline"
         disabled={page <= 1}
         onClick={() => onPage(page - 1)}
-      >
-        Назад
-      </button>
+      >{t("Назад")}</button>
       <button
         className="button button-outline"
         disabled={page * perPage >= total}
         onClick={() => onPage(page + 1)}
-      >
-        Далее
-      </button>
+      >{t("Далее")}</button>
     </div>
   );
 }
 
 export function LiveWorkspace() {
+  useLocale();
   const auth = useAuthStore();
   const { pathname } = useLocation();
   useEffect(() => {
@@ -133,9 +131,7 @@ export function LiveWorkspace() {
   if (!auth.user)
     return (
       <main className="main-content">
-        <Link to="/" className="back-link">
-          ← На главную
-        </Link>
+        <Link to="/" className="back-link">{t("← На главную")}</Link>
         <LoginPanel />
         <button
           className="button button-outline"
@@ -144,9 +140,7 @@ export function LiveWorkspace() {
               .getState()
               .setSettings({ mode: "demo", apiKey: "" })
           }
-        >
-          Открыть демонстрацию без входа
-        </button>
+        >{t("Открыть демонстрацию без входа")}</button>
       </main>
     );
   if (pathname === "/login") return <Navigate to="/workspace" replace />;
@@ -154,6 +148,7 @@ export function LiveWorkspace() {
 }
 
 function AuthenticatedWorkspace() {
+  useLocale();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user)!;
@@ -169,7 +164,7 @@ function AuthenticatedWorkspace() {
   const open = (id: string) => navigate(`/analysis/${id}`);
   return (
     <div className="app-shell live-workspace">
-      <aside className="sidebar" aria-label="Основная навигация">
+      <aside className="sidebar" aria-label={t("Основная навигация")}>
         <Link className="brand" to="/">
           <img src="/forte-logo.svg" width="112" height="34" alt="Forte" />
           <span className="brand-divider" />
@@ -178,8 +173,8 @@ function AuthenticatedWorkspace() {
         <div className="workspace-label">
           <Icon name="shield" />
           <div>
-            <strong>Кассовый контроль</strong>
-            <span>Рабочее пространство</span>
+            <strong>{t("Кассовый контроль")}</strong>
+            <span>{t("Рабочее пространство")}</span>
           </div>
         </div>
         <nav>
@@ -191,15 +186,15 @@ function AuthenticatedWorkspace() {
               key={n.path}
             >
               <Icon name={n.icon} />
-              <span>{n.label}</span>
+              <span>{t(n.label)}</span>
               {n.path === "/notifications" && (
                 <span className="nav-count">
-                  {overview.data?.unread_total ?? "—"}
+                  {t(overview.data?.unread_total ?? "—")}
                 </span>
               )}
               {n.path === "/history" && (
                 <span className="nav-count">
-                  {overview.data?.media_total ?? "—"}
+                  {t(overview.data?.media_total ?? "—")}
                 </span>
               )}
             </Link>
@@ -207,8 +202,8 @@ function AuthenticatedWorkspace() {
         </nav>
         <div className="sidebar-bottom">
           <div className="local-card">
-            <strong>Записи на сервере команды</strong>
-            <p>Видео сохраняются. ИИ-анализ пока не подключён.</p>
+            <strong>{t("Записи на сервере команды")}</strong>
+            <p>{t("Видео сохраняются и автоматически отправляются на локальный анализ.")}</p>
           </div>
         </div>
       </aside>
@@ -218,12 +213,11 @@ function AuthenticatedWorkspace() {
             <img src="/forte-logo.svg" width="76" height="23" alt="Forte" />
           </Link>
           <div className="breadcrumbs">
-            {navigation.find((n) => n.path === active)?.label || "Видеозапись"}
+            {t(navigation.find((n) => n.path === active)?.label || "Видеозапись")}
           </div>
           <div className="topbar-actions">
-            <Link className="mode-badge mode-api" to="/settings">
-              Рабочий режим
-            </Link>
+            <LanguageSwitcher />
+            <Link className="mode-badge mode-api" to="/settings">{t("Рабочий режим")}</Link>
             <button
               className="profile-button"
               onClick={() => setModal("account")}
@@ -239,78 +233,64 @@ function AuthenticatedWorkspace() {
             <>
               <div className="page-title-row">
                 <div>
-                  <p className="eyebrow">{today}</p>
-                  <h1>Контроль кассовых операций</h1>
-                  <p>Сохранённые видео и события для просмотра</p>
+                  <p className="eyebrow">{t(today)}</p>
+                  <h1>{t("Контроль кассовых операций")}</h1>
+                  <p>{t("Сохранённые видео и события для просмотра")}</p>
                 </div>
                 <button
                   className="button button-primary"
                   onClick={() => setModal("upload")}
                 >
-                  <Icon name="plus" />
-                  Загрузить видео
-                </button>
+                  <Icon name="plus" />{t("Загрузить видео")}</button>
               </div>
-              <div className="notice">
-                ИИ-анализ пока не подключён. Проверки камер и события поступают
-                от подключённого источника или специалиста.
-              </div>
+              <div className="notice">{t("Статусы камер и события поступают от сервиса команды.")}</div>
               <StateNotice loading={overview.loading} />
               {overview.data && (
                 <>
                   <section className="monitoring-summary">
                     <div className="monitoring-summary-copy">
-                      <h2>События за сегодня</h2>
-                      <Link to="/notifications">Открыть оповещения</Link>
+                      <h2>{t("События за сегодня")}</h2>
+                      <Link to="/notifications">{t("Открыть оповещения")}</Link>
                     </div>
                     <dl className="monitoring-totals">
                       <div>
-                        <dt>Всего событий</dt>
+                        <dt>{t("Всего событий")}</dt>
                         <dd>{overview.data.today_total}</dd>
                       </div>
                       <div>
-                        <dt>Просмотрено</dt>
+                        <dt>{t("Просмотрено")}</dt>
                         <dd>{overview.data.today_read}</dd>
                       </div>
                       <div>
-                        <dt>Новых</dt>
+                        <dt>{t("Новых")}</dt>
                         <dd>{overview.data.today_unread}</dd>
                       </div>
                     </dl>
                   </section>
                   {overview.data.monitoring_summary && (
                     <section className="panel">
-                      <h2>Доступность наблюдения</h2>
-                      <p>
-                        Камер с проблемами:{" "}
-                        {overview.data.monitoring_summary.problems}. Без свежих
-                        проверок: {overview.data.monitoring_summary.unknown}.
+                      <h2>{t("Доступность наблюдения")}</h2>
+                      <p>{t("Камер с проблемами:")}{" "}
+                        {overview.data.monitoring_summary.problems}{t(". Без свежих проверок: ")}{overview.data.monitoring_summary.unknown}.
                       </p>
-                      <p>
-                        Перерывы за день:{" "}
-                        {overview.data.monitoring_summary.unavailable_minutes.toLocaleString(
-                          "ru-RU",
+                      <p>{t("Перерывы за день:")}{" "}
+                        {t(overview.data.monitoring_summary.unavailable_minutes.toLocaleString(
+                          localeCode(),
                           { maximumFractionDigits: 1 },
-                        )}{" "}
-                        камера·мин.
-                      </p>
-                      <Link className="text-button" to="/monitoring">
-                        Проверить интервалы наблюдения
-                      </Link>
-                      <Link className="button button-outline" to="/shift">
-                        Смена за минуту
-                      </Link>
+                        ))}{" "}{t("камера·мин.")}</p>
+                      <Link className="text-button" to="/monitoring">{t("Проверить интервалы наблюдения")}</Link>
+                      <Link className="button button-outline" to="/shift">{t("Смена за минуту")}</Link>
                     </section>
                   )}
                   <section className="panel">
-                    <h2>Последние события</h2>
+                    <h2>{t("Последние события")}</h2>
                     <AlertList
                       alerts={overview.data.recent_alerts}
                       changed={changed}
                     />
                   </section>
                   <section className="panel history-panel">
-                    <h2>Последние записи</h2>
+                    <h2>{t("Последние записи")}</h2>
                     <HistoryTable
                       records={overview.data.recent_media.map(asRecord)}
                       onOpen={open}
@@ -343,16 +323,14 @@ function AuthenticatedWorkspace() {
           {!navigation.some((n) => n.path === pathname) &&
             !pathname.startsWith("/analysis/") && (
               <section className="panel empty-state">
-                <h1>Страница не найдена</h1>
-                <Link to="/workspace">Вернуться к обзору</Link>
+                <h1>{t("Страница не найдена")}</h1>
+                <Link to="/workspace">{t("Вернуться к обзору")}</Link>
               </section>
             )}
         </main>
-        <footer className="app-footer">
-          Forte Control · Видео сохраняются без ИИ-анализа
-        </footer>
+        <footer className="app-footer">{t("Forte Control · Локальный анализ видео")}</footer>
       </div>
-      <nav className="mobile-bottom-nav" aria-label="Навигация по кабинету">
+      <nav className="mobile-bottom-nav" aria-label={t("Навигация по кабинету")}>
         {navigation.map((n) => (
           <Link
             className="mobile-tab"
@@ -361,12 +339,12 @@ function AuthenticatedWorkspace() {
             aria-current={active === n.path ? "page" : undefined}
           >
             <Icon name={n.icon} />
-            <span>{n.label}</span>
+            <span>{t(n.label)}</span>
           </Link>
         ))}
       </nav>
       {modal === "account" && (
-        <Modal title="Учётная запись" onClose={() => setModal(null)}>
+        <Modal title={t("Учётная запись")} onClose={() => setModal(null)}>
           <LoginPanel />
           <StateNotice error={useAuthStore.getState().error || undefined} />
         </Modal>
@@ -396,6 +374,7 @@ function UploadDialog({
   close: () => void;
   saved: (id: string) => void;
 }) {
+  useLocale();
   const [file, setFile] = useState<File>();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -447,7 +426,7 @@ function UploadDialog({
       setError(
         e instanceof DOMException && e.name === "AbortError"
           ? "Ожидание остановлено. Файл мог сохраниться: повторите отправку с тем же файлом или проверьте историю."
-          : `${message(e)} Можно повторить отправку — сохранённая запись не продублируется.`,
+          : t("{0} Можно повторить отправку — сохранённая запись не продублируется.", [message(e)]),
       );
     } finally {
       setBusy(false);
@@ -458,17 +437,17 @@ function UploadDialog({
     return file && (busy || error) ? (
       <button className="transfer-mini" onClick={reopen}>
         <span className="transfer-mini-value">
-          {error
+          {t(error
             ? "!"
-            : `${uploadPercent(progress) ?? "…"}${uploadPercent(progress) !== undefined ? "%" : ""}`}
+            : `${uploadPercent(progress) ?? "…"}${uploadPercent(progress) !== undefined ? "%" : ""}`)}
         </span>
         <span>
           <strong>
-            {error
+            {t(error
               ? "Не удалось загрузить видео"
               : progress.transferred
                 ? "Сохраняем запись"
-                : "Загружаем видео"}
+                : "Загружаем видео")}
           </strong>
           <small>{file.name}</small>
         </span>
@@ -476,13 +455,10 @@ function UploadDialog({
       </button>
     ) : null;
   return (
-    <Modal title="Загрузить видео" onClose={close}>
+    <Modal title={t("Загрузить видео")} onClose={close}>
       <section className="upload-panel live-upload-panel">
         {!busy && (
-          <p>
-            После загрузки автоматически начнётся анализ. Эпизоды, описания
-            действий и кадры появятся на странице записи.
-          </p>
+          <p>{t("После загрузки автоматически начнётся анализ. Эпизоды, описания действий и кадры появятся на странице записи.")}</p>
         )}
         {busy && file ? (
           <UploadProgress file={file} progress={progress} />
@@ -501,10 +477,8 @@ function UploadDialog({
             }}
           >
             <Icon name="upload" size={32} />
-            <label className="button button-outline">
-              Выбрать видео
-              <input
-                aria-label="Выбрать видеофайл"
+            <label className="button button-outline">{t("Выбрать видео")}<input
+                aria-label={t("Выбрать видеофайл")}
                 type="file"
                 className="visually-hidden"
                 accept=".mov,.mp4,.webm"
@@ -516,9 +490,9 @@ function UploadDialog({
               />
             </label>
             <p className="selected-filename">
-              {file
+              {t(file
                 ? `${file.name} · ${fileSize(file.size)}`
-                : `Перетащите один MOV, MP4 или WebM до ${MAX_FILE_SIZE_LABEL}`}
+                : t("Перетащите один MOV, MP4 или WebM до {0}", [MAX_FILE_SIZE_LABEL]))}
             </p>
           </div>
         )}
@@ -529,26 +503,21 @@ function UploadDialog({
               className="button button-primary"
               disabled={!file || busy}
               onClick={() => void upload()}
-            >
-              Сохранить видео
-            </button>
+            >{t("Сохранить видео")}</button>
           )}
           {busy && (
             <button
               className="button button-outline"
               onClick={() => controller.current?.abort()}
             >
-              {progress.transferred
+              {t(progress.transferred
                 ? "Остановить ожидание"
-                : "Отменить загрузку"}
+                : "Отменить загрузку")}
             </button>
           )}
         </div>
         {busy && (
-          <p className="transfer-hint">
-            Окно можно свернуть — загрузка продолжится. Оставьте вкладку
-            открытой до завершения.
-          </p>
+          <p className="transfer-hint">{t("Окно можно свернуть — загрузка продолжится. Оставьте вкладку открытой до завершения.")}</p>
         )}
       </section>
     </Modal>
@@ -562,6 +531,7 @@ function History({
   open: (id: string) => void;
   onNew: () => void;
 }) {
+  useLocale();
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("newest");
@@ -582,45 +552,41 @@ function History({
     <>
       <div className="page-title-row">
         <div>
-          <h1>История записей</h1>
-          <p>
-            Видео сохраняются на сервере и доступны после обновления страницы.
-          </p>
+          <h1>{t("История записей")}</h1>
+          <p>{t("Видео сохраняются на сервере и доступны после обновления страницы.")}</p>
         </div>
-        <button className="button button-primary" onClick={onNew}>
-          Загрузить видео
-        </button>
+        <button className="button button-primary" onClick={onNew}>{t("Загрузить видео")}</button>
       </div>
       <section className="panel history-panel">
         <div className="table-toolbar">
           <input
-            aria-label="Поиск по имени файла"
+            aria-label={t("Поиск по имени файла")}
             className="search-input"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Имя файла"
+            placeholder={t("Имя файла")}
           />
           <select
-            aria-label="Статус записи"
+            aria-label={t("Статус записи")}
             value={status}
             onChange={(e) => {
               setStatus(e.target.value);
               setPage(1);
             }}
           >
-            <option value="all">Все статусы</option>
-            <option value="stored">Сохранённые записи</option>
+            <option value="all">{t("Все статусы")}</option>
+            <option value="stored">{t("Сохранённые записи")}</option>
           </select>
           <select
-            aria-label="Сортировка"
+            aria-label={t("Сортировка")}
             value={sort}
             onChange={(e) => {
               setSort(e.target.value);
               setPage(1);
             }}
           >
-            <option value="newest">Сначала новые</option>
-            <option value="oldest">Сначала старые</option>
+            <option value="newest">{t("Сначала новые")}</option>
+            <option value="oldest">{t("Сначала старые")}</option>
           </select>
         </div>
         <StateNotice {...resource} retry={resource.refresh} />
@@ -641,6 +607,7 @@ function History({
 }
 
 function MediaDetail({ id }: { id: string }) {
+  useLocale();
   const record = useResource(`/media/${encodeURIComponent(id)}`, parseMedia);
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
@@ -686,38 +653,31 @@ function MediaDetail({ id }: { id: string }) {
   };
   return (
     <>
-      <Link to="/history" className="back-link">
-        ← К записям
-      </Link>
+      <Link to="/history" className="back-link">{t("← К записям")}</Link>
       <StateNotice {...record} retry={record.refresh} />
       {record.data && (
         <>
           <div className="page-title-row">
             <div>
-              <h1>{record.data.file_name}</h1>
+              <h1>{t(record.data.file_name)}</h1>
               <p>
                 {fileSize(record.data.file_size)} ·{" "}
-                {dateTime(record.data.created_at)}
-                {record.data.duration_sec
+                {t(dateTime(record.data.created_at))}
+                {t(record.data.duration_sec
                   ? ` · ${timecode(record.data.duration_sec)}`
-                  : ""}
+                  : "")}
               </p>
             </div>
             <button
               className="button button-outline"
               onClick={() => void downloadReport()}
-            >
-              Скачать JSON
-            </button>
+            >{t("Скачать JSON")}</button>
           </div>
           <div className="notice">
-            <Icon name="info" />
-            Видео сохранено. Статус анализа и результаты показаны ниже.
-            Вывод о наличии нарушений требует ручной проверки.
-          </div>
+            <Icon name="info" />{t("Видео сохранено. Статус анализа и результаты показаны ниже. Вывод о наличии нарушений требует ручной проверки.")}</div>
           <section className="panel live-video">
             <StateNotice error={error} />
-            {url && (
+            {t(url && (
               <video
                 ref={video}
                 controls
@@ -734,34 +694,24 @@ function MediaDetail({ id }: { id: string }) {
                   background: "#171217",
                 }}
               />
-            )}
+            ))}
             {unplayable && (
-              <p role="alert">
-                Браузер не смог воспроизвести видео. Обновите ссылку или
-                скачайте оригинал; кодек MOV может не поддерживаться.
-              </p>
+              <p role="alert">{t("Браузер не смог воспроизвести видео. Обновите ссылку или скачайте оригинал; кодек MOV может не поддерживаться.")}</p>
             )}
             <div className="settings-save">
               <button
                 className="button button-outline"
                 onClick={() => void refreshUrl()}
-              >
-                Обновить ссылку на видео
-              </button>
-              {url && (
+              >{t("Обновить ссылку на видео")}</button>
+              {t(url && (
                 <a
                   className="button button-outline"
                   href={`${url}&download=1`}
                   referrerPolicy="no-referrer"
-                >
-                  Скачать оригинал
-                </a>
-              )}
+                >{t("Скачать оригинал")}</a>
+              ))}
             </div>
-            <p className="muted">
-              Ссылка действует 15 минут. При истечении срока обновите её этой
-              кнопкой.
-            </p>
+            <p className="muted">{t("Ссылка действует 15 минут. При истечении срока обновите её этой кнопкой.")}</p>
           </section>
           <MLAnalysisPanel
             key={id}
@@ -784,6 +734,7 @@ function AlertList({
   alerts: Alert[];
   changed: () => void;
 }) {
+  useLocale();
   const [selected, setSelected] = useState<Alert>();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -812,7 +763,7 @@ function AlertList({
     <>
       <StateNotice loading={loading} error={error} />
       {alerts.length ? (
-        <ul className="notification-feed" aria-label="События с камер">
+        <ul className="notification-feed" aria-label={t("События с камер")}>
           {alerts.map((a) => (
             <li key={a.id}>
               <button
@@ -820,7 +771,7 @@ function AlertList({
                 onClick={() => void select(a.id)}
               >
                 <time className="notification-time">
-                  {new Date(a.detected_at).toLocaleTimeString("ru-RU", {
+                  {new Date(a.detected_at).toLocaleTimeString(localeCode(), {
                     timeZone: "Asia/Almaty",
                     hour: "2-digit",
                     minute: "2-digit",
@@ -828,12 +779,12 @@ function AlertList({
                 </time>
                 <span className="notification-content">
                   <span className="notification-source">
-                    {a.camera_name} · {a.location}
+                    {t(a.camera_name)} · {t(a.location)}
                   </span>
-                  <strong>{a.event.type}</strong>
+                  <strong>{t(a.event.type)}</strong>
                   <span className="notification-meta">
-                    {a.read_at ? "Просмотрено" : "Новое"}
-                    {a.source === "test" ? " · Тестовое событие" : ""}
+                    {t(a.read_at ? "Просмотрено" : "Новое")}
+                    {t(a.source === "test" ? " · Тестовое событие" : "")}
                   </span>
                 </span>
                 <Icon name="arrow" />
@@ -843,65 +794,56 @@ function AlertList({
         </ul>
       ) : (
         <div className="notification-empty">
-          <h3>Событий пока нет</h3>
-          <p>
-            Для выбранных условий события не поступали. Доступность наблюдения
-            можно проверить в контроле камер.
-          </p>
+          <h3>{t("Событий пока нет")}</h3>
+          <p>{t("Для выбранных условий события не поступали. Доступность наблюдения можно проверить в контроле камер.")}</p>
         </div>
       )}
       {selected && (
-        <Modal title="Событие с камеры" onClose={() => setSelected(undefined)}>
-          <h3>{selected.event.type}</h3>
+        <Modal title={t("Событие с камеры")} onClose={() => setSelected(undefined)}>
+          <h3>{t(selected.event.type)}</h3>
           <p>
-            {selected.camera_name} · {selected.location} ·{" "}
-            {dateTime(selected.detected_at)}
+            {t(selected.camera_name)} · {t(selected.location)} ·{" "}
+            {t(dateTime(selected.detected_at))}
           </p>
           {selected.source === "test" && (
-            <div className="notice">
-              Тестовое событие. Это не результат наблюдения или ИИ-анализа.
-            </div>
+            <div className="notice">{t("Тестовое событие. Это не результат наблюдения или ИИ-анализа.")}</div>
           )}
-          <p>{selected.event.description}</p>
+          <p>{t(selected.event.description)}</p>
           {selected.event.evidence_frames.length ? (
             selected.event.evidence_frames.map((f, i) => (
               <figure key={i}>
                 <img
                   style={{ maxWidth: "100%" }}
                   src={mediaUrl(f.image_url)}
-                  alt={`Кадр ${timecode(f.timestamp_sec)}`}
+                  alt={t("Кадр {0}", [timecode(f.timestamp_sec)])}
                   referrerPolicy="no-referrer"
                 />
                 <figcaption>{timecode(f.timestamp_sec)}</figcaption>
               </figure>
             ))
           ) : (
-            <p>Кадры не переданы.</p>
+            <p>{t("Кадры не переданы.")}</p>
           )}
           {selected.event.rule ? (
             <div>
-              <h4>{selected.event.rule.title}</h4>
-              <p>{selected.event.rule.section}</p>
-              <p>{selected.event.rule.explanation}</p>
-              {safeSourceUrl(selected.event.rule.url) && (
+              <h4>{t(selected.event.rule.title)}</h4>
+              <p>{t(selected.event.rule.section)}</p>
+              <p>{t(selected.event.rule.explanation)}</p>
+              {t(safeSourceUrl(selected.event.rule.url) && (
                 <a
                   href={safeSourceUrl(selected.event.rule.url)}
                   target="_blank"
                   rel="noreferrer"
-                >
-                  Открыть источник
-                </a>
-              )}
+                >{t("Открыть источник")}</a>
+              ))}
             </div>
           ) : (
-            <p>Нормативное основание не передано.</p>
+            <p>{t("Нормативное основание не передано.")}</p>
           )}
           <p>
-            {selected.read_at
+            {t(selected.read_at
               ? "Просмотр сохранён."
-              : "Отметка просмотра не сохранена."}{" "}
-            Наличие нарушения определяет специалист.
-          </p>
+              : "Отметка просмотра не сохранена.")}{" "}{t("Наличие нарушения определяет специалист.")}</p>
           <StateNotice error={error} />
         </Modal>
       )}
@@ -910,6 +852,7 @@ function AlertList({
 }
 
 function Notifications({ changed }: { changed: () => void }) {
+  useLocale();
   const today = useCurrentDay();
   const [selectedDay, setDay] = useState("");
   const day = selectedDay || today;
@@ -965,18 +908,15 @@ function Notifications({ changed }: { changed: () => void }) {
     <>
       <div className="page-title-row">
         <div>
-          <h1>Оповещения</h1>
-          <p>Просмотр события не подтверждает нарушение.</p>
+          <h1>{t("Оповещения")}</h1>
+          <p>{t("Просмотр события не подтверждает нарушение.")}</p>
         </div>
       </div>
-      <div className="notice">
-        События поступают от подключённого источника или специалиста. Тестовые
-        события отмечены отдельно.
-      </div>
+      <div className="notice">{t("События поступают от подключённого источника или специалиста. Тестовые события отмечены отдельно.")}</div>
       <section className="panel">
         <div className="table-toolbar">
           <input
-            aria-label="День событий"
+            aria-label={t("День событий")}
             type="date"
             value={day}
             onChange={(e) => {
@@ -985,17 +925,17 @@ function Notifications({ changed }: { changed: () => void }) {
             }}
           />
           <select
-            aria-label="Камера"
+            aria-label={t("Камера")}
             value={camera}
             onChange={(e) => {
               setCamera(e.target.value);
               setPage(1);
             }}
           >
-            <option value="">Все камеры</option>
+            <option value="">{t("Все камеры")}</option>
             {cameraOptions.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name}
+                {t(c.name)}
               </option>
             ))}
           </select>
@@ -1004,29 +944,25 @@ function Notifications({ changed }: { changed: () => void }) {
               className="text-button"
               disabled={cameras.loading}
               onClick={() => setCameraPage((p) => p + 1)}
-            >
-              Загрузить ещё камеры
-            </button>
+            >{t("Загрузить ещё камеры")}</button>
           )}
           <select
-            aria-label="Просмотр событий"
+            aria-label={t("Просмотр событий")}
             value={read}
             onChange={(e) => {
               setRead(e.target.value);
               setPage(1);
             }}
           >
-            <option value="all">Все</option>
-            <option value="new">Новые</option>
-            <option value="read">Просмотрены</option>
+            <option value="all">{t("Все")}</option>
+            <option value="new">{t("Новые")}</option>
+            <option value="read">{t("Просмотрены")}</option>
           </select>
           <button
             className="button button-outline"
             disabled={!resource.data?.items.some((a) => !a.read_at)}
             onClick={() => void bulk()}
-          >
-            Отметить показанные
-          </button>
+          >{t("Отметить показанные")}</button>
         </div>
         <StateNotice error={error || cameras.error} />
         <StateNotice {...resource} retry={resource.refresh} />
@@ -1042,32 +978,33 @@ function Notifications({ changed }: { changed: () => void }) {
 }
 
 function CameraList() {
+  useLocale();
   const [page, setPage] = useState(1);
   const resource = useResource(`/cameras?page=${page}`, (v) =>
     parsePage(v, parseCamera),
   );
   return (
     <section className="panel">
-      <h2>Камеры</h2>
+      <h2>{t("Камеры")}</h2>
       <StateNotice {...resource} retry={resource.refresh} />
       {resource.data && (
         <>
           {resource.data.items.map((c) => (
             <div className="notification-row" key={c.id}>
               <span>
-                {c.name} · {c.location}
+                {t(c.name)} · {t(c.location)}
               </span>
               <span>
-                {c.status === "unknown"
+                {t(c.status === "unknown"
                   ? "Не подключена"
                   : c.status === "online"
                     ? "Есть связь"
-                    : "Нет связи"}
+                    : "Нет связи")}
               </span>
             </div>
           ))}
           {!resource.data.items.length && (
-            <p>Камеры ещё не добавлены администратором.</p>
+            <p>{t("Камеры ещё не добавлены администратором.")}</p>
           )}
           <Pager page={page} total={resource.data.total} onPage={setPage} />
         </>
@@ -1076,17 +1013,15 @@ function CameraList() {
   );
 }
 function Sources() {
+  useLocale();
   const [page, setPage] = useState(1);
   const resource = useResource(`/sources?page=${page}`, (v) =>
     parsePage(v, parseSource),
   );
   return (
     <>
-      <h1>Нормативная база</h1>
-      <div className="notice">
-        Справочные ссылки. Актуальность и применимость документа проверяет
-        специалист.
-      </div>
+      <h1>{t("Нормативная база")}</h1>
+      <div className="notice">{t("Справочные ссылки. Актуальность и применимость документа проверяет специалист.")}</div>
       <StateNotice {...resource} retry={resource.refresh} />
       {resource.data && (
         <>
@@ -1094,24 +1029,22 @@ function Sources() {
             <article key={s.id} className="panel source-card">
               <Icon name="book" />
               <div>
-                <h2>{s.title}</h2>
+                <h2>{t(s.title)}</h2>
                 <p>
-                  {s.publisher} · {s.number} · {s.document_date}
+                  {t(s.publisher)} · {t(s.number)} · {t(s.document_date)}
                 </p>
-                {safeSourceUrl(s.url) && (
+                {t(safeSourceUrl(s.url) && (
                   <a
                     className="button button-outline"
                     href={safeSourceUrl(s.url)}
                     target="_blank"
                     rel="noreferrer"
-                  >
-                    Открыть источник
-                  </a>
-                )}
+                  >{t("Открыть источник")}</a>
+                ))}
               </div>
             </article>
           ))}
-          {!resource.data.items.length && <p>Источники пока не добавлены.</p>}
+          {!resource.data.items.length && <p>{t("Источники пока не добавлены.")}</p>}
           <Pager page={page} total={resource.data.total} onPage={setPage} />
         </>
       )}
@@ -1119,6 +1052,7 @@ function Sources() {
   );
 }
 function Settings() {
+  useLocale();
   const capabilities = useResource("/capabilities", (v) => {
     const value = v as {
       uploads?: unknown;
@@ -1136,24 +1070,23 @@ function Settings() {
   });
   return (
     <>
-      <h1>Настройки подключения</h1>
+      <h1>{t("Настройки подключения")}</h1>
+      <LanguageSettings />
       <section className="panel settings-panel">
-        <h2>Сервис команды</h2>
+        <h2>{t("Сервис команды")}</h2>
         <StateNotice {...capabilities} retry={capabilities.refresh} />
         {capabilities.data && (
           <>
-            <p>API доступен. Записи хранятся на сервере.</p>
-            <p>
-              Поиск объектов и движений:{" "}
-              {capabilities.data.analysis ? "доступен" : "не подключён"}.
+            <p>{t("API доступен. Записи хранятся на сервере.")}</p>
+            <p>{t("Поиск объектов и движений:")}{" "}
+              {t(capabilities.data.analysis ? "доступен" : "не подключён")}.
             </p>
-            <p>
-              Захват видеопотока:{" "}
-              {capabilities.data.camera_stream ? "подключён" : "не подключён"}.
+            <p>{t("Захват видеопотока:")}{" "}
+              {t(capabilities.data.camera_stream ? "подключён" : "не подключён")}.
             </p>
           </>
         )}
-        <p>Доступ определяется вашей учётной записью.</p>
+        <p>{t("Доступ определяется вашей учётной записью.")}</p>
         <button
           className="button button-outline"
           onClick={() =>
@@ -1161,13 +1094,8 @@ function Settings() {
               .getState()
               .setSettings({ mode: "demo", apiKey: "" })
           }
-        >
-          Перейти к демонстрации
-        </button>
-        <p className="muted">
-          В демонстрации используются отдельные примеры. Рабочие записи остаются
-          на сервере.
-        </p>
+        >{t("Перейти к демонстрации")}</button>
+        <p className="muted">{t("В демонстрации используются отдельные примеры. Рабочие записи остаются на сервере.")}</p>
       </section>
     </>
   );

@@ -1,3 +1,4 @@
+import { formatDate, t, useLocale } from "../../i18n";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "../../components/Icon";
 import { Modal } from "../../components/Modal";
@@ -51,6 +52,7 @@ export function AnalysisDetail({
   onOpen: (id: string) => void;
   onNew: () => void;
 }) {
+  useLocale();
   const video = useRef<HTMLVideoElement>(null);
   const [selected, setSelected] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -92,16 +94,15 @@ export function AnalysisDetail({
   return (
     <div className="page-enter">
       <button className="back-link" onClick={onNew}>
-        <Icon name="arrow" size={16} />К проверкам
-      </button>
+        <Icon name="arrow" size={16} />{t("К проверкам")}</button>
       <div className="page-title-row result-title">
         <div>
-          <p className="eyebrow">РЕЗУЛЬТАТ ПРОВЕРКИ</p>
+          <p className="eyebrow">{t("РЕЗУЛЬТАТ ПРОВЕРКИ")}</p>
           <h1>{record.fileName}</h1>
           <p>
             {fileSize(record.fileSize)}
-            {record.duration ? ` · ${timecode(record.duration)}` : ""} ·{" "}
-            {new Date(record.createdAt).toLocaleString("ru-RU", {
+            {t(record.duration ? ` · ${timecode(record.duration)}` : "")} ·{" "}
+            {formatDate(record.createdAt, {
               timeZone: "Asia/Almaty",
               dateStyle: "medium",
               timeStyle: "short",
@@ -113,19 +114,14 @@ export function AnalysisDetail({
             className="button button-outline"
             onClick={() => exportReport(record)}
           >
-            <Icon name="download" size={17} />
-            Скачать JSON
-          </button>
+            <Icon name="download" size={17} />{t("Скачать JSON")}</button>
         )}
       </div>
       {record.mode === "demo" && (
         <div className="notice demo-notice">
           <Icon name="info" size={18} />
           <span>
-            <strong>Демонстрационный результат.</strong> События заданы заранее
-            и не относятся к содержимому выбранного видео. Изображения созданы
-            для иллюстрации интерфейса.
-          </span>
+            <strong>{t("Демонстрационный результат.")}</strong>{t(" События заданы заранее и не относятся к содержимому выбранного видео. Изображения созданы для иллюстрации интерфейса.")}</span>
         </div>
       )}
       {busy ? (
@@ -134,21 +130,21 @@ export function AnalysisDetail({
             <Icon name="scan" size={40} />
           </div>
           <span className="eyebrow">
-            {record.mode === "demo" ? "ДЕМОНСТРАЦИЯ" : "ПРОВЕРКА В ПРОЦЕССЕ"}
+            {t(record.mode === "demo" ? "ДЕМОНСТРАЦИЯ" : "ПРОВЕРКА В ПРОЦЕССЕ")}
           </span>
           <h2>
-            {record.status === "uploading"
+            {t(record.status === "uploading"
               ? "Загружаем видеозапись"
-              : "Изучаем запись по кадрам"}
+              : "Изучаем запись по кадрам")}
           </h2>
           <p>
-            {record.stage ||
-              "Сервис проверяет визуально наблюдаемые действия. Это может занять до 5 минут."}
+            {t(record.stage ||
+              "Сервис проверяет визуально наблюдаемые действия. Это может занять до 5 минут.")}
           </p>
           <div
             className={`progress-track ${record.progress === undefined ? "indeterminate" : ""}`}
             role="progressbar"
-            aria-label="Обработка видео"
+            aria-label={t("Обработка видео")}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={record.progress}
@@ -161,36 +157,26 @@ export function AnalysisDetail({
             />
           </div>
           <div className="processing-meta">
-            <span>Прошло {timecode(elapsed)}</span>
+            <span>{t("Прошло ")}{timecode(elapsed)}</span>
             <span>
-              {record.progress === undefined
+              {t(record.progress === undefined
                 ? "Ожидаем результат"
-                : `${record.progress}%`}
+                : `${record.progress}%`)}
             </span>
           </div>
           <div className="processing-steps">
             <span>
-              <Icon name="checkCircle" size={18} />
-              Видео выбрано
-            </span>
+              <Icon name="checkCircle" size={18} />{t("Видео выбрано")}</span>
             <span className="active">
-              <Icon name="scan" size={18} />
-              Анализ событий
-            </span>
+              <Icon name="scan" size={18} />{t("Анализ событий")}</span>
             <span>
-              <Icon name="file" size={18} />
-              Отчёт
-            </span>
+              <Icon name="file" size={18} />{t("Отчёт")}</span>
           </div>
           <button
             className="button button-outline"
             onClick={() => cancel(record.id)}
-          >
-            Остановить ожидание
-          </button>
-          <small>
-            Можно перейти в другой раздел. Проверка продолжится в этой вкладке.
-          </small>
+          >{t("Остановить ожидание")}</button>
+          <small>{t("Можно перейти в другой раздел. Проверка продолжится в этой вкладке.")}</small>
         </section>
       ) : ["failed", "cancelled"].includes(record.status) ? (
         <section className="panel empty-state error-state">
@@ -201,19 +187,19 @@ export function AnalysisDetail({
             />
           </span>
           <h2>
-            {record.status === "failed"
+            {t(record.status === "failed"
               ? "Проверка не завершена"
-              : "Ожидание остановлено"}
+              : "Ожидание остановлено")}
           </h2>
           <p>
-            {record.error ||
-              "Получение результата остановлено в браузере. Если файл был отправлен, обработка на сервере может продолжаться."}
+            {t(record.error ||
+              "Получение результата остановлено в браузере. Если файл был отправлен, обработка на сервере может продолжаться.")}
           </p>
-          {retryError && (
+          {t(retryError && (
             <p role="alert" className="inline-error">
-              {retryError}
+              {t(retryError)}
             </p>
-          )}
+          ))}
           <div className="button-group">
             <button
               className="button button-primary"
@@ -229,12 +215,8 @@ export function AnalysisDetail({
                 }
               }}
             >
-              <Icon name="refresh" size={17} />
-              Повторить проверку
-            </button>
-            <button className="button button-outline" onClick={onNew}>
-              Выбрать другое видео
-            </button>
+              <Icon name="refresh" size={17} />{t("Повторить проверку")}</button>
+            <button className="button button-outline" onClick={onNew}>{t("Выбрать другое видео")}</button>
           </div>
         </section>
       ) : (
@@ -250,14 +232,14 @@ export function AnalysisDetail({
             </span>
             <div>
               <h2>
-                {record.verdict === "violation"
+                {t(record.verdict === "violation"
                   ? "Обнаружены признаки возможных нарушений"
-                  : "Нарушение не обнаружено"}
+                  : "Нарушение не обнаружено")}
               </h2>
               <p>
-                {record.verdict === "violation"
-                  ? `Событий для проверки: ${record.violations.length}. Просмотрите фрагменты и оцените контекст.`
-                  : "Сервис не отметил событий. Результат не исключает ошибок распознавания."}
+                {t(record.verdict === "violation"
+                  ? t("Событий для проверки: {0}. Просмотрите фрагменты и оцените контекст.", [record.violations.length])
+                  : "Сервис не отметил событий. Результат не исключает ошибок распознавания.")}
               </p>
             </div>
             <StatusBadge record={record} />
@@ -267,14 +249,14 @@ export function AnalysisDetail({
               <section className="panel video-panel">
                 <div className="section-heading">
                   <h2>
-                    {record.videoUrl
+                    {t(record.videoUrl
                       ? "Видеозапись"
-                      : "Демонстрация рабочего места"}
+                      : "Демонстрация рабочего места")}
                   </h2>
                   <span className="small-label">
-                    {record.videoUrl
+                    {t(record.videoUrl
                       ? "Исходный файл"
-                      : "Синтетическая иллюстрация"}
+                      : "Синтетическая иллюстрация")}
                   </span>
                 </div>
                 <div className="video-stage">
@@ -292,32 +274,26 @@ export function AnalysisDetail({
                         setDuration(record.id, event.currentTarget.duration)
                       }
                       onError={() => setMediaError(true)}
-                      aria-label="Видеозапись кассовой операции"
+                      aria-label={t("Видеозапись кассовой операции")}
                     />
                   ) : (
                     <DemoScene event={selected} />
                   )}
                 </div>
                 {mediaError && (
-                  <p role="alert" className="media-warning">
-                    Браузер не поддерживает кодек этого видео. Загрузка MOV в
-                    API доступна; проверьте событие по кадрам ниже или откройте
-                    оригинал в локальном плеере.
-                  </p>
+                  <p role="alert" className="media-warning">{t("Браузер не поддерживает кодек этого видео. Загрузка MOV в API доступна; проверьте событие по кадрам ниже или откройте оригинал в локальном плеере.")}</p>
                 )}
                 <div className="timeline">
                   <div className="timeline-heading">
                     <span>
-                      <Icon name="clock" size={14} />
-                      Карта событий
-                    </span>
+                      <Icon name="clock" size={14} />{t("Карта событий")}</span>
                     <strong>
                       {timecode(currentTime)}{" "}
                       <span>
                         /{" "}
-                        {record.duration
+                        {t(record.duration
                           ? timecode(record.duration)
-                          : "длительность неизвестна"}
+                          : "длительность неизвестна")}
                       </span>
                     </strong>
                   </div>
@@ -334,8 +310,8 @@ export function AnalysisDetail({
                         style={{
                           left: `${Math.min(97, (item.timecode_sec / duration) * 100)}%`,
                         }}
-                        title={`${timecode(item.timecode_sec)} · ${item.type}`}
-                        aria-label={`Перейти к событию ${index + 1}, ${timecode(item.timecode_sec)}`}
+                        title={t(`${timecode(item.timecode_sec)} · ${item.type}`)}
+                        aria-label={t("Перейти к событию {0}, {1}", [index + 1, timecode(item.timecode_sec)])}
                         onClick={() => selectEvent(index)}
                       />
                     ))}
@@ -343,7 +319,7 @@ export function AnalysisDetail({
                   <div className="timeline-labels">
                     <span>00:00</span>
                     <span>
-                      {record.duration ? timecode(record.duration) : "—"}
+                      {t(record.duration ? timecode(record.duration) : "—")}
                     </span>
                   </div>
                 </div>
@@ -352,9 +328,8 @@ export function AnalysisDetail({
                 <section className="panel evidence-panel">
                   <div className="section-heading">
                     <div>
-                      <h2>Кадры-доказательства</h2>
-                      <p>
-                        Событие {selected + 1} · {timecode(event.timecode_sec)}
+                      <h2>{t("Кадры-доказательства")}</h2>
+                      <p>{t("Событие ")}{selected + 1} · {timecode(event.timecode_sec)}
                       </p>
                     </div>
                     <Icon name="image" size={20} />
@@ -367,14 +342,14 @@ export function AnalysisDetail({
                           <button
                             className="evidence-frame"
                             key={index}
-                            aria-label={`Увеличить кадр на ${timecode(frame.timestamp_sec)}`}
+                            aria-label={t("Увеличить кадр на {0}", [timecode(frame.timestamp_sec)])}
                             onClick={() =>
                               setLargeFrame({ src, time: frame.timestamp_sec })
                             }
                           >
                             <img
                               src={src}
-                              alt={`Кадр события ${selected + 1} на ${timecode(frame.timestamp_sec)}`}
+                              alt={t("Кадр события {0} на {1}", [selected + 1, timecode(frame.timestamp_sec)])}
                               onError={(e) => {
                                 e.currentTarget.alt =
                                   "Не удалось декодировать кадр JPEG";
@@ -386,8 +361,7 @@ export function AnalysisDetail({
                             </span>
                           </button>
                         ) : (
-                          <p className="media-warning" key={index}>
-                            Некорректный формат кадра {index + 1}.
+                          <p className="media-warning" key={index}>{t("Некорректный формат кадра ")}{index + 1}.
                           </p>
                         );
                       })}
@@ -397,31 +371,23 @@ export function AnalysisDetail({
                       <button
                         className="evidence-frame"
                         onClick={() => setLargeDemo(true)}
-                        aria-label="Увеличить демо-иллюстрацию"
+                        aria-label={t("Увеличить демо-иллюстрацию")}
                       >
                         <DemoScene event={selected} />
                         <span>
-                          <Icon name="scan" size={13} />
-                          Иллюстрация
-                        </span>
+                          <Icon name="scan" size={13} />{t("Иллюстрация")}</span>
                       </button>
                       <div>
-                        <strong>Иллюстрация для демо</strong>
-                        <p>
-                          Изображение сгенерировано, это не кадр из записи.
-                          Настоящие кадры появятся после подключения анализа.
-                        </p>
+                        <strong>{t("Иллюстрация для демо")}</strong>
+                        <p>{t("Изображение сгенерировано, это не кадр из записи. Настоящие кадры появятся после подключения анализа.")}</p>
                       </div>
                     </div>
                   ) : (
                     <div className="evidence-empty">
                       <Icon name="image" size={28} />
                       <div>
-                        <strong>Сервис не передал кадры</strong>
-                        <p>
-                          Кадры-доказательства обязательны по ТЗ. Результат
-                          требует дополнения со стороны сервиса.
-                        </p>
+                        <strong>{t("Сервис не передал кадры")}</strong>
+                        <p>{t("Кадры-доказательства обязательны по ТЗ. Результат требует дополнения со стороны сервиса.")}</p>
                       </div>
                     </div>
                   )}
@@ -429,17 +395,14 @@ export function AnalysisDetail({
               )}
               <div className="review-note">
                 <Icon name="shield" size={19} />
-                <p>
-                  Результат помогает проверить запись. Окончательный вывод
-                  делает специалист с учётом контекста и применимых правил.
-                </p>
+                <p>{t("Результат помогает проверить запись. Окончательный вывод делает специалист с учётом контекста и применимых правил.")}</p>
               </div>
             </div>
             <section className="panel events-panel">
               <div className="section-heading">
-                <h2>События</h2>
+                <h2>{t("События")}</h2>
                 <span className="count-pill">
-                  {record.violations.length.toString().padStart(2, "0")}
+                  {t(record.violations.length.toString().padStart(2, "0"))}
                 </span>
               </div>
               {record.violations.length ? (
@@ -455,10 +418,8 @@ export function AnalysisDetail({
               ) : (
                 <div className="empty-state">
                   <Icon name="checkCircle" size={36} />
-                  <h3>Событий не обнаружено</h3>
-                  <p>
-                    В отчёте нет фрагментов с признаками возможных нарушений.
-                  </p>
+                  <h3>{t("Событий не обнаружено")}</h3>
+                  <p>{t("В отчёте нет фрагментов с признаками возможных нарушений.")}</p>
                 </div>
               )}
             </section>
@@ -467,27 +428,25 @@ export function AnalysisDetail({
       )}
       {largeFrame && (
         <Modal
-          title={`Кадр-доказательство · ${timecode(largeFrame.time)}`}
+          title={t("Кадр-доказательство · {0}", [timecode(largeFrame.time)])}
           wide
           onClose={() => setLargeFrame(null)}
         >
           <img
             className="full-evidence"
             src={largeFrame.src}
-            alt={`Кадр-доказательство на ${timecode(largeFrame.time)}`}
+            alt={t("Кадр-доказательство на {0}", [timecode(largeFrame.time)])}
           />
         </Modal>
       )}
       {largeDemo && (
         <Modal
-          title="Демонстрационная иллюстрация"
+          title={t("Демонстрационная иллюстрация")}
           wide
           onClose={() => setLargeDemo(false)}
         >
           <DemoScene event={selected} />
-          <p className="page-footnote">
-            Иллюстрация интерфейса. Не является кадром-доказательством.
-          </p>
+          <p className="page-footnote">{t("Иллюстрация интерфейса. Не является кадром-доказательством.")}</p>
         </Modal>
       )}
     </div>
@@ -505,6 +464,7 @@ function EventCard({
   selected: boolean;
   onSelect: () => void;
 }) {
+  useLocale();
   const source = safeSourceUrl(event.rule?.url);
   return (
     <article className={`event-card ${selected ? "selected" : ""}`}>
@@ -514,47 +474,40 @@ function EventCard({
         aria-expanded={selected}
       >
         <span className="event-number">
-          {(index + 1).toString().padStart(2, "0")}
+          {t((index + 1).toString().padStart(2, "0"))}
         </span>
         <span>
           <span className="event-time">
             <Icon name="play" size={11} />
             {timecode(event.timecode_sec)}
           </span>
-          <strong>{event.type}</strong>
+          <strong>{t(event.type)}</strong>
         </span>
         <Icon name="down" size={17} />
       </button>
       {selected && (
         <div className="event-body">
-          <p>{event.description}</p>
+          <p>{t(event.description)}</p>
           <div className="rule-reference">
             <span className="rule-label">
-              <Icon name="book" size={15} />
-              Нормативное основание
-            </span>
+              <Icon name="book" size={15} />{t("Нормативное основание")}</span>
             {event.rule ? (
               <>
-                <strong>{event.rule.title}</strong>
-                <span>{event.rule.section || "Точный пункт не указан"}</span>
-                {event.rule.explanation && <p>{event.rule.explanation}</p>}
-                {source && (
+                <strong>{t(event.rule.title)}</strong>
+                <span>{t(event.rule.section || "Точный пункт не указан")}</span>
+                {t(event.rule.explanation && <p>{t(event.rule.explanation)}</p>)}
+                {t(source && (
                   <a
                     href={source}
                     target="_blank"
                     rel="noreferrer"
                     className="text-button"
-                  >
-                    Открыть источник
-                    <Icon name="external" size={13} />
+                  >{t("Открыть источник")}<Icon name="external" size={13} />
                   </a>
-                )}
+                ))}
               </>
             ) : (
-              <p>
-                Сервис не передал нормативный источник. Для оценки события
-                необходимо дополнить обоснование.
-              </p>
+              <p>{t("Сервис не передал нормативный источник. Для оценки события необходимо дополнить обоснование.")}</p>
             )}
           </div>
         </div>

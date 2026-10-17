@@ -1,3 +1,4 @@
+import { formatDate, t, useLocale } from "../../i18n";
 import { useState } from "react";
 import { Icon } from "../../components/Icon";
 import { Modal } from "../../components/Modal";
@@ -12,6 +13,7 @@ export function NotificationFeed({
   alerts: CameraAlert[];
   emptyText?: string;
 }) {
+  useLocale();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = useNotificationStore((state) =>
     state.alerts.find((alert) => alert.id === selectedId),
@@ -28,12 +30,12 @@ export function NotificationFeed({
   return (
     <>
       {alerts.length ? (
-        <ul className="notification-feed" aria-label="События с камер">
+        <ul className="notification-feed" aria-label={t("События с камер")}>
           {alerts.map((alert) => (
             <li key={alert.id}>
               <button
                 className={`notification-row ${!alert.readAt ? "is-unread" : ""}`}
-                aria-label={`Открыть событие: ${alert.event.type}, ${alert.cameraName}, ${alertTime(alert.detectedAt)}${!alert.readAt ? ", новое" : ""}`}
+                aria-label={t("Открыть событие: {0}, {1}, {2}{3}", [alert.event.type, alert.cameraName, alertTime(alert.detectedAt), !alert.readAt ? ", новое" : ""])}
                 onClick={() => {
                   setSelectedId(alert.id);
                   setFrameIndex(0);
@@ -42,22 +44,22 @@ export function NotificationFeed({
                 }}
               >
                 <time className="notification-time" dateTime={alert.detectedAt}>
-                  {alertTime(alert.detectedAt)}
+                  {t(alertTime(alert.detectedAt))}
                 </time>
                 <span className="notification-content">
                   <span className="notification-source">
-                    {alert.cameraName}
+                    {t(alert.cameraName)}
                     <span>·</span>
-                    {alert.location}
+                    {t(alert.location)}
                   </span>
-                  <strong>{alert.event.type}</strong>
+                  <strong>{t(alert.event.type)}</strong>
                   <span className="notification-meta">
                     <span
                       className={`notification-read-state ${!alert.readAt ? "new" : ""}`}
                     >
-                      {alert.readAt ? "Просмотрено" : "Новое"}
+                      {t(alert.readAt ? "Просмотрено" : "Новое")}
                     </span>
-                    {alert.mode === "demo" && <span>Демо</span>}
+                    {alert.mode === "demo" && <span>{t("Демо")}</span>}
                   </span>
                 </span>
                 <Icon className="notification-arrow" name="arrow" size={18} />
@@ -67,25 +69,25 @@ export function NotificationFeed({
         </ul>
       ) : (
         <div className="notification-empty">
-          <span>Оповещения</span>
-          <h3>{emptyText}</h3>
-          <p>Новые события появятся здесь, когда поступит сигнал от камеры.</p>
+          <span>{t("Оповещения")}</span>
+          <h3>{t(emptyText)}</h3>
+          <p>{t("Новые события появятся здесь, когда поступит сигнал от камеры.")}</p>
         </div>
       )}
       {selected && (
         <Modal
-          title="Событие с камеры"
+          title={t("Событие с камеры")}
           onClose={() => setSelectedId(null)}
-          closeLabel="Закрыть"
+          closeLabel={t("Закрыть")}
         >
           <div className="notification-detail">
             <div className="notification-detail-heading">
               <span>
-                {selected.cameraName} · {selected.location}
+                {t(selected.cameraName)} · {t(selected.location)}
               </span>
-              <h3>{selected.event.type}</h3>
+              <h3>{t(selected.event.type)}</h3>
               <time dateTime={selected.detectedAt}>
-                {new Date(selected.detectedAt).toLocaleString("ru-RU", {
+                {formatDate(selected.detectedAt, {
                   timeZone: "Asia/Almaty",
                   dateStyle: "long",
                   timeStyle: "short",
@@ -93,35 +95,32 @@ export function NotificationFeed({
               </time>
             </div>
             {selected.mode === "demo" && (
-              <p className="notification-demo-note">
-                Демонстрационное событие. Камера не подключена; изображение
-                создано для примера интерфейса.
-              </p>
+              <p className="notification-demo-note">{t("Демонстрационное событие. Камера не подключена; изображение создано для примера интерфейса.")}</p>
             )}
             <div className="notification-detail-grid">
               <figure className="notification-evidence">
                 {image && !imageFailed ? (
                   <img
                     src={image}
-                    alt={`Кадр события в ${timecode(frame!.timestamp_sec)}`}
+                    alt={t("Кадр события в {0}", [timecode(frame!.timestamp_sec)])}
                     onError={() => setImageFailed(true)}
                   />
                 ) : selected.mode === "demo" ? (
                   <img
                     src="/images/demo-cash-desk.jpg"
-                    alt="Синтетическая иллюстрация кассовой зоны"
+                    alt={t("Синтетическая иллюстрация кассовой зоны")}
                   />
                 ) : (
                   <div className="notification-no-frame">
-                    {imageFailed
+                    {t(imageFailed
                       ? "Не удалось открыть кадр"
-                      : "Кадры события пока не переданы"}
+                      : "Кадры события пока не переданы")}
                   </div>
                 )}
                 <figcaption>
-                  {selected.mode === "demo"
+                  {t(selected.mode === "demo"
                     ? "Иллюстрация · не кадр с камеры"
-                    : "Кадр с камеры"}
+                    : "Кадр с камеры")}
                   <span>
                     {timecode(
                       frame?.timestamp_sec ?? selected.event.timecode_sec,
@@ -131,7 +130,7 @@ export function NotificationFeed({
                 {selected.event.evidence_frames.length > 1 && (
                   <div
                     className="notification-frame-picker"
-                    aria-label="Кадры события"
+                    aria-label={t("Кадры события")}
                   >
                     {selected.event.evidence_frames.map((item, index) => (
                       <button
@@ -142,47 +141,39 @@ export function NotificationFeed({
                           setFrameIndex(index);
                           setImageFailed(false);
                         }}
-                      >
-                        Кадр {index + 1} · {timecode(item.timestamp_sec)}
+                      >{t("Кадр ")}{index + 1} · {timecode(item.timestamp_sec)}
                       </button>
                     ))}
                   </div>
                 )}
               </figure>
               <div className="notification-explanation">
-                <h4>Что заметила модель</h4>
-                <p>{selected.event.description}</p>
-                <h4>Основание для проверки</h4>
+                <h4>{t("Что заметила модель")}</h4>
+                <p>{t(selected.event.description)}</p>
+                <h4>{t("Основание для проверки")}</h4>
                 {selected.event.rule ? (
                   <>
                     <p>
-                      {selected.event.rule.title}
-                      {selected.event.rule.section
+                      {t(selected.event.rule.title)}
+                      {t(selected.event.rule.section
                         ? ` · ${selected.event.rule.section}`
-                        : ""}
+                        : "")}
                     </p>
-                    <p>{selected.event.rule.explanation}</p>
-                    {ruleUrl && (
+                    <p>{t(selected.event.rule.explanation)}</p>
+                    {t(ruleUrl && (
                       <a
                         className="text-button"
                         href={ruleUrl}
                         target="_blank"
                         rel="noreferrer"
-                      >
-                        Открыть источник <Icon name="external" size={14} />
+                      >{t("Открыть источник ")}<Icon name="external" size={14} />
                       </a>
-                    )}
+                    ))}
                   </>
                 ) : (
-                  <p>
-                    Нормативный источник не передан. Его нужно уточнить при
-                    проверке.
-                  </p>
+                  <p>{t("Нормативный источник не передан. Его нужно уточнить при проверке.")}</p>
                 )}
-                <div className="notification-human-note">
-                  Событие отмечено как просмотренное. Наличие нарушения
-                  определяет специалист после проверки записи.
-                </div>
+                <div className="notification-human-note">{t("Событие отмечено как просмотренное. Наличие нарушения определяет специалист после проверки записи.")}</div>
               </div>
             </div>
           </div>

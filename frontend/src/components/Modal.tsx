@@ -1,3 +1,4 @@
+import { t, useLocale } from "../i18n";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { Icon } from "./Icon";
 
@@ -14,6 +15,7 @@ export function Modal({
   wide?: boolean;
   closeLabel?: string;
 }) {
+  useLocale();
   const ref = useRef<HTMLDialogElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
@@ -47,7 +49,7 @@ export function Modal({
     <dialog
       ref={ref}
       className={`modal ${wide ? "modal-wide" : ""} ${closing ? "modal-closing" : ""}`}
-      aria-label={title}
+      aria-label={t(title)}
       onCancel={(event) => {
         event.preventDefault();
         requestClose();
@@ -61,25 +63,25 @@ export function Modal({
         <div className="modal-header">
           <div>
             <span className="modal-eyebrow">FORTE CONTROL</span>
-            <h2>{title}</h2>
+            <h2>{t(title)}</h2>
           </div>
           <button
             className="icon-button"
-            aria-label="Закрыть окно"
+            aria-label={t("Закрыть окно")}
             onClick={requestClose}
           >
             <Icon name="close" />
           </button>
         </div>
-        <div className="modal-body">{children}</div>
-        {closeLabel && (
+        <div className="modal-body">{t(children)}</div>
+        {t(closeLabel && (
           <div className="modal-footer">
             <button className="button button-primary" onClick={requestClose}>
-              {closeLabel}
+              {t(closeLabel)}
               <Icon name="check" size={18} />
             </button>
           </div>
-        )}
+        ))}
       </div>
     </dialog>
   );

@@ -1,3 +1,4 @@
+import { t, useLocale } from "../../i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CameraAlert } from "../notifications/types";
 import { timecode } from "../analysis/types";
@@ -10,6 +11,7 @@ import {
 } from "./model";
 
 export function EpisodeFrames({ alert }: { alert: CameraAlert }) {
+  useLocale();
   const [index, setIndex] = useState(0);
   const [failed, setFailed] = useState(false);
   const frame = alert.event.evidence_frames[index];
@@ -22,31 +24,31 @@ export function EpisodeFrames({ alert }: { alert: CameraAlert }) {
           <img
             src={source}
             onError={() => setFailed(true)}
-            alt={`Кадр события в ${timecode(frame.timestamp_sec)}`}
+            alt={t("Кадр события в {0}", [timecode(frame.timestamp_sec)])}
           />
         ) : alert.mode === "demo" ? (
           <img
             src="/images/demo-cash-desk.jpg"
-            alt="Синтетическая иллюстрация кассы, не запись камеры"
+            alt={t("Синтетическая иллюстрация кассы, не запись камеры")}
           />
         ) : (
           <div className="episode-unavailable">
             <strong>
-              {failed ? "Кадр не удалось открыть" : "Кадры не переданы"}
+              {t(failed ? "Кадр не удалось открыть" : "Кадры не переданы")}
             </strong>
-            <p>Описание события доступно рядом.</p>
+            <p>{t("Описание события доступно рядом.")}</p>
           </div>
         )}
         <span className="episode-image-label">
-          {alert.mode === "demo"
+          {t(alert.mode === "demo"
             ? "Демо · иллюстрация"
             : source && !failed
-              ? `Кадр · ${timecode(frame.timestamp_sec)}`
-              : "Нет изображения"}
+              ? t("Кадр · {0}", [timecode(frame.timestamp_sec)])
+              : "Нет изображения")}
         </span>
       </div>
       {alert.event.evidence_frames.length > 1 && (
-        <div className="episode-frame-picker" aria-label="Кадры эпизода">
+        <div className="episode-frame-picker" aria-label={t("Кадры эпизода")}>
           {alert.event.evidence_frames.map((f, i) => (
             <button
               key={i}
@@ -76,6 +78,7 @@ export function EpisodePlayer({
   onPause: () => void;
   onFinish: () => void;
 }) {
+  useLocale();
   const ref = useRef<HTMLVideoElement>(null);
   const [duration, setDuration] = useState<number>();
   const [failed, setFailed] = useState(false);
@@ -146,7 +149,7 @@ export function EpisodePlayer({
   return (
     <div className="episode-player">
       {media.loading ? (
-        <p role="status">Подготовка видео…</p>
+        <p role="status">{t("Подготовка видео…")}</p>
       ) : videoMode ? (
         <div className="episode-video-wrap">
           <video
@@ -155,7 +158,7 @@ export function EpisodePlayer({
             muted
             playsInline
             preload="metadata"
-            aria-label="Фрагмент записи события"
+            aria-label={t("Фрагмент записи события")}
             onLoadedMetadata={(e) => {
               const video = e.currentTarget;
               const bounds = clipBounds(
@@ -193,7 +196,7 @@ export function EpisodePlayer({
             }}
           />
           <span className="episode-image-label">
-            {alert.mode === "demo" ? "Демо-видео" : "Фрагмент записи"} ·{" "}
+            {t(alert.mode === "demo" ? "Демо-видео" : "Фрагмент записи")} ·{" "}
             {timecode(actualBounds?.start ?? declaredBounds!.start)}–
             {timecode(actualBounds?.end ?? declaredBounds!.end)}
           </span>
@@ -204,7 +207,7 @@ export function EpisodePlayer({
       <div className="episode-progress">
         <input
           type="range"
-          aria-label="Позиция в эпизоде"
+          aria-label={t("Позиция в эпизоде")}
           min="0"
           max={length}
           step="0.1"
@@ -223,7 +226,7 @@ export function EpisodePlayer({
         </span>
       </div>
       <p className="episode-media-note">
-        {media.error ||
+        {t(media.error ||
           playError ||
           (videoMode
             ? "Короткий фрагмент вокруг события. Полная запись доступна в контексте."
@@ -231,7 +234,7 @@ export function EpisodePlayer({
               ? "Видео недоступно или таймкод вне записи. Показаны доступные кадры и описание."
               : alert.mode === "demo"
                 ? "Демо-подборка иллюстраций: по 10 секунд на эпизод. Это не видео с камеры."
-                : "Видео не передано. Обзор показывает кадры и описание по 10 секунд.")}
+                : "Видео не передано. Обзор показывает кадры и описание по 10 секунд."))}
       </p>
       {media.canRefresh && (
         <button
@@ -245,15 +248,14 @@ export function EpisodePlayer({
             finished.current = false;
             media.refresh();
           }}
-        >
-          Обновить ссылку на видео
-        </button>
+        >{t("Обновить ссылку на видео")}</button>
       )}
     </div>
   );
 }
 
 export function EpisodeContext({ alert }: { alert: CameraAlert }) {
+  useLocale();
   const ref = useRef<HTMLVideoElement>(null);
   const [failed, setFailed] = useState(false);
   const media = useEpisodeMedia(alert);
@@ -268,12 +270,11 @@ export function EpisodeContext({ alert }: { alert: CameraAlert }) {
   return (
     <div className="episode-context">
       <p className="eyebrow">
-        {alert.cameraName} · КОНТЕКСТ СОБЫТИЯ
-        {alert.mode === "demo" && " · ДЕМО"}
+        {t(alert.cameraName)}{t(" · КОНТЕКСТ СОБЫТИЯ")}{t(alert.mode === "demo" && " · ДЕМО")}
       </p>
-      <h3>{alert.event.type}</h3>
+      <h3>{t(alert.event.type)}</h3>
       {media.loading ? (
-        <p role="status">Подготовка видео…</p>
+        <p role="status">{t("Подготовка видео…")}</p>
       ) : hasVideo ? (
         <>
           <video
@@ -282,7 +283,7 @@ export function EpisodeContext({ alert }: { alert: CameraAlert }) {
             playsInline
             preload="metadata"
             src={url}
-            aria-label="Полная запись с контекстом"
+            aria-label={t("Полная запись с контекстом")}
             onLoadedMetadata={(e) => {
               const actual = clipBounds(
                 alert.event.timecode_sec,
@@ -296,32 +297,28 @@ export function EpisodeContext({ alert }: { alert: CameraAlert }) {
             onError={() => setFailed(true)}
           />
           <div className="episode-context-toolbar">
-            <p>
-              Начинаем за 15 секунд до события, если запись позволяет. Можно
-              просмотреть всю запись.
-            </p>
+            <p>{t("Начинаем за 15 секунд до события, если запись позволяет. Можно просмотреть всю запись.")}</p>
             <button
               className="button button-outline"
               onClick={() => {
                 if (ref.current)
                   ref.current.currentTime = alert.event.timecode_sec;
               }}
-            >
-              К событию · {timecode(alert.event.timecode_sec)}
+            >{t("К событию · ")}{timecode(alert.event.timecode_sec)}
             </button>
           </div>
         </>
       ) : (
         <>
           <p className="health-intro">
-            {failed || alert.recording
+            {t(failed || alert.recording
               ? "Не удалось открыть видео. Доступные кадры показаны ниже."
-              : "Видеоконтекст не передан. Здесь доступны только иллюстрации или кадры события."}
+              : "Видеоконтекст не передан. Здесь доступны только иллюстрации или кадры события.")}
           </p>
           <EpisodeFrames alert={alert} />
         </>
       )}
-      {media.error && <p role="alert">{media.error}</p>}
+      {t(media.error && <p role="alert">{t(media.error)}</p>)}
       {media.canRefresh && (
         <button
           className="text-button"
@@ -330,24 +327,20 @@ export function EpisodeContext({ alert }: { alert: CameraAlert }) {
             setFailed(false);
             media.refresh();
           }}
-        >
-          Обновить ссылку на видео
-        </button>
+        >{t("Обновить ссылку на видео")}</button>
       )}
-      <p>{alert.event.description}</p>
+      <p>{t(alert.event.description)}</p>
       {alert.event.rule && (
         <div className="episode-rule">
-          <strong>Основание для проверки</strong>
+          <strong>{t("Основание для проверки")}</strong>
           <p>
-            {alert.event.rule.title}
-            {alert.event.rule.section && ` · ${alert.event.rule.section}`}
+            {t(alert.event.rule.title)}
+            {t(alert.event.rule.section && ` · ${alert.event.rule.section}`)}
           </p>
-          <p>{alert.event.rule.explanation}</p>
+          <p>{t(alert.event.rule.explanation)}</p>
         </div>
       )}
-      <p className="notification-session-note">
-        Вывод о нарушении принимает специалист после просмотра исходной записи.
-      </p>
+      <p className="notification-session-note">{t("Вывод о нарушении принимает специалист после просмотра исходной записи.")}</p>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { localeCode } from "../../i18n";
 import { useEffect, useState } from "react";
 import { AnalysisMode, Violation } from "../analysis/types";
 
@@ -40,7 +41,7 @@ export function localDay(value: string | number | Date = new Date()): string {
 }
 
 export function alertTime(value: string): string {
-  return new Intl.DateTimeFormat("ru-RU", {
+  return new Intl.DateTimeFormat(localeCode(), {
     timeZone: "Asia/Almaty",
     hour: "2-digit",
     minute: "2-digit",

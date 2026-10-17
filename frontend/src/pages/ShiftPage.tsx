@@ -1,3 +1,4 @@
+import { t, useLocale } from "../i18n";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../components/Icon";
@@ -28,6 +29,7 @@ export function ShiftPage({
   live?: boolean;
   onChanged?: () => void;
 }) {
+  useLocale();
   const today = useCurrentDay();
   const [selectedDay, setSelectedDay] = useState("");
   const [cameraId, setCameraId] = useState("all");
@@ -68,61 +70,50 @@ export function ShiftPage({
     <div className="page-enter shift-page">
       <div className="page-title-row workspace-title">
         <div>
-          <p className="eyebrow">ВАЖНОЕ ЗА ДЕНЬ</p>
-          <h1>Смена за минуту</h1>
-          <p>
-            От события к событию. С объяснением и возможностью увидеть контекст.
-          </p>
+          <p className="eyebrow">{t("ВАЖНОЕ ЗА ДЕНЬ")}</p>
+          <h1>{t("Смена за минуту")}</h1>
+          <p>{t("От события к событию. С объяснением и возможностью увидеть контекст.")}</p>
         </div>
         <Link className="button button-outline" to="/monitoring">
-          <Icon name="eye" size={18} />
-          Контроль камер
-        </Link>
+          <Icon name="eye" size={18} />{t("Контроль камер")}</Link>
       </div>
-      {live && resource.loading && <p role="status">Загрузка обзора смены…</p>}
-      {live && resource.error && (
+      {live && resource.loading && <p role="status">{t("Загрузка обзора смены…")}</p>}
+      {t(live && resource.error && (
         <div className="notice" role="alert">
-          {resource.error} Показаны данные последнего успешного запроса, если
-          они есть.{" "}
-          <button className="text-button" onClick={resource.refresh}>
-            Повторить
-          </button>
+          {t(resource.error)}{t(" Показаны данные последнего успешного запроса, если они есть.")}{" "}
+          <button className="text-button" onClick={resource.refresh}>{t("Повторить")}</button>
         </div>
-      )}
+      ))}
       <div className="panel shift-filter-panel">
         <div className="review-filters">
-          <label>
-            День
-            <input
-              aria-label="День обзора смены"
+          <label>{t("День")}<input
+              aria-label={t("День обзора смены")}
               type="date"
               max={today}
               value={day}
               onChange={(e) => setSelectedDay(e.target.value)}
             />
           </label>
-          <label>
-            Камера
-            <select
-              aria-label="Камера обзора смены"
+          <label>{t("Камера")}<select
+              aria-label={t("Камера обзора смены")}
               value={cameraId}
               onChange={(e) => setCameraId(e.target.value)}
             >
-              <option value="all">Все камеры</option>
+              <option value="all">{t("Все камеры")}</option>
               {cameras.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} · {c.location}
+                  {t(c.name)} · {t(c.location)}
                 </option>
               ))}
             </select>
           </label>
         </div>
         <span className="shift-selection-note">
-          {connection === "demo" ? "ДЕМО · " : ""}
-          {total > 6
-            ? `Последние 6 из ${total} событий`
-            : `Эпизодов в подборке: ${total}`}
-          {episodes.length > 0 && ` · до ${episodes.length * 10} сек`}
+          {t(connection === "demo" ? "ДЕМО · " : "")}
+          {t(total > 6
+            ? t("Последние 6 из {0} событий", [total])
+            : t("Эпизодов в подборке: {0}", [total]))}
+          {t(episodes.length > 0 && t(" · до {0} сек", [episodes.length * 10]))}
         </span>
       </div>
       {(!live || resource.data) && (
@@ -145,10 +136,8 @@ export function ShiftPage({
           }}
         />
       )}
-      <p className="notification-session-note">
-        Подборка включает до шести последних событий дня. Она не заменяет полный
-        просмотр смены. Все события доступны в{" "}
-        <Link to="/notifications">оповещениях</Link>.
+      <p className="notification-session-note">{t("Подборка включает до шести последних событий дня. Она не заменяет полный просмотр смены. Все события доступны в")}{" "}
+        <Link to="/notifications">{t("оповещениях")}</Link>.
       </p>
     </div>
   );
@@ -169,6 +158,7 @@ export function ShiftReview({
   onMarkRead?: (id: string) => Promise<void>;
   asOf?: string;
 }) {
+  useLocale();
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [completed, setCompleted] = useState(false);
@@ -215,15 +205,15 @@ export function ShiftReview({
   return (
     <>
       {selected ? (
-        <section className="panel shift-review" aria-label="Обзор смены">
+        <section className="panel shift-review" aria-label={t("Обзор смены")}>
           <div className="shift-review-heading">
             <span>
               <span className="shift-live-dot" />
-              {playing
+              {t(playing
                 ? "ПОДБОРКА ИДЁТ"
                 : completed
                   ? "ПОДБОРКА ЗАВЕРШЕНА"
-                  : "ГОТОВО К ПРОСМОТРУ"}
+                  : "ГОТОВО К ПРОСМОТРУ")}
             </span>
             <strong>
               {String(index + 1).padStart(2, "0")}
@@ -233,7 +223,7 @@ export function ShiftReview({
           <div className="shift-playback">
             <button
               className="shift-skip"
-              aria-label="Предыдущий эпизод"
+              aria-label={t("Предыдущий эпизод")}
               disabled={index === 0}
               onClick={() => choose(index - 1)}
             >
@@ -252,22 +242,22 @@ export function ShiftReview({
                 name={playing ? "pause" : completed ? "refresh" : "play"}
                 size={18}
               />
-              {playing
+              {t(playing
                 ? "Пауза"
                 : completed
                   ? "Смотреть ещё раз"
-                  : "Смотреть подборку"}
+                  : "Смотреть подборку")}
             </button>
             <button
               className="shift-skip"
-              aria-label="Следующий эпизод"
+              aria-label={t("Следующий эпизод")}
               disabled={index === episodes.length - 1}
               onClick={() => choose(index + 1)}
             >
               <Icon name="chevron" size={20} />
             </button>
             <span className="shift-playback-note" aria-live="polite">
-              {completed ? "Все эпизоды показаны" : "До 10 секунд на эпизод"}
+              {t(completed ? "Все эпизоды показаны" : "До 10 секунд на эпизод")}
             </span>
           </div>
           <div className="shift-stage">
@@ -286,29 +276,27 @@ export function ShiftReview({
             />
             <div className="shift-explanation">
               <span className="shift-event-source">
-                {selected.cameraName} ·{" "}
-                {selected.mode === "demo"
+                {t(selected.cameraName)} ·{" "}
+                {t(selected.mode === "demo"
                   ? "Демо-событие"
                   : selected.source === "test"
                     ? "Тестовое событие"
                     : selected.source === "manual"
                       ? "Отметка специалиста"
-                      : "Событие источника"}
+                      : "Событие источника")}
               </span>
               <time className="shift-event-time" dateTime={selected.detectedAt}>
-                {alertTime(selected.detectedAt)}
+                {t(alertTime(selected.detectedAt))}
               </time>
-              <h2>{selected.event.type}</h2>
-              <p>{selected.event.description}</p>
+              <h2>{t(selected.event.type)}</h2>
+              <p>{t(selected.event.description)}</p>
               <button
                 className="button button-outline"
                 onClick={() => {
                   setPlaying(false);
                   setContext(true);
                 }}
-              >
-                Что было до и после
-                <Icon name="arrow" size={17} />
+              >{t("Что было до и после")}<Icon name="arrow" size={17} />
               </button>
               <button
                 className="text-button shift-mark-read"
@@ -332,33 +320,28 @@ export function ShiftReview({
                 }}
               >
                 <Icon name="check" size={16} />
-                {read ? "Отмечено как просмотренное" : "Отметить просмотренным"}
+                {t(read ? "Отмечено как просмотренное" : "Отметить просмотренным")}
               </button>
-              {readError && <p role="alert">{readError}</p>}
+              {t(readError && <p role="alert">{t(readError)}</p>)}
             </div>
           </div>
         </section>
       ) : (
         <section className="panel health-empty">
-          <h2>За этот день событий нет</h2>
-          <p>
-            Выберите другую дату или камеру. Отсутствие событий не подтверждает
-            непрерывное наблюдение.
-          </p>
-          <Link className="text-button" to="/notifications">
-            Открыть оповещения
-            <Icon name="arrow" size={16} />
+          <h2>{t("За этот день событий нет")}</h2>
+          <p>{t("Выберите другую дату или камеру. Отсутствие событий не подтверждает непрерывное наблюдение.")}</p>
+          <Link className="text-button" to="/notifications">{t("Открыть оповещения")}<Icon name="arrow" size={16} />
           </Link>
         </section>
       )}
-      <section className="panel shift-timeline-panel" aria-label="Шкала смены">
+      <section className="panel shift-timeline-panel" aria-label={t("Шкала смены")}>
         <div className="section-heading">
           <div>
-            <h2>Смена целиком</h2>
-            <p>События и перерывы на одной шкале · время по Астане</p>
+            <h2>{t("Смена целиком")}</h2>
+            <p>{t("События и перерывы на одной шкале · время по Астане")}</p>
           </div>
           <span className="shift-day">
-            {day.split("-").reverse().join(".")}
+            {t(day.split("-").reverse().join("."))}
           </span>
         </div>
         <div className="shift-timeline">
@@ -393,12 +376,10 @@ export function ShiftReview({
             step="1"
             value={cursorMinute}
             disabled={!episodes.length}
-            aria-label="Выбрать время на шкале смены"
-            aria-valuetext={
-              selected
-                ? `${String(Math.floor(cursorMinute / 60)).padStart(2, "0")}:${String(cursorMinute % 60).padStart(2, "0")}, ближайшее событие: ${alertTime(selected.detectedAt)}, ${selected.event.type}`
-                : "Нет событий"
-            }
+            aria-label={t("Выбрать время на шкале смены")}
+            aria-valuetext={t(selected
+                ? t("{0}:{1}, ближайшее событие: {2}, {3}", [String(Math.floor(cursorMinute / 60)).padStart(2, "0"), String(cursorMinute % 60).padStart(2, "0"), alertTime(selected.detectedAt), selected.event.type])
+                : "Нет событий")}
             onChange={(e) => {
               const target = bounds.start + Number(e.target.value) * 60_000;
               const nearest = episodes.reduce(
@@ -424,44 +405,32 @@ export function ShiftReview({
         </div>
         <div className="shift-timeline-legend">
           <span>
-            <i />
-            Событие
-          </span>
+            <i />{t("Событие")}</span>
           <span>
-            <i />
-            Наблюдение недоступно
-          </span>
+            <i />{t("Наблюдение недоступно")}</span>
           <span>
-            <i />
-            Плохая видимость
-          </span>
+            <i />{t("Плохая видимость")}</span>
           <span>
-            <i className="is-unknown" />
-            Нет проверок
-          </span>
+            <i className="is-unknown" />{t("Нет проверок")}</span>
         </div>
-        <p className="shift-timeline-note">
-          Нейтральные участки не подтверждают доступность наблюдения.
-          {cameraId === "all" && " Перерывы показаны по всем камерам."}
+        <p className="shift-timeline-note">{t("Нейтральные участки не подтверждают доступность наблюдения.")}{t(cameraId === "all" && " Перерывы показаны по всем камерам.")}
         </p>
         {incidents.length > 0 && (
           <Link className="shift-health-warning" to="/monitoring">
             <Icon name="eye" size={20} />
             <span>
-              <strong>В этот день были проблемы наблюдения</strong>
-              <small>
-                Откройте журнал, чтобы проверить камеры и интервалы.
-              </small>
+              <strong>{t("В этот день были проблемы наблюдения")}</strong>
+              <small>{t("Откройте журнал, чтобы проверить камеры и интервалы.")}</small>
             </span>
             <Icon name="arrow" size={18} />
           </Link>
         )}
       </section>
       {episodes.length > 0 && (
-        <section className="shift-episodes" aria-label="Эпизоды смены">
+        <section className="shift-episodes" aria-label={t("Эпизоды смены")}>
           <div className="section-heading">
-            <h2>Маршрут просмотра</h2>
-            <span>Эпизодов: {episodes.length}</span>
+            <h2>{t("Маршрут просмотра")}</h2>
+            <span>{t("Эпизодов: ")}{episodes.length}</span>
           </div>
           <ol>
             {episodes.map((alert, i) => (
@@ -478,9 +447,9 @@ export function ShiftReview({
                   </span>
                   <span>
                     <small>
-                      {alertTime(alert.detectedAt)} · {alert.cameraName}
+                      {t(alertTime(alert.detectedAt))} · {t(alert.cameraName)}
                     </small>
-                    <strong>{alert.event.type}</strong>
+                    <strong>{t(alert.event.type)}</strong>
                   </span>
                   <Icon
                     name={index === i && playing ? "pause" : "play"}
@@ -494,7 +463,7 @@ export function ShiftReview({
       )}
       {context && selected && (
         <Modal
-          title="До и после события"
+          title={t("До и после события")}
           wide
           onClose={() => setContext(false)}
         >

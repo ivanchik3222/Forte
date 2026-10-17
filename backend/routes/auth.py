@@ -56,7 +56,8 @@ def check_origin():
     if request.method == 'POST' and request.path.rsplit('/', 1)[-1] in ('login', 'register', 'forgot-password', 'reset-password', 'verify-email'):
         throttle(request.remote_addr or 'unknown', 'ip')
     origin = request.headers.get('Origin')
-    if origin and origin not in current_app.config['CORS_ORIGINS']:
+    # Swagger is served by this backend; same-origin requests need no CORS grant.
+    if origin and origin != request.host_url.rstrip('/') and origin not in current_app.config['CORS_ORIGINS']:
         raise ApiError(403, 'origin_rejected', 'Origin is not allowed.')
 
 

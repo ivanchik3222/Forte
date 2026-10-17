@@ -72,3 +72,86 @@ def update_user(user_id):
     db.session.commit()
 
     return jsonify({'user': user.to_dict(include_sensitive=True)})
+
+
+@admin_bp.post('/branches')
+@admin_required
+def create_branch():
+    from models import Branch
+    data = request.get_json() or {}
+    name = data.get('name')
+    if set(data) != {'name'} or not isinstance(name, str) or not 1 <= len(name.strip()) <= 120:
+        raise ApiError(422, 'invalid_field', 'Нужно название отделения до 120 символов.')
+    branch = Branch(name=name.strip())
+    db.session.add(branch); db.session.commit()
+    return jsonify(id=branch.id, name=branch.name), 201
+
+
+@admin_bp.get('/branches')
+@admin_required
+def list_branches():
+    from models import Branch
+    return jsonify(items=[dict(id=b.id, name=b.name) for b in Branch.query.order_by(Branch.name)])
+
+
+@admin_bp.put('/cameras/<camera_id>/scope')
+@admin_required
+def camera_scope(camera_id):
+    from flask import current_app
+    from models import Camera, CameraScope, Branch
+    data = request.get_json() or {}
+    if set(data) - {'branch_id', 'is_demo'} or not isinstance(data.get('branch_id'), str) or not isinstance(data.get('is_demo', False), bool):
+        raise ApiError(422, 'invalid_field', 'Нужны branch_id и is_demo (boolean).')
+    if not db.session.get(Camera, camera_id) or not db.session.get(Branch, data['branch_id']):
+        raise ApiError(404, 'not_found', 'Камера или отделение не найдены.')
+    scope = db.session.get(CameraScope, camera_id)
+    demo = data.get('is_demo', False)
+    if demo:
+        # Never reclassify an existing real camera (or its history) as public demo.
+        from models import CameraAlert, CameraHealthReport
+        if not current_app.config['DEMO_MODE'] or (scope and not scope.is_demo) or CameraAlert.query.filter_by(camera_id=camera_id).first() or CameraHealthReport.query.filter_by(camera_id=camera_id).first():
+            raise ApiError(403, 'demo_scope_denied', 'Демокамера должна быть новой, в отдельном демонстрационном окружении.')
+    if not scope:
+        scope = CameraScope(camera_id=camera_id)
+        db.session.add(scope)
+    scope.branch_id, scope.is_demo = data['branch_id'], demo
+    db.session.commit()
+    return jsonify(camera_id=camera_id, branch_id=scope.branch_id, is_demo=scope.is_demo)
+
+
+@admin_bp.get('/users/<int:user_id>/access')
+@admin_required
+def get_user_access(user_id):
+    from models import BranchAccess, CameraAccess
+    if not db.session.get(User, user_id):
+        raise ApiError(404, 'not_found', 'Пользователь не найден.')
+    return jsonify(branch_ids=[r.branch_id for r in BranchAccess.query.filter_by(user_id=user_id)],
+                   camera_ids=[r.camera_id for r in CameraAccess.query.filter_by(user_id=user_id)])
+
+
+@admin_bp.put('/users/<int:user_id>/access')
+@admin_required
+def set_user_access(user_id):
+    from models import Branch, Camera, BranchAccess, CameraAccess
+    user = db.session.get(User, user_id)
+    if not user:
+        raise ApiError(404, 'not_found', 'Пользователь не найден.')
+    if is_demo_user(user):
+        raise ApiError(403, 'demo_account_shared', 'Демоаккаунту нельзя выдавать доступ к рабочим камерам.')
+    data = request.get_json() or {}
+    if set(data) != {'branch_ids', 'camera_ids'}:
+        raise ApiError(422, 'invalid_field', 'Передайте branch_ids и camera_ids.')
+    for field, model in [('branch_ids', Branch), ('camera_ids', Camera)]:
+        ids = data[field]
+        if not isinstance(ids, list) or len(ids) > 1000 or any(not isinstance(i, str) for i in ids):
+            raise ApiError(422, 'invalid_field', 'Ожидается список ID (до 1000).')
+        if model.query.filter(model.id.in_(set(ids))).count() != len(set(ids)):
+            raise ApiError(404, 'not_found', 'Объект доступа не найден.')
+    BranchAccess.query.filter_by(user_id=user_id).delete()
+    CameraAccess.query.filter_by(user_id=user_id).delete()
+    for bid in set(data['branch_ids']):
+        db.session.add(BranchAccess(user_id=user_id, branch_id=bid))
+    for cid in set(data['camera_ids']):
+        db.session.add(CameraAccess(user_id=user_id, camera_id=cid))
+    db.session.commit()
+    return jsonify(**data)

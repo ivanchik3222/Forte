@@ -12,6 +12,32 @@ from services.demo_account import DEMO_EMAIL, seed_demo_user
 
 
 def register_cli(app):
+    @app.cli.command('enroll-mfa')
+    @click.option('--email', prompt=True)
+    def enroll_mfa(email):
+        """Enroll/reset MFA from a trusted operator console; never via public API."""
+        import pyotp
+        from services.security import mfa_cipher
+        from models import UserMFA, AuthSession
+        user = User.query.filter_by(email=email.strip().lower()).first()
+        if not user or user.email == DEMO_EMAIL:
+            raise click.ClickException('Personal account not found.')
+        secret = pyotp.random_base32()
+        click.echo('Add this secret to your authenticator (do not copy it to logs):')
+        click.echo(secret)
+        code = click.prompt('Current authenticator code', hide_input=True)
+        if not pyotp.TOTP(secret).verify(code):
+            raise click.ClickException('Code did not match; nothing changed.')
+        row = db.session.get(UserMFA, user.id)
+        if row is None:
+            row = UserMFA(user_id=user.id)
+            db.session.add(row)
+        row.secret = mfa_cipher().encrypt(secret.encode()).decode()
+        row.last_step = int(time.time()) // 30
+        AuthSession.query.filter_by(user_id=user.id, revoked_at=None).update({'revoked_at': utcnow()})
+        db.session.commit()
+        click.echo('MFA enabled; old sessions revoked. Use the next code to sign in.')
+
     @app.cli.command('analysis-worker')
     @click.option('--once', is_flag=True, help='Process at most one queued job and exit.')
     def analysis_worker(once):
@@ -34,7 +60,8 @@ def register_cli(app):
     def init_db():
         """Apply versioned migrations to an empty or already versioned database."""
         upgrade()
-        seed_demo_user()
+        if app.config['DEMO_MODE']:
+            seed_demo_user()
 
     @app.cli.command('adopt-legacy-db')
     @click.option('--backup-confirmed', is_flag=True, required=True, help='Confirm a restorable backup exists.')
@@ -65,8 +92,8 @@ def register_cli(app):
         email = email.strip().lower()
         if email == DEMO_EMAIL:
             raise click.ClickException('This email is reserved. Use seed-demo-user.')
-        if not validate_email(email) or len(password) < 8:
-            raise click.ClickException('Valid email and password of at least 8 characters required.')
+        if not validate_email(email) or not app.config['MIN_PASSWORD_LENGTH'] <= len(password) <= app.config['MAX_PASSWORD_LENGTH']:
+            raise click.ClickException('Valid email and password of 12 to 128 characters required.')
         if User.query.filter_by(email=email).first():
             raise click.ClickException('User already exists.')
         user = User(email=email, full_name=email.split('@')[0], user_type='admin' if admin else 'user', is_active=True)

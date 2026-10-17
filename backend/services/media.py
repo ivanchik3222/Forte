@@ -25,6 +25,12 @@ def root():
 
 def media_query():
     query = MediaRecord.query
+    from models import AlertRecording, CameraAlert
+    from services.access import camera_ids
+    # A private upload linked to an out-of-scope camera is no longer visible,
+    # even to its uploader; one accessible association must not bypass another.
+    forbidden = db.select(AlertRecording.media_id).join(CameraAlert, CameraAlert.id == AlertRecording.alert_id).where(~CameraAlert.camera_id.in_(camera_ids()))
+    query = query.filter(~MediaRecord.id.in_(forbidden))
     return query if g.user.user_type == 'admin' else query.filter_by(owner_id=g.user.id)
 
 
@@ -143,6 +149,8 @@ def authorize_file(kind, object_id, token):
     user = db.session.get(User, data.get('user'))
     if data.get('kind') != kind or data.get('id') != object_id or not user or not user.is_active or not session or session.user_id != user.id or session.revoked_at or as_utc(session.expires_at) <= utcnow():
         raise ApiError(401, 'link_invalid', 'Ссылка недействительна.')
+    from utils.decorators import validate_user_security
+    validate_user_security(user, session.id)
     g.user = user
     return user
 

@@ -10,6 +10,7 @@ const response = (payload: unknown, status = 200) =>
   ({ ok: status < 400, status, json: async () => payload }) as Response;
 
 beforeEach(() => {
+  process.env.REACT_APP_DEMO_MODE = "true";
   window.scrollTo = jest.fn();
   useAuthStore.setState({ initialized: true, status: "idle", user: null, error: null, accessToken: null });
   useAnalysisStore.setState({ settings: { mode: "api", apiKey: "" }, records: [] });
@@ -21,6 +22,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  delete process.env.REACT_APP_DEMO_MODE;
   global.fetch = originalFetch;
   useAuthStore.setState({ initialized: true, status: "idle", user: null, error: null, accessToken: null });
 });
@@ -59,4 +61,12 @@ test("pending sign-in prevents duplicate submissions and an API failure keeps th
   expect(screen.getByLabelText("Email или никнейм")).toHaveValue("personal@example.com");
   expect(useAuthStore.getState().user).toBeNull();
   expect(window.location.pathname).toBe("/login");
+});
+
+
+test("production hides shared demo sign-in", () => {
+  delete process.env.REACT_APP_DEMO_MODE;
+  window.history.pushState({}, "", "/login");
+  render(<App />);
+  expect(screen.queryByRole("button", { name: "Войти в тестовый аккаунт" })).not.toBeInTheDocument();
 });

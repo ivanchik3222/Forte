@@ -12,7 +12,7 @@ interface AuthResponse {
   csrf_token?: string;
 }
 export const apiBaseUrl = (
-  process.env.REACT_APP_API_URL || "http://localhost:6767"
+  process.env.REACT_APP_API_URL ?? "http://localhost:6767"
 ).replace(/\/$/, "");
 export class ApiError extends Error {
   constructor(
@@ -87,9 +87,8 @@ async function raw<T>(
 async function refresh(): Promise<AuthResponse> {
   if (!refreshPromise) {
     const epoch = generation;
-    refreshPromise = (async () => {
-      if (!csrf)
-        csrf = (await raw<{ csrf_token: string }>("/api/auth/session-csrf"))
+    const rotate = async () => {
+      csrf = (await raw<{ csrf_token: string }>("/api/auth/session-csrf"))
           .csrf_token;
       const session = await raw<AuthResponse>("/api/auth/refresh", {
         method: "POST",
@@ -99,7 +98,10 @@ async function refresh(): Promise<AuthResponse> {
         throw new DOMException("Session changed", "AbortError");
       applySession(session);
       return session;
-    })().finally(() => {
+    };
+    refreshPromise = (navigator.locks
+      ? navigator.locks.request("forte-refresh", rotate)
+      : rotate()).finally(() => {
       if (epoch === generation) refreshPromise = null;
     });
   }
@@ -158,12 +160,12 @@ export async function apiRequest<T>(
   }
 }
 export const authApi = {
-  login: async (identifier: string, password: string) => {
+  login: async (identifier: string, password: string, otp?: string) => {
     clearSession();
     const epoch = generation;
     const session = await raw<AuthResponse>("/api/auth/login", {
       method: "POST",
-      body: JSON.stringify({ identifier, password }),
+      body: JSON.stringify({ identifier, password, ...(otp ? { otp } : {}) }),
     });
     if (epoch !== generation)
       throw new DOMException("Session changed", "AbortError");
@@ -172,13 +174,15 @@ export const authApi = {
   },
   restore: refresh,
   logout: async () => {
-    if (!csrf)
+    const revoke = async () => {
       csrf = (await raw<{ csrf_token: string }>("/api/auth/session-csrf"))
         .csrf_token;
-    await raw("/api/auth/logout", {
-      method: "POST",
-      headers: { "X-CSRF-TOKEN": csrf },
-    });
+      await raw("/api/auth/logout", {
+        method: "POST",
+        headers: { "X-CSRF-TOKEN": csrf },
+      });
+    };
+    await (navigator.locks ? navigator.locks.request("forte-refresh", revoke) : revoke());
     clearSession();
   },
 };

@@ -254,9 +254,10 @@ test("parallel expired requests share one refresh and logout clears session", as
     const path = String(input);
     if (path.endsWith("/login"))
       return response({ user, access_token: "old", csrf_token: "csrf" });
+    if (path.endsWith("/session-csrf")) return response({ csrf_token: expired ? "csrf" : "rotated-csrf" });
     if (path.endsWith("/refresh")) {
       expired = false;
-      return response({ user, access_token: "new" });
+      return response({ user, access_token: "new", csrf_token: "rotated-csrf" });
     }
     if (path.endsWith("/logout")) return response({ message: "Logged out" });
     return expired

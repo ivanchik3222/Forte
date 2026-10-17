@@ -7,7 +7,7 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   error: string | null;
-  login: (identifier: string, password: string) => Promise<void>;
+  login: (identifier: string, password: string, otp?: string) => Promise<void>;
   restore: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -25,10 +25,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
   refreshToken: null,
   error: null,
-  login: async (identifier, password) => {
+  login: async (identifier, password, otp) => {
     set({ status: "loading", error: null });
     try {
-      const pending = authApi.login(identifier, password);
+      const pending = authApi.login(identifier, password, otp);
       // login clears the previous session synchronously; keep the form busy afterwards.
       set({ status: "loading" });
       const session = await pending;

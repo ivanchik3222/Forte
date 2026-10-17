@@ -10,7 +10,7 @@ def post_json(client, url, data, headers=None):
 class TestRegister:
     def test_register_with_email(self, client):
         resp = post_json(client, '/api/auth/register', {
-            'email': 'new@test.com', 'password': 'secret123', 'full_name': 'New User',
+            'email': 'new@test.com', 'password': 'secret123-long-pass', 'full_name': 'New User',
         })
         assert resp.status_code == 201
         body = resp.get_json()
@@ -22,21 +22,21 @@ class TestRegister:
 
     def test_register_with_nickname(self, client):
         resp = post_json(client, '/api/auth/register', {
-            'nickname': 'cool_nick', 'password': 'secret123',
+            'nickname': 'cool_nick', 'password': 'secret123-long-pass',
         })
         assert resp.status_code == 201
         assert resp.get_json()['user']['nickname'] == 'cool_nick'
 
     def test_register_with_identifier(self, client):
         resp = post_json(client, '/api/auth/register', {
-            'identifier': 'ident@test.com', 'password': 'secret123',
+            'identifier': 'ident@test.com', 'password': 'secret123-long-pass',
         })
         assert resp.status_code == 201
         assert resp.get_json()['user']['email'] == 'ident@test.com'
 
     def test_register_duplicate_email(self, client, user1):
         resp = post_json(client, '/api/auth/register', {
-            'email': 'user1@test.com', 'password': 'secret123',
+            'email': 'user1@test.com', 'password': 'secret123-long-pass',
         })
         assert resp.status_code == 400
 
@@ -48,12 +48,12 @@ class TestRegister:
 
     def test_register_invalid_email(self, client):
         resp = post_json(client, '/api/auth/register', {
-            'email': 'not-an-email', 'password': 'secret123',
+            'email': 'not-an-email', 'password': 'secret123-long-pass',
         })
         assert resp.status_code == 400
 
     def test_register_no_identifier(self, client):
-        resp = post_json(client, '/api/auth/register', {'password': 'secret123'})
+        resp = post_json(client, '/api/auth/register', {'password': 'secret123-long-pass'})
         assert resp.status_code == 400
 
 
@@ -117,19 +117,19 @@ class TestProfile:
 class TestPassword:
     def test_change_password(self, client, auth_headers):
         resp = post_json(client, '/api/auth/change-password', {
-            'current_password': 'test1234', 'new_password': 'newpass123',
+            'current_password': 'test1234', 'new_password': 'newpass123-long-pass',
         }, headers=auth_headers)
         assert resp.status_code == 200
 
         # Логин с новым паролем работает
         resp = post_json(client, '/api/auth/login', {
-            'email': 'user1@test.com', 'password': 'newpass123',
+            'email': 'user1@test.com', 'password': 'newpass123-long-pass',
         })
         assert resp.status_code == 200
 
     def test_change_password_wrong_current(self, client, auth_headers):
         resp = post_json(client, '/api/auth/change-password', {
-            'current_password': 'wrong', 'new_password': 'newpass123',
+            'current_password': 'wrong', 'new_password': 'newpass123-long-pass',
         }, headers=auth_headers)
         assert resp.status_code == 400
 

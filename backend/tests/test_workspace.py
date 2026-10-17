@@ -1,3 +1,4 @@
+from tests.access_helpers import grant_camera
 import io
 import json
 import os
@@ -112,6 +113,7 @@ def test_session_csrf_restore_logout_revokes_media(client, user1, storage):
     csrf = client.get('/api/auth/session-csrf').json['csrf_token']
     assert client.post('/api/auth/refresh', headers={'X-CSRF-TOKEN': csrf}).status_code == 200
     assert client.post('/api/auth/refresh', headers={'X-CSRF-TOKEN': csrf, 'Origin': 'https://evil.invalid'}).status_code == 403
+    csrf = client.get('/api/auth/session-csrf').json['csrf_token']
     assert client.post('/api/auth/logout', headers={'X-CSRF-TOKEN': csrf}).status_code == 200
     assert client.get('/api/v1/media', headers=headers).status_code == 401
     assert client.get(url).status_code == 401
@@ -135,9 +137,10 @@ def test_registration_can_be_disabled(client, app, monkeypatch):
     assert result.status_code == 403
 
 
-def test_notifications_date_read_scope_and_counts(client, auth_headers, user2):
+def test_notifications_date_read_scope_and_counts(client, auth_headers, user1, user2):
     camera = Camera(id='cam1', name='Cash 1', location='Office')
     db.session.add(camera); db.session.flush()
+    grant_camera(camera, user1, user2)
     for i, hour in enumerate([18, 19, 20]):
         db.session.add(CameraAlert(id=f'event{i}', camera_id=camera.id, source='test', type='Test', description='Test only', detected_at=datetime(2026,10,16,hour,tzinfo=timezone.utc)))
     db.session.commit()
@@ -196,7 +199,7 @@ def test_legacy_adoption_preserves_users(tmp_path):
         result = fresh.test_cli_runner().invoke(args=['adopt-legacy-db','--backup-confirmed'])
         assert result.exit_code == 0, result.output
         assert User.query.filter_by(email='legacy@test.com').one()
-        assert db.session.execute(text('select version_num from alembic_version')).scalar() == '0004'
+        assert db.session.execute(text('select version_num from alembic_version')).scalar() == '0005'
         db.session.remove(); db.engine.dispose()
 
 
@@ -240,13 +243,14 @@ def test_import_test_events_is_idempotent_and_blocked_in_production(app, client,
     assert runner.invoke(args=['import-test-events',str(fixture)]).exit_code != 0
 
 
-def test_signed_url_expiration_and_frame_access(client, auth_headers, storage, app, monkeypatch):
+def test_signed_url_expiration_and_frame_access(client, auth_headers, storage, app, monkeypatch, user1):
     record=upload(client,auth_headers).json
     url=client.post(f'/api/v1/media/{record["id"]}/playback-url',headers=auth_headers).json['url']
     monkeypatch.setitem(app.config,'PLAYBACK_TTL',-1)
     assert client.get(url).status_code == 401
     monkeypatch.setitem(app.config,'PLAYBACK_TTL',900)
     camera=Camera(id='camera-frame',name='C',location='L'); db.session.add(camera); db.session.flush()
+    grant_camera(camera, user1)
     alert=CameraAlert(id='alert-frame',camera_id=camera.id,source='test',type='Frame',description='Fixture')
     db.session.add(alert); db.session.flush()
     frame=EvidenceFrame(id='frame1',alert_id=alert.id,timestamp_sec=0,storage_key='fixture.jpg')

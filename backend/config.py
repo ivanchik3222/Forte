@@ -29,8 +29,8 @@ class Config:
 
     # JWT
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'dev-jwt-secret-key-change-in-production')
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)
-    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(hours=12)
     JWT_COOKIE_SECURE = os.environ.get('COOKIE_SECURE', 'false').lower() == 'true'
     JWT_COOKIE_SAMESITE = os.environ.get('COOKIE_SAMESITE', 'Lax')
     JWT_REFRESH_COOKIE_PATH = os.environ.get('AUTH_COOKIE_PATH', '/api/auth')
@@ -44,6 +44,13 @@ class Config:
     PLAYBACK_TTL = 900
     UPLOADS_PER_HOUR = 30
     MIN_FREE_BYTES = 256 * 1024 * 1024
+    DEMO_MODE = os.environ.get('DEMO_MODE', 'false').lower() == 'true'
+    ADMIN_MFA_REQUIRED = False
+    AUTH_ACCOUNT_LIMIT = 10
+    AUTH_IP_LIMIT = 60
+    AUTH_WINDOW_SECONDS = 300
+    MIN_PASSWORD_LENGTH = 12
+    MAX_PASSWORD_LENGTH = 128
     PUBLIC_REGISTRATION = True
     ALLOW_TEST_EVENTS = False
     REQUIRE_SECURE_CONFIG = False
@@ -63,6 +70,7 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     """Конфигурация для тестирования"""
     TESTING = True
+    DEMO_MODE = True
     ML_ENABLED = False
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=5)
@@ -73,6 +81,7 @@ class ProductionConfig(Config):
     DEBUG = False
     PUBLIC_REGISTRATION = False
     REQUIRE_SECURE_CONFIG = True
+    ADMIN_MFA_REQUIRED = True
     JWT_COOKIE_SECURE = os.environ.get('COOKIE_SECURE', 'true').lower() == 'true'
 
 

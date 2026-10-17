@@ -6,6 +6,8 @@ from models import (db, Camera, CameraAlert, CameraHealthReport, CameraHealthInt
                     AlertRecording, MediaRecord, User, AuthSession)
 from routes.auth import make_tokens
 
+from tests.access_helpers import grant_camera
+
 BASE = datetime(2026, 10, 17, 7, tzinfo=timezone.utc)
 
 
@@ -19,10 +21,11 @@ def clock(monkeypatch):
 
 
 @pytest.fixture
-def camera():
+def camera(user1, user2):
     item = Camera(name='Cash 1', location='Astana')
     db.session.add(item)
     db.session.commit()
+    grant_camera(item, user1, user2)
     return item
 
 
@@ -154,9 +157,10 @@ def test_invalid_health_input(client, admin_headers, camera, clock, field, value
     assert CameraHealthReport.query.count() == 0
 
 
-def test_health_day_clipping_camera_minutes_filters_pagination(client, auth_headers, admin_headers, camera, clock):
+def test_health_day_clipping_camera_minutes_filters_pagination(client, auth_headers, admin_headers, camera, clock, user1):
     other = Camera(name='Cash 2', location='Astana')
     db.session.add(other); db.session.commit()
+    grant_camera(other, user1)
     # 23:59 previous day in Astana; continuous reports cross the day boundary.
     start = datetime(2026, 10, 16, 18, 59, tzinfo=timezone.utc)
     for c in (camera, other):

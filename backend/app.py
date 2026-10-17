@@ -62,6 +62,8 @@ def create_app(config_object=None):
 
     @app.before_request
     def validate_json_object():
+        if request.path.startswith('/api/auth'):
+            request.max_content_length = 16384
         if request.is_json and request.content_length and request.method in ('POST', 'PUT', 'PATCH'):
             data = request.get_json()
             if not isinstance(data, dict):
@@ -70,6 +72,8 @@ def create_app(config_object=None):
                 for value in data.values():
                     if value is not None and not isinstance(value, str):
                         raise ApiError(400, 'invalid_field', 'Поля авторизации должны быть строками.')
+                    if isinstance(value, str) and len(value) > 1024:
+                        raise ApiError(400, 'invalid_field', 'Поле авторизации слишком длинное.')
 
     @app.after_request
     def normalize_errors(response):
@@ -80,6 +84,9 @@ def create_app(config_object=None):
         if request.path.startswith('/api'):
             response.headers['Cache-Control'] = 'no-store'
             response.headers['X-Content-Type-Options'] = 'nosniff'
+            response.headers['Referrer-Policy'] = 'no-referrer'
+        if response.status_code == 429:
+            response.headers['Retry-After'] = str(app.config['AUTH_WINDOW_SECONDS'])
         return response
 
     @app.errorhandler(ApiError)

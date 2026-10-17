@@ -1,11 +1,14 @@
 from flask import Blueprint, request, jsonify, current_app, g
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt, set_refresh_cookies, unset_jwt_cookies, decode_token
-from models import db, User, AuthSession, MediaRecord, uid, utcnow, as_utc
+from models import db, User, AuthSession, SessionSecurity, MediaRecord, uid, utcnow, as_utc
 from utils.decorators import active_required, personal_account_required, current_user
 from services.demo_account import DEMO_EMAIL, is_demo_user
 from utils.errors import ApiError
 from datetime import datetime, timedelta, timezone
 import re
+
+from services.security import throttle, valid_password, verify_mfa
+from sqlalchemy import update
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -27,15 +30,18 @@ def is_email(identifier):
     return '@' in identifier and '.' in identifier
 
 
-def make_tokens(user):
+def make_tokens(user, mfa_verified=False):
     sid = uid()
+    claims = {'sid': sid}
+    access = create_access_token(identity=str(user.id), additional_claims=claims)
+    refresh = create_refresh_token(identity=str(user.id), additional_claims=claims)
     session = AuthSession(id=sid, user_id=user.id,
                           expires_at=utcnow() + current_app.config['JWT_REFRESH_TOKEN_EXPIRES'])
     db.session.add(session)
+    db.session.flush()
+    db.session.add(SessionSecurity(session_id=sid, refresh_jti=decode_token(refresh)['jti'], mfa_verified=mfa_verified))
     db.session.commit()
-    claims = {'sid': sid, 'user_type': user.user_type}
-    return (create_access_token(identity=str(user.id), additional_claims=claims),
-            create_refresh_token(identity=str(user.id), additional_claims=claims))
+    return access, refresh
 
 
 def session_response(user, access, refresh, status=200):
@@ -47,6 +53,8 @@ def session_response(user, access, refresh, status=200):
 
 @auth_bp.before_request
 def check_origin():
+    if request.method == 'POST' and request.path.rsplit('/', 1)[-1] in ('login', 'register', 'forgot-password', 'reset-password', 'verify-email'):
+        throttle(request.remote_addr or 'unknown', 'ip')
     origin = request.headers.get('Origin')
     if origin and origin not in current_app.config['CORS_ORIGINS']:
         raise ApiError(403, 'origin_rejected', 'Origin is not allowed.')
@@ -90,8 +98,8 @@ def register():
     if nickname and not validate_nickname(nickname):
         return jsonify({'error': 'Nickname должен содержать 3-20 символов (буквы, цифры, точки, подчёркивания, дефисы)'}), 400
 
-    if len(password) < 6:
-        return jsonify({'error': 'Пароль должен содержать минимум 6 символов'}), 400
+    if not valid_password(password):
+        return jsonify({'error': 'Пароль должен содержать от 12 до 128 символов'}), 400
 
     if email and User.query.filter_by(email=email).first():
         return jsonify({'error': 'Пользователь с таким email уже существует'}), 400
@@ -157,14 +165,20 @@ def login():
     else:
         return jsonify({'error': 'Укажите email, nickname или identifier'}), 400
 
+    throttle(str(user.id) if user else (identifier or email or nickname or '').casefold())
+    if len(password) > current_app.config['MAX_PASSWORD_LENGTH']:
+        return jsonify({'error': 'Неверные данные для входа'}), 401
+    if user and is_demo_user(user) and not current_app.config['DEMO_MODE']:
+        user = None
     if not user or not user.check_password(password):
         return jsonify({'error': 'Неверные данные для входа'}), 401
 
+    mfa_verified = verify_mfa(user, data.get('otp', ''))
     try:
         user.last_login = datetime.now(timezone.utc)
         db.session.commit()
 
-        access_token, refresh_token = make_tokens(user)
+        access_token, refresh_token = make_tokens(user, mfa_verified=mfa_verified)
 
         return session_response(user, access_token, refresh_token)
     except Exception as e:
@@ -184,8 +198,21 @@ def session_csrf():
 @jwt_required(refresh=True, locations=['cookies'])
 def refresh():
     user = current_user()
-    access = create_access_token(identity=str(user.id), additional_claims={'sid': get_jwt()['sid']})
-    return jsonify(access_token=access, user=user.to_dict(include_sensitive=True))
+    jwt = get_jwt()
+    session = db.session.get(AuthSession, jwt['sid'])
+    remaining = as_utc(session.expires_at) - utcnow()
+    refresh_token = create_refresh_token(identity=str(user.id), additional_claims={'sid': session.id}, expires_delta=remaining)
+    changed = db.session.execute(update(SessionSecurity).where(
+        SessionSecurity.session_id == session.id, SessionSecurity.refresh_jti == jwt['jti'])
+        .values(refresh_jti=decode_token(refresh_token)['jti'])).rowcount
+    if not changed:
+        session.revoked_at = utcnow()
+        db.session.commit()
+        raise ApiError(401, 'refresh_reused', 'Сессия отозвана: повторное использование токена.')
+    db.session.commit()
+    access = create_access_token(identity=str(user.id), additional_claims={'sid': session.id})
+    return session_response(user, access, refresh_token)
+
 
 
 @auth_bp.post('/logout')
@@ -284,8 +311,8 @@ def change_password():
         if not user.check_password(data['current_password']):
             return jsonify({'error': 'Неверный текущий пароль'}), 400
 
-        if len(data['new_password']) < 6:
-            return jsonify({'error': 'Новый пароль должен содержать минимум 6 символов'}), 400
+        if not valid_password(data['new_password']):
+            return jsonify({'error': 'Новый пароль должен содержать от 12 до 128 символов'}), 400
 
         user.set_password(data['new_password'])
         AuthSession.query.filter_by(user_id=user.id, revoked_at=None).update({'revoked_at': utcnow()})
@@ -347,8 +374,8 @@ def reset_password():
     if is_demo_user(user):
         raise ApiError(403, 'demo_account_shared', 'Пароль общего тестового аккаунта нельзя изменять.')
 
-    if len(data['password']) < 6:
-        return jsonify({'error': 'Пароль должен содержать минимум 6 символов'}), 400
+    if not valid_password(data['password']):
+        return jsonify({'error': 'Пароль должен содержать от 12 до 128 символов'}), 400
 
     try:
         user.set_password(data['password'])

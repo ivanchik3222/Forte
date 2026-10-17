@@ -220,3 +220,49 @@ class RegulatorySource(db.Model):
 
     def to_dict(self):
         return {k: getattr(self, k) for k in ('id', 'title', 'number', 'document_date', 'url', 'publisher')}
+
+
+class Branch(db.Model):
+    __tablename__ = 'branches'
+    id = db.Column(db.String(36), primary_key=True, default=uid)
+    name = db.Column(db.String(120), nullable=False)
+
+
+class CameraScope(db.Model):
+    __tablename__ = 'camera_scopes'
+    camera_id = db.Column(db.String(36), db.ForeignKey('cameras.id', ondelete='CASCADE'), primary_key=True)
+    branch_id = db.Column(db.String(36), db.ForeignKey('branches.id', ondelete='RESTRICT'), nullable=False)
+    is_demo = db.Column(db.Boolean, nullable=False, default=False)
+
+
+class BranchAccess(db.Model):
+    __tablename__ = 'branch_access'
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
+    branch_id = db.Column(db.String(36), db.ForeignKey('branches.id', ondelete='CASCADE'), primary_key=True)
+
+
+class CameraAccess(db.Model):
+    __tablename__ = 'camera_access'
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
+    camera_id = db.Column(db.String(36), db.ForeignKey('cameras.id', ondelete='CASCADE'), primary_key=True)
+
+
+class SessionSecurity(db.Model):
+    __tablename__ = 'session_security'
+    session_id = db.Column(db.String(36), db.ForeignKey('auth_sessions.id', ondelete='CASCADE'), primary_key=True)
+    refresh_jti = db.Column(db.String(36), nullable=False)
+    mfa_verified = db.Column(db.Boolean, nullable=False, default=False)
+
+
+class LoginBucket(db.Model):
+    __tablename__ = 'login_buckets'
+    key = db.Column(db.String(64), primary_key=True)
+    window = db.Column(db.BigInteger, nullable=False)
+    count = db.Column(db.Integer, nullable=False)
+
+
+class UserMFA(db.Model):
+    __tablename__ = 'user_mfa'
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
+    secret = db.Column(db.Text, nullable=False)
+    last_step = db.Column(db.BigInteger, nullable=False, default=-1)

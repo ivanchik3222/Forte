@@ -7,6 +7,8 @@ import { useAnalysisStore } from "../store/useAnalysisStore";
 export function LoginPanel() {
   const navigate = useNavigate();
   const [identifier, setIdentifier] = useState("");
+  const [otp, setOtp] = useState("");
+  const demoEnabled = process.env.REACT_APP_DEMO_MODE === "true";
   const [password, setPassword] = useState("");
   const [testLogin, setTestLogin] = useState(false);
   const status = useAuthStore((state) => state.status);
@@ -18,7 +20,7 @@ export function LoginPanel() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (status === "loading") return;
-    void login(identifier.trim(), password);
+    void login(identifier.trim(), password, otp || undefined);
   };
 
   const handleTestLogin = async () => {
@@ -91,8 +93,7 @@ export function LoginPanel() {
               Вход в рабочее пространство
             </h2>
             <p className="mt-2 text-sm leading-6 text-zinc-500">
-              Войдите в учётную запись команды или попробуйте рабочий кабинет
-              с тестовым аккаунтом.
+              Войдите в учётную запись команды.
             </p>
             <form onSubmit={handleSubmit} className="mt-8 space-y-5">
               <div>
@@ -133,6 +134,12 @@ export function LoginPanel() {
                   className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm outline-none transition placeholder:text-zinc-400 focus:border-forte-500 focus:bg-white focus:ring-3 focus:ring-forte-100"
                 />
               </div>
+              <div>
+                <label htmlFor="otp" className="mb-2 block text-sm font-semibold">Код MFA (если подключён)</label>
+                <input id="otp" name="otp" inputMode="numeric" autoComplete="one-time-code"
+                  pattern="[0-9]{6}" maxLength={6} value={otp} onChange={(event) => setOtp(event.target.value)}
+                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm" />
+              </div>
               {error && (
                 <p
                   role="alert"
@@ -148,6 +155,7 @@ export function LoginPanel() {
               >
                 {status === "loading" && !testLogin ? "Проверяем данные…" : "Войти"}
               </button>
+              {demoEnabled && <>
               <button
                 type="button"
                 disabled={status === "loading"}
@@ -160,11 +168,12 @@ export function LoginPanel() {
                 Общий тестовый аккаунт: загруженные записи и изменения видны
                 всем, кто в него вошёл.
               </p>
+              </>}
             </form>
-            <p className="mt-5 text-center text-xs leading-5 text-zinc-400">
+            {demoEnabled && <p className="mt-5 text-center text-xs leading-5 text-zinc-400">
               Демонстрационный интерфейс. Не вводите данные реального
               банковского аккаунта.
-            </p>
+            </p>}
           </>
         )}
       </section>

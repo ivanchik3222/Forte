@@ -1,8 +1,8 @@
 from functools import wraps
 
-from flask import g
+from flask import g, current_app
 from flask_jwt_extended import verify_jwt_in_request, get_jwt, get_jwt_identity
-from models import db, User, AuthSession, utcnow, as_utc
+from models import db, User, AuthSession, SessionSecurity, utcnow, as_utc
 from utils.errors import ApiError
 from services.demo_account import is_demo_user
 
@@ -18,6 +18,7 @@ def current_user():
     session = db.session.get(AuthSession, sid) if sid else None
     if not session or session.user_id != user.id or session.revoked_at or as_utc(session.expires_at) <= utcnow():
         raise ApiError(401, 'session_invalid', 'Сессия завершена. Войдите заново.')
+    validate_user_security(user, sid)
     return user
 
 
@@ -50,3 +51,13 @@ def admin_required(fn):
             raise ApiError(403, 'forbidden', 'Требуются права администратора')
         return fn(*args, **kwargs)
     return wrapper
+
+
+def validate_user_security(user, sid):
+    if is_demo_user(user) and not current_app.config['DEMO_MODE']:
+        raise ApiError(401, 'session_invalid', 'Демонстрационный доступ отключён.')
+    security = db.session.get(SessionSecurity, sid)
+    if not security:
+        raise ApiError(401, 'session_invalid', 'Войдите повторно.')
+    if current_app.config['ADMIN_MFA_REQUIRED'] and user.user_type == 'admin' and not security.mfa_verified:
+        raise ApiError(401, 'mfa_required', 'Войдите с MFA.')

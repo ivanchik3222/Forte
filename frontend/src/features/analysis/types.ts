@@ -57,7 +57,7 @@ export interface ConnectionSettings {
 
 export const MAX_FILE_SIZE = 200 * 1024 * 1024;
 export const API_BASE_URL = (
-  process.env.REACT_APP_API_URL || "http://localhost:6767"
+  process.env.REACT_APP_API_URL ?? "http://localhost:6767"
 ).replace(/\/$/, "");
 
 export function validateVideo(file: File): string | null {

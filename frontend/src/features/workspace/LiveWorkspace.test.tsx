@@ -122,7 +122,7 @@ test("upload uses multipart JWT API and shows stored without a verdict", async (
   await screen.findByRole("heading", { name: "camera.mp4" });
   expect(window.location.pathname).toBe("/analysis/saved-id");
   expect(
-    screen.getByText(/Видео сохранено. Запустите поиск объектов/),
+    screen.getByText(/Видео сохранено. Статус анализа/),
   ).toBeInTheDocument();
   expect(screen.queryByText("Нарушение не обнаружено")).not.toBeInTheDocument();
   expect(request.send.mock.calls[0][0]).toBeInstanceOf(FormData);

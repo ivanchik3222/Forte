@@ -1,0 +1,11 @@
+# Tested on Python 3.13 / Apple Silicon; no CUDA wheels or cloud inference.
+torch==2.11.0
+torchvision==0.26.0
+numpy>=2.1,<3
+opencv-python>=4.10,<5
+Pillow>=10,<13
+scikit-learn>=1.5,<2
+scipy>=1.15,<2
+av>=14,<18
+requests>=2.32,<3
+certifi>=2025.1

@@ -72,22 +72,31 @@ def alert_dto(alert, detail=False):
 @active_required
 def capabilities():
     from services.analysis import available
-    return jsonify(uploads=True, analysis=available(), analysis_kind='object_observations',
-                   automatic_violation_detection=False, camera_stream=False, monitoring=True, shift_review=True,
+    engine = current_app.config['ML_ENGINE']
+    return jsonify(uploads=True, analysis=available(), analysis_engine=engine,
+                   auto_analysis=current_app.config['ML_AUTO_ANALYZE'],
+                   analysis_kind={'objects':'object_observations', 'dense_vlm':'action_descriptions',
+                       'reviewed_temporal':'event_candidates', 'reviewed_pipeline':'event_candidates_and_descriptions'}.get(engine, 'unavailable'),
+                   automatic_violation_detection=engine == 'reviewed_pipeline' and available(), camera_stream=False, monitoring=True, shift_review=True,
                    automatic_quality_checks=False, formats=['mov', 'mp4', 'webm'], max_file_size=current_app.config['MAX_FILE_SIZE'])
-
-
-@workspace_bp.post('/analyze')
-@active_required
-def analyze_unavailable():
-    raise ApiError(503, 'analysis_unavailable', 'ИИ-анализ пока не подключён.')
 
 
 @workspace_bp.post('/media')
 @active_required
 def upload_media():
     record, status = save_upload()
-    return jsonify(record.to_dict()), status
+    submission_error = None
+    if current_app.config['ML_AUTO_ANALYZE'] and current_app.config['ML_ENABLED']:
+        from services.analysis import enqueue_job
+        try:
+            enqueue_job(record.id, 'forte_open', retry_failed=False)
+        except ApiError as error:
+            # Upload has committed. Keep the recording usable and allow a retry.
+            submission_error = dict(code=error.code, message=error.message)
+    payload = record.to_dict()
+    if submission_error:
+        payload['analysis_submission_error'] = submission_error
+    return jsonify(payload), status
 
 
 @workspace_bp.get('/media')
@@ -136,7 +145,8 @@ def report(record_id):
     from models import AnalysisJob
     job = AnalysisJob.query.filter_by(media_id=record_id).first()
     payload['analysis_status'] = job.status if job else 'not_requested'
-    payload['analysis'] = job.result if job and job.status == 'done' else None
+    from routes.analysis import job_dto
+    payload['analysis'] = job_dto(job)['result'] if job and job.status == 'done' else None
     payload['notice'] = 'Наблюдения модели требуют проверки специалистом. Оценка нарушений не выполнялась.' if job else 'Видео сохранено. Анализ не выполнялся.'
     response = jsonify(payload)
     response.headers['Content-Disposition'] = f'attachment; filename="forte-report-{payload["id"]}.json"'

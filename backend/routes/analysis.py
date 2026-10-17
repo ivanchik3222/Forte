@@ -1,10 +1,10 @@
-"""Authenticated object observations; automatic violation evaluation is disabled."""
+"""Web JWT responses and the API-key-authenticated jury contract."""
 from flask import Blueprint, request, jsonify, current_app, g, url_for, send_file
 from flask_jwt_extended import get_jwt
-from filelock import FileLock, Timeout
-from models import db, AnalysisJob, _utc_iso, utcnow
+import json
+from models import db, AnalysisJob, _utc_iso, utcnow, uid
 from services.media import get_media, root, sign_file, authorize_file
-from services.analysis import available
+from services.analysis import enqueue_job
 from utils.decorators import active_required
 from utils.errors import ApiError
 
@@ -26,7 +26,17 @@ def job_dto(job):
         result['evidence_frames'] = [dict(timestamp_sec=e['timestamp_sec'], boxes=e['boxes'],
             image_url=url_for('analysis.evidence', job_id=job.id, index=i, token=signed))
             for i, e in enumerate(result['evidence_frames'])]
-    return dict(job_id=job.id, media_id=job.media_id, status=job.status, camera_profile=job.camera_profile,
+        result['violations'] = [dict(v,evidence_frames=[dict(result['evidence_frames'][e['evidence_index']],
+            explanation=e['explanation']) for e in v.get('evidence',[])]) for v in result.get('violations',[])]
+    stage = None
+    if job.status == 'processing':
+        try:
+            value = json.loads((root()/'analysis'/job.id/'progress.json').read_text()).get('stage')
+            if value in ('finding_events', 'describing_actions', 'assessing_rules'):
+                stage = value
+        except (OSError, ValueError):
+            pass
+    return dict(job_id=job.id, media_id=job.media_id, status=job.status, stage=stage, camera_profile=job.camera_profile,
         created_at=_utc_iso(job.created_at), started_at=_utc_iso(job.started_at),
         finished_at=_utc_iso(job.finished_at), error=job.error, result=result)
 
@@ -35,32 +45,12 @@ def job_dto(job):
 @active_required
 def enqueue(record_id):
     get_media(record_id)
-    if not available():
-        raise ApiError(503, 'analysis_unavailable', 'Локальная модель не установлена или отключена.')
     data = request.get_json(silent=True) or {}
     if set(data) - {'camera_profile'} or data.get('camera_profile', 'full_frame') not in ('forte_open', 'full_frame'):
         raise ApiError(422, 'invalid_camera_profile', 'Выберите forte_open или full_frame.')
     profile = data.get('camera_profile', 'full_frame')
-    try:
-        # Serialize submissions as well as retries; one durable job per media.
-        with FileLock(str(root()/'.analysis-submit.lock'), timeout=0):
-            job = AnalysisJob.query.filter_by(media_id=record_id).first()
-            if job and job.status != 'failed':
-                if job.camera_profile != profile:
-                    raise ApiError(409, 'profile_conflict', 'Для записи уже выполнялся анализ с другим профилем.')
-                return jsonify(job_dto(job)), 200
-            if AnalysisJob.query.filter(AnalysisJob.status.in_(['queued', 'processing'])).count() >= current_app.config['ML_QUEUE_LIMIT']:
-                raise ApiError(429, 'analysis_busy', 'Очередь заполнена. Повторите позже.')
-            if job:
-                job.status, job.camera_profile, job.result, job.error = 'queued', profile, None, None
-                job.created_at, job.started_at, job.finished_at = utcnow(), None, None
-            else:
-                job = AnalysisJob(media_id=record_id, camera_profile=profile)
-                db.session.add(job)
-            db.session.commit()
-            return jsonify(job_dto(job)), 202
-    except Timeout:
-        raise ApiError(429, 'analysis_busy', 'Повторите запрос через несколько секунд.')
+    job, status = enqueue_job(record_id, profile)
+    return jsonify(job_dto(job)), status
 
 
 @analysis_bp.get('/media/<record_id>/analysis')
@@ -72,9 +62,30 @@ def latest(record_id):
 
 
 @analysis_bp.get('/jobs/<job_id>')
-@active_required
 def job_status(job_id):
-    return jsonify(job_dto(get_job(job_id)))
+    if request.headers.get('X-API-Key') is not None:
+        from services.jury import authenticate, response
+        authenticate()
+        job=db.session.get(AnalysisJob,job_id)
+        if job is None: raise ApiError(404,'not_found','Анализ не найден.')
+        return jsonify(response(job))
+    return active_required(lambda: jsonify(job_dto(get_job(job_id))))()
+
+
+@analysis_bp.post('/analyze')
+def jury_analyze():
+    from services.jury import authenticate, response
+    from services.media import save_upload
+    from services.analysis import available
+    authenticate(create=True)
+    if current_app.config['ML_ENGINE'] != 'reviewed_pipeline' or not available():
+        raise ApiError(503,'analysis_unavailable','Для API жюри требуется полный локальный анализ с проверкой правил.')
+    # Avoid accepting a jury video into a long backlog on this single-device worker.
+    if AnalysisJob.query.filter(AnalysisJob.status.in_(['queued','processing'])).count():
+        raise ApiError(429,'analysis_busy','Модель занята. Повторите после завершения текущего анализа.')
+    record,_ = save_upload(request.headers.get('Idempotency-Key') or uid())
+    job,status = enqueue_job(record.id,'full_frame',retry_failed=False,require_idle=True)
+    return jsonify(response(job)),status
 
 
 @analysis_bp.get('/jobs/<job_id>/evidence/<int:index>')

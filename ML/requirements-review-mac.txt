@@ -1,0 +1,6 @@
+# Optional, separate environment for LOCAL draft annotation, not runtime inference.
+mlx-vlm==0.4.4
+# Qwen3VL's processor also imports the local Torch/Torchvision video backend.
+torch==2.11.0
+torchvision==0.26.0
+av==17.1.0

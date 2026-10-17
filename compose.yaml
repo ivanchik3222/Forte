@@ -11,6 +11,8 @@ services:
       DATABASE_URL: sqlite:////app/database/database.db
       MEDIA_ROOT: /app/media
       DEMO_MODE: ${DEMO_MODE:-true}
+      # Bundled Linux image uses YOLO. Full MLX pipeline runs natively on the Mac.
+      ML_ENGINE: ${ML_ENGINE:-objects}
     volumes:
       - database:/app/database
       - media_data:/app/media
@@ -48,6 +50,7 @@ services:
       DATABASE_URL: sqlite:////app/database/database.db
       MEDIA_ROOT: /app/media
       ML_DEVICE: cpu
+      ML_ENGINE: ${ML_ENGINE:-objects}
     volumes:
       - database:/app/database
       - media_data:/app/media

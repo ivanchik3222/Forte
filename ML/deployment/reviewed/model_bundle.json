@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "variant": "bank_only",
+  "model_name": "reviewed_dual_view_r3d18_bank_only",
+  "candidate": {
+    "file": "bank_only.npz",
+    "sha256": "f4f1a06a7296d63a3ea6f95a1da7e50ea41f84c1348648713142c861c4070902"
+  },
+  "backbone_sha256": "b3b3357ead25631ec9c57362ff2128a92d0427e01e2cd184951a44380c3f2e9d",
+  "development_evaluation": {
+    "n_videos": 38,
+    "threshold": 0.5,
+    "precision": 0.6521739130434783,
+    "recall": 0.75,
+    "f1": 0.6976744186046512,
+    "accuracy": 0.6578947368421053,
+    "confusion_matrix_labels_0_1": [
+      [
+        10,
+        8
+      ],
+      [
+        5,
+        15
+      ]
+    ],
+    "roc_auc": 0.5861111111111111,
+    "average_precision": 0.5820044793809124,
+    "localization_mae_positive_videos_sec": 3.5,
+    "localization_within_2s": 0.65,
+    "positive_videos_detected_and_localized_within_2s": 11,
+    "n_positive_videos": 20,
+    "balanced_accuracy": 0.6527777777777778
+  },
+  "evaluation_scope": "38 development videos, scene-group cross-validation; not an independent final test",
+  "automatic_violation_detection": false
+}

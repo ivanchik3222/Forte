@@ -1,11 +1,16 @@
 """Download the authorized public dataset only; never sends ForteBank data."""
-import hashlib,json,os,time,urllib.request,urllib.error,zipfile
+import hashlib,json,os,ssl,time,urllib.request,urllib.error,zipfile
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parent
 DEST=ROOT/'external/cash_counter_theft_v2'
 
 def main():
+    try:
+        import certifi
+        tls=ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        tls=ssl.create_default_context()
     key=os.environ.get('ROBOFLOW_API_KEY','')
     if not key:
         env=ROOT/'.env'
@@ -20,7 +25,7 @@ def main():
         for attempt in range(30):
             request=urllib.request.Request(url,headers={'Authorization':'Bearer '+key})
             try:
-                with urllib.request.urlopen(request,timeout=40) as r:data=json.load(r)
+                with urllib.request.urlopen(request,timeout=40,context=tls) as r:data=json.load(r)
             except urllib.error.HTTPError as e:raise SystemExit(f'Roboflow export HTTP {e.code}; credentials not logged.') from None
             if data.get('export',{}).get('link'):break
             if data.get('ready') is False:
@@ -30,7 +35,7 @@ def main():
         link=data['export']['link']
         partial=archive.with_suffix('.download')
         try:
-            with urllib.request.urlopen(link,timeout=60) as r,partial.open('wb') as f:
+            with urllib.request.urlopen(link,timeout=60,context=tls) as r,partial.open('wb') as f:
                 while chunk:=r.read(1024*1024):f.write(chunk)
         except Exception as e:raise SystemExit(f'Dataset transfer failed: {type(e).__name__}; signed link not logged.') from None
         with zipfile.ZipFile(partial) as z:

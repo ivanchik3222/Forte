@@ -37,7 +37,7 @@ test('enqueues using authenticated media API and selected camera profile', async
     return submitted ? complete : null;
   });
   render(<MLAnalysisPanel mediaId="media-1" onSeek={jest.fn()} />);
-  const button = await screen.findByRole('button', { name: 'Найти объекты и движения' });
+  const button = await screen.findByRole('button', { name: 'Запустить анализ' });
   await waitFor(() => expect(button).toBeEnabled());
   fireEvent.change(screen.getByLabelText('Профиль камеры'), { target: { value: 'full_frame' } });
   fireEvent.click(button);
@@ -70,25 +70,125 @@ test('rejects observations returned for a different recording', async () => {
   expect(screen.queryByText('Наблюдения готовы. Требуется ручная проверка.')).not.toBeInTheDocument();
 });
 
-test('identity and customer hand checks remain visibly unperformed', async () => {
-  request.mockResolvedValue({ ...complete, result: { ...complete.result,
-    additional_checks: {
-      identity_document_presentation: { status: 'not_evaluated', reason: 'No trained model' },
-      customer_hand_oscillation: { status: 'not_evaluated', reason: 'Needs original FPS' },
-    } } });
-  render(<MLAnalysisPanel mediaId="media-1" onSeek={jest.fn()} />);
-  await screen.findByText('Показ удостоверения кассиру:');
-  expect(screen.getByText('Колебания рук клиента:')).toBeInTheDocument();
-  expect(screen.getByText(/Итог по ТЗ пока не сформирован/)).toBeInTheDocument();
-  expect(screen.queryByRole('heading', { name: 'Нарушение не обнаружено' })).not.toBeInTheDocument();
+test('shows factual captions and explicit gaps without fabricated detector confidence', async () => {
+  request.mockResolvedValue({ ...complete, result: { ...complete.result, engine: 'dense_vlm',
+    coverage_status: 'partial', coverage_windows: [
+      { start_sec: 0, end_sec: 12, status: 'done' }, { start_sec: 12, end_sec: 24, status: 'not_processed' },
+    ], events: [{ kind: 'object_handover', start_sec: 1, end_sec: 2, mean_detector_confidence: null,
+      description: 'Человек передаёт предмет через стол.' }],
+  } });
+  const seek = jest.fn();
+  render(<MLAnalysisPanel mediaId="media-1" onSeek={seek} />);
+  const caption = await screen.findByRole('button', { name: /Человек передаёт предмет через стол/ });
+  fireEvent.click(caption);
+  expect(seek).toHaveBeenCalledWith(1);
+  expect(screen.getByText('Нет результата: 00:12–00:24.')).toBeInTheDocument();
+  expect(screen.getByText('Запись обработана частично. Есть участки без результата.')).toBeInTheDocument();
+  expect(screen.queryByText(/0 объектов/)).not.toBeInTheDocument();
 });
 
-test('renders only a completed event classification as the two-verdict final answer', async () => {
-  request.mockResolvedValue({ ...complete,
-    result: { ...complete.result, classification_complete: true, rule_evaluation: 'performed' },
-    final_answer: { job_id: complete.job_id, status: 'done', verdict: 'no_violation', violations: [] },
-  });
+test('does not accept a confidence-free event from the object detector', () => {
+  expect(() => parseMLJob({ ...complete, result: { ...complete.result,
+    events: [{ ...complete.result.events[0], mean_detector_confidence: null }],
+  } })).toThrow();
+});
+
+const combined = () => ({ ...complete, result: { ...complete.result, engine: 'reviewed_pipeline',
+  candidate_status: 'candidates_found', caption_status: 'done', source_seen_during_training: false,
+  coverage_status: 'done', coverage_windows: [{ start_sec: 0, end_sec: 10, status: 'done' }],
+  events: [{ kind: 'bank_event_candidate', start_sec: 1, end_sec: 3, timecode_sec: 2,
+    mean_detector_confidence: null, score: .73, type: null, rule_id: null, requires_human_review: true,
+    description: 'Модель выделила интервал для проверки.', evidence_indices: [0] }],
+  observations: [{ kind: 'cabinet_door_opening', start_sec: 1, end_sec: 2, mean_detector_confidence: null,
+    description: 'Человек открывает дверцу шкафа.', evidence_indices: [0] }],
+} });
+
+test('shows candidate episodes separately from Qwen descriptions and seeks the peak', async () => {
+  request.mockResolvedValue(combined());
+  const seek = jest.fn();
+  render(<MLAnalysisPanel mediaId="media-1" onSeek={seek} />);
+  await screen.findByText('Эпизоды для проверки (1)');
+  expect(screen.getByText('Описания видимых действий (1)')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /Модель выделила интервал/ }));
+  expect(seek).toHaveBeenCalledWith(2);
+  expect(screen.queryByText(/73%/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/0 объектов/)).not.toBeInTheDocument();
+});
+
+test('preserves candidate results when captions fail and rejects invalid model references', async () => {
+  const payload = combined();
+  expect(() => parseMLJob({ ...payload, result: { ...payload.result,
+    events: [{ ...payload.result.events[0], evidence_indices: [50] }],
+  } })).toThrow();
+  expect(() => parseMLJob({ ...payload, result: { ...payload.result,
+    events: [{ ...payload.result.events[0], rule_id: 'fabricated_violation' }],
+  } })).toThrow();
+  request.mockResolvedValue({ ...payload, result: { ...payload.result, observations: [], caption_status: 'failed',
+    coverage_status: 'partial', coverage_windows: [] } });
   render(<MLAnalysisPanel mediaId="media-1" onSeek={jest.fn()} />);
-  expect(await screen.findByRole('heading', { name: 'Нарушение не обнаружено' })).toBeInTheDocument();
-  expect(screen.queryByText(/Итог по ТЗ пока не сформирован/)).not.toBeInTheDocument();
+  expect(await screen.findByRole('alert')).toHaveTextContent('Результат поиска эпизодов сохранён');
+  expect(screen.getByText('Эпизоды для проверки (1)')).toBeInTheDocument();
+});
+
+test('automatically polls an uploaded queued video through the caption stage', async () => {
+  jest.useFakeTimers();
+  const payload = combined();
+  request.mockResolvedValueOnce({ ...payload, status: 'queued', result: null })
+    .mockResolvedValueOnce({ ...payload, status: 'processing', stage: 'describing_actions', result: null })
+    .mockResolvedValue(payload);
+  render(<MLAnalysisPanel mediaId="media-1" onSeek={jest.fn()} />);
+  await screen.findByText(/Видео в очереди. Анализ начнётся автоматически/);
+  expect(screen.queryByRole('button', { name: 'Запустить анализ' })).not.toBeInTheDocument();
+  await waitFor(() => expect(screen.getByText(/Локальная модель описывает действия/)).toBeInTheDocument(), { timeout: 4000 });
+  await waitFor(() => expect(screen.getByText('Эпизоды для проверки (1)')).toBeInTheDocument(), { timeout: 4000 });
+  jest.useRealTimers();
+});
+
+const assessed = () => {
+  const payload=combined();
+  const frame=payload.result.evidence_frames[0];
+  return {...payload,result:{...payload.result,verdict:'violation',rule_evaluation:'performed',assessment_coverage:'done',
+    violations:[{type:'Уход до завершения обслуживания',start_sec:1,end_sec:3,timecode_sec:1,
+      description:'Кассир уходит, клиент остаётся.',visible_fact:'Кассир уходит, клиент остаётся.',
+      explanation:'Обслуживание ещё продолжается.',rule_id:'cashier_leaves_customer',requires_human_review:true,
+      rule:{title:'Правила НБРК № 231',section:'22',url:'https://adilet.zan.kz/rus/docs/V1900019680',explanation:'До окончания обслуживания кассир остаётся на месте.',revision:'16.03.2026'},
+      evidence:[{evidence_index:0,timestamp_sec:1,explanation:'Клиент ждёт у окна.'}],
+      evidence_frames:[{...frame,explanation:'Клиент ждёт у окна.'}]}]}};
+};
+
+test('binary verdict groups each finding with its own evidence and normative link',async()=>{
+  request.mockResolvedValue(assessed());
+  const seek=jest.fn();render(<MLAnalysisPanel mediaId="media-1" onSeek={seek}/>);
+  await screen.findByText('Обнаружены признаки возможных нарушений');
+  expect(screen.getByText('Уход до завершения обслуживания')).toBeInTheDocument();
+  expect(screen.getByRole('link',{name:/Правила НБРК № 231/})).toHaveAttribute('href','https://adilet.zan.kz/rus/docs/V1900019680');
+  fireEvent.click(screen.getByRole('button',{name:/Клиент ждёт у окна/}));
+  expect(seek).toHaveBeenCalledWith(1);
+});
+
+test('rejects a finding with unrelated evidence or inconsistent binary verdict',()=>{
+  const payload=assessed();expect(parseMLJob(payload)?.result?.verdict).toBe('violation');
+  expect(()=>parseMLJob({...payload,result:{...payload.result,verdict:'no_violation'}})).toThrow();
+  const finding=payload.result.violations[0];
+  expect(()=>parseMLJob({...payload,result:{...payload.result,violations:[{...finding,timecode_sec:2}]}})).toThrow();
+  expect(()=>parseMLJob({...payload,result:{...payload.result,violations:[{...finding,
+    evidence_frames:[{...finding.evidence_frames[0],timestamp_sec:55}]}]}})).toThrow();
+});
+
+test('shows a negative verdict with partial coverage explicitly',async()=>{
+  const payload=assessed();request.mockResolvedValue({...payload,result:{...payload.result,
+    verdict:'no_violation',violations:[],assessment_coverage:'partial'}});
+  render(<MLAnalysisPanel mediaId="media-1" onSeek={jest.fn()}/>);
+  await screen.findByText('Нарушение не обнаружено');
+  expect(screen.getByRole('alert')).toHaveTextContent('Итог относится к проверенной части записи');
+});
+
+test('unclassified positive signal remains visible without an invented rule',async()=>{
+  const payload=assessed();
+  const finding={...payload.result.violations[0],classification_status:'unclassified',rule:null,rule_id:null};
+  request.mockResolvedValue({...payload,result:{...payload.result,violations:[finding]}});
+  render(<MLAnalysisPanel mediaId="media-1" onSeek={jest.fn()}/>);
+  await screen.findByText('Обнаружены признаки возможных нарушений');
+  expect(screen.getByRole('note')).toHaveTextContent('Тип и нормативное основание не установлены');
+  expect(screen.queryByRole('link',{name:/Правила НБРК/})).not.toBeInTheDocument();
 });

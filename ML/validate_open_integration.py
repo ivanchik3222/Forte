@@ -37,7 +37,7 @@ def main():
     from flask_migrate import upgrade
     import av
     app = create_app(dict(TESTING=True, SQLALCHEMY_DATABASE_URI='sqlite:///'+(output/'test.sqlite').as_posix(),
-        MEDIA_ROOT=str(storage), ML_ENABLED=True, ML_DEVICE=args.device,
+        MEDIA_ROOT=str(storage), ML_ENABLED=True, ML_DEVICE=args.device, ML_ENGINE='objects', ML_AUTO_ANALYZE=False,
         ML_WEIGHTS=str(ROOT/'deployment/cash_detector.pt')))
     if args.ffprobe:
         app.config['FFPROBE_PATH'] = str(args.ffprobe.resolve())

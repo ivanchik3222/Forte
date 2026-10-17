@@ -1,8 +1,8 @@
 .env
-.cache/
 Кейс_Fortebank.docx
 ML/open
 ML/.venv/
+ML/.venv-review/
 ML/models/
 ML/cache/
 ML/runs/
@@ -16,7 +16,11 @@ ML/external/
 ML/datasets/
 ML/archive/external_interactions_20261017/artifacts/
 ML/annotations/corrected/
-ML/annotations/action_review/
+ML/annotations/local_review/
+ML/annotations/reviewed/
+ML/annotations/caption_training/
 __pycache__/
+.DS_Store
 *.pyc
 ML/.venv
+backend/instance/

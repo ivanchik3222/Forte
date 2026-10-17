@@ -19,6 +19,7 @@ def public_ml(app, tmp_path, monkeypatch):
     weights = tmp_path / 'weights.pt'
     weights.write_bytes(b'test')
     monkeypatch.setitem(app.config, 'ML_ENABLED', True)
+    monkeypatch.setitem(app.config, 'ML_ENGINE', 'objects')
     monkeypatch.setitem(app.config, 'ML_WEIGHTS', str(weights))
     monkeypatch.setattr('services.media.probe', lambda *args: 2.0)
     return tmp_path

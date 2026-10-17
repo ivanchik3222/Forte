@@ -1,0 +1,98 @@
+{
+  "exported_tasks": 38,
+  "reviewed_unique_videos": 37,
+  "observations": 92,
+  "empty_reviewed_tasks": [
+    "c9a30d44907e_14.00",
+    "5a6f6a13ef88_33.00"
+  ],
+  "missing_tasks": [
+    "16065504b212_7.00",
+    "7e585e33517f_5.00",
+    "90607b0b0cb7_20.00"
+  ],
+  "structural_errors": 0,
+  "semantic_review_warnings": [
+    {
+      "annotation_id": "05af66ce27b8_13.00:0",
+      "video_ids": [
+        30
+      ],
+      "code": "long_door_transition_check_action_vs_state",
+      "start_sec": 2,
+      "end_sec": 18
+    },
+    {
+      "annotation_id": "bcc277cbf1a3_5.00:3",
+      "video_ids": [
+        32
+      ],
+      "code": "long_door_transition_check_action_vs_state",
+      "start_sec": 3,
+      "end_sec": 21
+    },
+    {
+      "annotation_id": "209e8aaca88d_6.00:2",
+      "video_ids": [
+        33
+      ],
+      "code": "long_door_transition_check_action_vs_state",
+      "start_sec": 2,
+      "end_sec": 14
+    }
+  ],
+  "export_sha256": "ff4ee24bb1a8dba7845a9c7cf8e13d7f6ee0c1de1651a07b0bdb0e90fb989e6a",
+  "per_kind": {
+    "cabinet_door_closing": {
+      "observations": 6,
+      "unique_videos": 6
+    },
+    "cabinet_door_opening": {
+      "observations": 10,
+      "unique_videos": 10
+    },
+    "cash_handling": {
+      "observations": 10,
+      "unique_videos": 6
+    },
+    "cash_on_work_surface": {
+      "observations": 3,
+      "unique_videos": 3
+    },
+    "document_presented": {
+      "observations": 3,
+      "unique_videos": 3
+    },
+    "object_handover": {
+      "observations": 5,
+      "unique_videos": 4
+    },
+    "object_moved_toward_clothing": {
+      "observations": 2,
+      "unique_videos": 2
+    },
+    "other_visible_action": {
+      "observations": 27,
+      "unique_videos": 16
+    },
+    "person_leaves_work_area": {
+      "observations": 21,
+      "unique_videos": 13
+    },
+    "visibility_insufficient": {
+      "observations": 5,
+      "unique_videos": 4
+    }
+  },
+  "reserved_video_ids": [
+    [
+      16
+    ],
+    [
+      17
+    ]
+  ],
+  "development_videos": 38,
+  "generic_observations_are_not_background": true,
+  "empty_reviews_are_not_negatives": true
+}

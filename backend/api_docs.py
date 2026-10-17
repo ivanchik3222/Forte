@@ -259,9 +259,9 @@ def build_spec():
     add('delete', '/api/v1/api-keys/current', 'Отозвать API-ключ', 'Публичный API',
         security=[{'ApiKeyAuth': []}], codes=(204,))
     add('post', '/api/v1/analyze', 'Загрузить видео для анализа по API-ключу', 'Публичный API',
-        obj({'job_id': string(), 'status': string(enum=['processing'])}), upload,
+        {'oneOf': [obj({'job_id': string(), 'status': string(enum=['processing'])}), ref('PublicJob')]}, upload,
         security=[{'ApiKeyAuth': []}], codes=(202,), multipart=True,
-        description='Один файл до 1 ГиБ. Одна активная задача на ключ. Idempotency-Key не используется. Опрос GET /api/v1/jobs/{job_id} каждые 3–5 секунд; дедлайн 300 секунд. Текущая модель выдаёт наблюдения, а не вердикт.')
+        description='X-API-Key, выданный через /api/v1/api-keys, запускает изолированный API-клиент; секрет JURY_API_KEY запускает контракт жюри и reviewed pipeline. GET /api/v1/jobs/{job_id} использует тот же ключ и возвращает соответствующий формат. Один файл до 1 ГиБ; дедлайн 300 секунд.')
     return {
         'openapi': '3.0.3', 'info': {'title': 'Forte Control API', 'version': '1.0.0',
             'description': 'Интерактивная документация backend. JWT: выполните login и вставьте access_token в Authorize без Bearer. '

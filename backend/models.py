@@ -102,11 +102,17 @@ class MediaRecord(db.Model):
         db.CheckConstraint('(owner_id IS NOT NULL AND api_client_id IS NULL) OR (owner_id IS NULL AND api_client_id IS NOT NULL)', name='media_exactly_one_owner'))
 
     def to_dict(self):
-        analysis_status = db.session.query(AnalysisJob.status).filter_by(media_id=self.id).scalar()
+        job = AnalysisJob.query.filter_by(media_id=self.id).first()
+        analysis_status = job.status if job else None
+        result = job.result if job and job.status == 'done' and job.result else {}
+        verdict = result.get('verdict') if result.get('rule_evaluation') == 'performed' else None
+        findings = [dict(type=v['type'],timecode_sec=v['timecode_sec'],description=v['description'],rule=v['rule'],
+                        classification_status=v.get('classification_status','grounded'))
+                    for v in result.get('violations',[])] if verdict else []
         return dict(id=self.id, file_name=self.original_name, file_size=self.size_bytes,
                     duration_sec=self.duration_sec, created_at=_utc_iso(self.created_at),
                     status='stored', analysis_status=analysis_status or 'not_requested',
-                    verdict=None, violations=[])
+                    verdict=verdict, violations=findings)
 
 
 class UploadRequest(db.Model):

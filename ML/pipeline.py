@@ -158,7 +158,8 @@ def metrics(predictions):
 
 
 def run(args):
-    started=time.time();records=manifest(args.data)
+    from training_split import development_records
+    started=time.time();records=development_records(manifest(args.data))
     save_json(ROOT/'annotations/manifest.json',records)
     cache_dir=ROOT/'cache/resnet18_2fps_v1';cache_dir.mkdir(parents=True,exist_ok=True)
     encoder=transform=device=None;cache={}

@@ -1,0 +1,859 @@
+{
+  "date": "2026-10-17",
+  "status": "research_only_insufficient_validated_quality",
+  "hardware": "Apple M4, 16 GB; MPS feature extraction, CPU heads",
+  "bank": {
+    "original_videos": 42,
+    "unique_videos": 40,
+    "positive": 21,
+    "negative": 19,
+    "event_points": 22
+  },
+  "external_video_provenance": {
+    "source": "https://data.mendeley.com/datasets/r3yjf35hzr/1",
+    "mirror": "https://www.kaggle.com/datasets/kipshidze/shoplifting-video-dataset",
+    "mirror_version": 2,
+    "authors": [
+      "Mohd. Aquib Ansari",
+      "Dushyant Kumar Singh"
+    ],
+    "mirror_uploader": "Nick Kipshidze",
+    "doi": "10.17632/r3yjf35hzr.1",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "downloaded_utc": "2026-10-17T14:46:21.520658+00:00",
+    "archive_sha256": "a0bdd10c823642fbb3d217ddaf1e16071e251722914cfe08760ed031302af3df",
+    "archive_bytes": 761143542,
+    "unique_videos": 179,
+    "original_videos": 182,
+    "class_counts": {
+      "normal": 87,
+      "shoplifting": 92
+    },
+    "notes": [
+      "Innovatiana links to this same mirror; do not count it as a second dataset",
+      "Video-level action labels only; not banking rules or temporal intervals"
+    ]
+  },
+  "roboflow": {
+    "images": 259,
+    "unique_decoded_images": 259,
+    "perceptual_groups": 125,
+    "class_counts": {
+      "Register": 150,
+      "Counter": 207,
+      "Customer": 235,
+      "Hand": 171,
+      "Cashier": 79,
+      "Cash": 55,
+      "Gun": 10,
+      "Pocket": 6
+    },
+    "invalid": [],
+    "cross_split_near_duplicate_pairs": 242
+  },
+  "linear_baseline": {
+    "config": {
+      "version": 1,
+      "backbone": "r3d_18_kinetics400_v1",
+      "sample_fps": 4.0,
+      "clip_frames": 16,
+      "stride_sec": 1.0,
+      "image_size": 112,
+      "camera_profile": "forte_open",
+      "roi_xyxy": [
+        0,
+        300,
+        464,
+        661
+      ],
+      "resize": "aspect_preserving_letterbox",
+      "point_radius_sec": 1.0,
+      "threshold": 0.5,
+      "logistic_c": 0.01
+    },
+    "oof_same_scene": {
+      "n_videos": 40,
+      "threshold": 0.5,
+      "precision": 0.5294117647058824,
+      "recall": 0.8571428571428571,
+      "f1": 0.6545454545454545,
+      "accuracy": 0.525,
+      "confusion_matrix_labels_0_1": [
+        [
+          3,
+          16
+        ],
+        [
+          3,
+          18
+        ]
+      ],
+      "roc_auc": 0.3007518796992481,
+      "average_precision": 0.41523387809279694,
+      "localization_mae_positive_videos_sec": 5.285714285714286,
+      "localization_within_2s": 0.6190476190476191,
+      "positive_videos_detected_and_localized_within_2s": 12,
+      "n_positive_videos": 21
+    },
+    "leave_one_scene_group_out": {
+      "n_videos": 40,
+      "threshold": 0.5,
+      "precision": 0.5517241379310345,
+      "recall": 0.7619047619047619,
+      "f1": 0.64,
+      "accuracy": 0.55,
+      "confusion_matrix_labels_0_1": [
+        [
+          6,
+          13
+        ],
+        [
+          5,
+          16
+        ]
+      ],
+      "roc_auc": 0.5639097744360902,
+      "average_precision": 0.6391514582991102,
+      "localization_mae_positive_videos_sec": 5.333333333333333,
+      "localization_within_2s": 0.5238095238095238,
+      "positive_videos_detected_and_localized_within_2s": 9,
+      "n_positive_videos": 21
+    },
+    "appearance_holdout_pink_to_white": {
+      "n_videos": 11,
+      "threshold": 0.5,
+      "precision": 0.75,
+      "recall": 0.5,
+      "f1": 0.6,
+      "accuracy": 0.6363636363636364,
+      "confusion_matrix_labels_0_1": [
+        [
+          4,
+          1
+        ],
+        [
+          3,
+          3
+        ]
+      ],
+      "roc_auc": 0.7666666666666666,
+      "average_precision": 0.8218253968253967,
+      "localization_mae_positive_videos_sec": 2.1666666666666665,
+      "localization_within_2s": 0.8333333333333334,
+      "positive_videos_detected_and_localized_within_2s": 3,
+      "n_positive_videos": 6
+    },
+    "environment": {
+      "python": "3.13.7",
+      "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+      "torch": "2.11.0",
+      "torchvision": "0.26.0",
+      "sklearn": "1.9.1",
+      "device": "mps",
+      "backbone_sha256": "b3b3357ead25631ec9c57362ff2128a92d0427e01e2cd184951a44380c3f2e9d"
+    },
+    "elapsed_sec": 297.06547954100824
+  },
+  "transfer_and_augmentation": {
+    "protocol": {
+      "seed": 42,
+      "hidden_features": 64,
+      "dropout": 0.2,
+      "external_epochs": 100,
+      "bank_epochs": 60,
+      "external_lr": 0.002,
+      "bank_lr": 0.001,
+      "weight_decay": 0.01,
+      "mil_top_fraction": 0.2,
+      "input_normalization": "per-window L2 times sqrt(512); no fitted statistics"
+    },
+    "bank_videos": 40,
+    "external_videos": 179,
+    "results": {
+      "random_init_control": {
+        "oof_same_scene": {
+          "n_videos": 40,
+          "threshold": 0.5,
+          "precision": 0.5151515151515151,
+          "recall": 0.8095238095238095,
+          "f1": 0.6296296296296297,
+          "accuracy": 0.5,
+          "confusion_matrix_labels_0_1": [
+            [
+              3,
+              16
+            ],
+            [
+              4,
+              17
+            ]
+          ],
+          "roc_auc": 0.31829573934837097,
+          "average_precision": 0.4236267931193367,
+          "localization_mae_positive_videos_sec": 6.571428571428571,
+          "localization_within_2s": 0.6666666666666666,
+          "positive_videos_detected_and_localized_within_2s": 12,
+          "n_positive_videos": 21
+        },
+        "leave_one_scene_group_out": {
+          "n_videos": 40,
+          "threshold": 0.5,
+          "precision": 0.5357142857142857,
+          "recall": 0.7142857142857143,
+          "f1": 0.6122448979591837,
+          "accuracy": 0.525,
+          "confusion_matrix_labels_0_1": [
+            [
+              6,
+              13
+            ],
+            [
+              6,
+              15
+            ]
+          ],
+          "roc_auc": 0.556390977443609,
+          "average_precision": 0.6325451215590328,
+          "localization_mae_positive_videos_sec": 5.142857142857143,
+          "localization_within_2s": 0.47619047619047616,
+          "positive_videos_detected_and_localized_within_2s": 7,
+          "n_positive_videos": 21
+        },
+        "appearance_holdout_pink_to_white": {
+          "n_videos": 11,
+          "threshold": 0.5,
+          "precision": 0.75,
+          "recall": 0.5,
+          "f1": 0.6,
+          "accuracy": 0.6363636363636364,
+          "confusion_matrix_labels_0_1": [
+            [
+              4,
+              1
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "roc_auc": 0.6666666666666667,
+          "average_precision": 0.773611111111111,
+          "localization_mae_positive_videos_sec": 6.666666666666667,
+          "localization_within_2s": 0.6666666666666666,
+          "positive_videos_detected_and_localized_within_2s": 3,
+          "n_positive_videos": 6
+        }
+      },
+      "external_pretrained": {
+        "oof_same_scene": {
+          "n_videos": 40,
+          "threshold": 0.5,
+          "precision": 0.5294117647058824,
+          "recall": 0.8571428571428571,
+          "f1": 0.6545454545454545,
+          "accuracy": 0.525,
+          "confusion_matrix_labels_0_1": [
+            [
+              3,
+              16
+            ],
+            [
+              3,
+              18
+            ]
+          ],
+          "roc_auc": 0.431077694235589,
+          "average_precision": 0.4896779704196526,
+          "localization_mae_positive_videos_sec": 6.880952380952381,
+          "localization_within_2s": 0.3333333333333333,
+          "positive_videos_detected_and_localized_within_2s": 6,
+          "n_positive_videos": 21
+        },
+        "leave_one_scene_group_out": {
+          "n_videos": 40,
+          "threshold": 0.5,
+          "precision": 0.5135135135135135,
+          "recall": 0.9047619047619048,
+          "f1": 0.6551724137931034,
+          "accuracy": 0.5,
+          "confusion_matrix_labels_0_1": [
+            [
+              1,
+              18
+            ],
+            [
+              2,
+              19
+            ]
+          ],
+          "roc_auc": 0.5338345864661654,
+          "average_precision": 0.6317087877995007,
+          "localization_mae_positive_videos_sec": 5.833333333333333,
+          "localization_within_2s": 0.3333333333333333,
+          "positive_videos_detected_and_localized_within_2s": 7,
+          "n_positive_videos": 21
+        },
+        "appearance_holdout_pink_to_white": {
+          "n_videos": 11,
+          "threshold": 0.5,
+          "precision": 0.42857142857142855,
+          "recall": 0.5,
+          "f1": 0.46153846153846156,
+          "accuracy": 0.36363636363636365,
+          "confusion_matrix_labels_0_1": [
+            [
+              1,
+              4
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "roc_auc": 0.39999999999999997,
+          "average_precision": 0.5925925925925926,
+          "localization_mae_positive_videos_sec": 8.833333333333334,
+          "localization_within_2s": 0.3333333333333333,
+          "positive_videos_detected_and_localized_within_2s": 1,
+          "n_positive_videos": 6
+        }
+      },
+      "random_init_augmented": {
+        "oof_same_scene": {
+          "n_videos": 40,
+          "threshold": 0.5,
+          "precision": 0.5151515151515151,
+          "recall": 0.8095238095238095,
+          "f1": 0.6296296296296297,
+          "accuracy": 0.5,
+          "confusion_matrix_labels_0_1": [
+            [
+              3,
+              16
+            ],
+            [
+              4,
+              17
+            ]
+          ],
+          "roc_auc": 0.33333333333333337,
+          "average_precision": 0.4291267252859356,
+          "localization_mae_positive_videos_sec": 7.0,
+          "localization_within_2s": 0.5714285714285714,
+          "positive_videos_detected_and_localized_within_2s": 11,
+          "n_positive_videos": 21
+        },
+        "leave_one_scene_group_out": {
+          "n_videos": 40,
+          "threshold": 0.5,
+          "precision": 0.5714285714285714,
+          "recall": 0.7619047619047619,
+          "f1": 0.6530612244897959,
+          "accuracy": 0.575,
+          "confusion_matrix_labels_0_1": [
+            [
+              7,
+              12
+            ],
+            [
+              5,
+              16
+            ]
+          ],
+          "roc_auc": 0.556390977443609,
+          "average_precision": 0.6127394107952296,
+          "localization_mae_positive_videos_sec": 5.0,
+          "localization_within_2s": 0.47619047619047616,
+          "positive_videos_detected_and_localized_within_2s": 8,
+          "n_positive_videos": 21
+        },
+        "appearance_holdout_pink_to_white": {
+          "n_videos": 11,
+          "threshold": 0.5,
+          "precision": 0.6666666666666666,
+          "recall": 0.3333333333333333,
+          "f1": 0.4444444444444444,
+          "accuracy": 0.5454545454545454,
+          "confusion_matrix_labels_0_1": [
+            [
+              4,
+              1
+            ],
+            [
+              4,
+              2
+            ]
+          ],
+          "roc_auc": 0.6333333333333333,
+          "average_precision": 0.7577380952380952,
+          "localization_mae_positive_videos_sec": 7.0,
+          "localization_within_2s": 0.5,
+          "positive_videos_detected_and_localized_within_2s": 2,
+          "n_positive_videos": 6
+        }
+      },
+      "external_pretrained_augmented": {
+        "oof_same_scene": {
+          "n_videos": 40,
+          "threshold": 0.5,
+          "precision": 0.5294117647058824,
+          "recall": 0.8571428571428571,
+          "f1": 0.6545454545454545,
+          "accuracy": 0.525,
+          "confusion_matrix_labels_0_1": [
+            [
+              3,
+              16
+            ],
+            [
+              3,
+              18
+            ]
+          ],
+          "roc_auc": 0.42857142857142855,
+          "average_precision": 0.47693543365510427,
+          "localization_mae_positive_videos_sec": 6.738095238095238,
+          "localization_within_2s": 0.38095238095238093,
+          "positive_videos_detected_and_localized_within_2s": 6,
+          "n_positive_videos": 21
+        },
+        "leave_one_scene_group_out": {
+          "n_videos": 40,
+          "threshold": 0.5,
+          "precision": 0.5135135135135135,
+          "recall": 0.9047619047619048,
+          "f1": 0.6551724137931034,
+          "accuracy": 0.5,
+          "confusion_matrix_labels_0_1": [
+            [
+              1,
+              18
+            ],
+            [
+              2,
+              19
+            ]
+          ],
+          "roc_auc": 0.531328320802005,
+          "average_precision": 0.6375327166934084,
+          "localization_mae_positive_videos_sec": 5.690476190476191,
+          "localization_within_2s": 0.3333333333333333,
+          "positive_videos_detected_and_localized_within_2s": 7,
+          "n_positive_videos": 21
+        },
+        "appearance_holdout_pink_to_white": {
+          "n_videos": 11,
+          "threshold": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "accuracy": 0.45454545454545453,
+          "confusion_matrix_labels_0_1": [
+            [
+              2,
+              3
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "roc_auc": 0.39999999999999997,
+          "average_precision": 0.5925925925925926,
+          "localization_mae_positive_videos_sec": 6.833333333333333,
+          "localization_within_2s": 0.6666666666666666,
+          "positive_videos_detected_and_localized_within_2s": 2,
+          "n_positive_videos": 6
+        }
+      }
+    },
+    "elapsed_sec": 2.8275141250051092,
+    "backbone_frozen": true,
+    "automatic_production_replacement": false
+  },
+  "external_validation": {
+    "videos": 36,
+    "precision": 0.9333333333333333,
+    "recall": 0.7368421052631579,
+    "f1": 0.8235294117647058,
+    "roc_auc": 0.9102167182662538,
+    "confusion_matrix_labels_0_1": [
+      [
+        16,
+        1
+      ],
+      [
+        5,
+        14
+      ]
+    ],
+    "limitation": "Deduplicated video split; actors/scenes are not independently held out"
+  },
+  "naive_always_positive": {
+    "precision": 0.525,
+    "recall": 1.0,
+    "f1": 0.6885245901639344,
+    "false_positive_videos": 19
+  },
+  "automatic_violation_detection": false,
+  "production_model_changed": false,
+  "local_review": {
+    "queue_windows": 41,
+    "completed_windows": 41,
+    "schema_valid_windows": 41,
+    "confirmed_action_annotations": 0,
+    "model": "Qwen3-VL-4B-Instruct / MLX 4-bit",
+    "revision": "2fd8dacbdb8f1e54b8c005f081ec5bf79c56376b",
+    "model_sha256": "90eeb02604181dbcccd0a30a1f550a4a8928ca7dcbee4aee1449239306cfdfca",
+    "status": "machine_proposals_ready_for_human_review",
+    "machine_proposals_used_for_training": false,
+    "observation_counts": {
+      "other_visible_action": 26,
+      "object_handover": 7,
+      "cash_handling": 10,
+      "person_leaves_work_area": 39,
+      "visibility_insufficient": 5,
+      "object_moved_toward_clothing": 11,
+      "cabinet_door_opening": 11,
+      "document_presented": 3,
+      "cash_on_work_surface": 4,
+      "cabinet_door_closing": 8,
+      "object_moved_into_bag": 4
+    },
+    "accepted_attempts_elapsed_sec": 762.0653686270089,
+    "peak_mlx_memory_gb": 4.23,
+    "review_page": "ML/annotations/local_review/index.html"
+  },
+  "hard_negative_exploratory": {
+    "protocol": {
+      "seed": 42,
+      "hidden_features": 64,
+      "dropout": 0.2,
+      "external_epochs": 100,
+      "bank_epochs": 60,
+      "external_lr": 0.002,
+      "bank_lr": 0.001,
+      "weight_decay": 0.01,
+      "mil_top_fraction": 0.2,
+      "hard_negative_fraction": 0.2,
+      "input_normalization": "per-window L2 times sqrt(512); no fitted statistics"
+    },
+    "bank_videos": 40,
+    "external_videos": 179,
+    "results": {
+      "random_init_control": {
+        "oof_same_scene": {
+          "n_videos": 40,
+          "threshold": 0.5,
+          "precision": 0.4444444444444444,
+          "recall": 0.5714285714285714,
+          "f1": 0.5,
+          "accuracy": 0.4,
+          "confusion_matrix_labels_0_1": [
+            [
+              4,
+              15
+            ],
+            [
+              9,
+              12
+            ]
+          ],
+          "roc_auc": 0.24060150375939848,
+          "average_precision": 0.39258132639805177,
+          "localization_mae_positive_videos_sec": 5.476190476190476,
+          "localization_within_2s": 0.6190476190476191,
+          "positive_videos_detected_and_localized_within_2s": 9,
+          "n_positive_videos": 21
+        },
+        "leave_one_scene_group_out": {
+          "n_videos": 40,
+          "threshold": 0.5,
+          "precision": 0.5454545454545454,
+          "recall": 0.5714285714285714,
+          "f1": 0.5581395348837209,
+          "accuracy": 0.525,
+          "confusion_matrix_labels_0_1": [
+            [
+              9,
+              10
+            ],
+            [
+              9,
+              12
+            ]
+          ],
+          "roc_auc": 0.5263157894736843,
+          "average_precision": 0.6006894931699336,
+          "localization_mae_positive_videos_sec": 5.0,
+          "localization_within_2s": 0.47619047619047616,
+          "positive_videos_detected_and_localized_within_2s": 5,
+          "n_positive_videos": 21
+        },
+        "appearance_holdout_pink_to_white": {
+          "n_videos": 11,
+          "threshold": 0.5,
+          "precision": 0.6666666666666666,
+          "recall": 0.3333333333333333,
+          "f1": 0.4444444444444444,
+          "accuracy": 0.5454545454545454,
+          "confusion_matrix_labels_0_1": [
+            [
+              4,
+              1
+            ],
+            [
+              4,
+              2
+            ]
+          ],
+          "roc_auc": 0.5666666666666667,
+          "average_precision": 0.7160714285714285,
+          "localization_mae_positive_videos_sec": 7.0,
+          "localization_within_2s": 0.5,
+          "positive_videos_detected_and_localized_within_2s": 2,
+          "n_positive_videos": 6
+        }
+      },
+      "external_pretrained": {
+        "oof_same_scene": {
+          "n_videos": 40,
+          "threshold": 0.5,
+          "precision": 0.375,
+          "recall": 0.14285714285714285,
+          "f1": 0.20689655172413793,
+          "accuracy": 0.425,
+          "confusion_matrix_labels_0_1": [
+            [
+              14,
+              5
+            ],
+            [
+              18,
+              3
+            ]
+          ],
+          "roc_auc": 0.40726817042606517,
+          "average_precision": 0.48434301614550834,
+          "localization_mae_positive_videos_sec": 10.333333333333334,
+          "localization_within_2s": 0.14285714285714285,
+          "positive_videos_detected_and_localized_within_2s": 1,
+          "n_positive_videos": 21
+        },
+        "leave_one_scene_group_out": {
+          "n_videos": 40,
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.047619047619047616,
+          "f1": 0.09090909090909091,
+          "accuracy": 0.5,
+          "confusion_matrix_labels_0_1": [
+            [
+              19,
+              0
+            ],
+            [
+              20,
+              1
+            ]
+          ],
+          "roc_auc": 0.5175438596491229,
+          "average_precision": 0.6154817171623894,
+          "localization_mae_positive_videos_sec": 10.619047619047619,
+          "localization_within_2s": 0.14285714285714285,
+          "positive_videos_detected_and_localized_within_2s": 0,
+          "n_positive_videos": 21
+        },
+        "appearance_holdout_pink_to_white": {
+          "n_videos": 11,
+          "threshold": 0.5,
+          "precision": 0.4,
+          "recall": 0.3333333333333333,
+          "f1": 0.36363636363636365,
+          "accuracy": 0.36363636363636365,
+          "confusion_matrix_labels_0_1": [
+            [
+              2,
+              3
+            ],
+            [
+              4,
+              2
+            ]
+          ],
+          "roc_auc": 0.23333333333333328,
+          "average_precision": 0.4449134199134199,
+          "localization_mae_positive_videos_sec": 9.666666666666666,
+          "localization_within_2s": 0.3333333333333333,
+          "positive_videos_detected_and_localized_within_2s": 0,
+          "n_positive_videos": 6
+        }
+      },
+      "random_init_augmented": {
+        "oof_same_scene": {
+          "n_videos": 40,
+          "threshold": 0.5,
+          "precision": 0.4,
+          "recall": 0.47619047619047616,
+          "f1": 0.43478260869565216,
+          "accuracy": 0.35,
+          "confusion_matrix_labels_0_1": [
+            [
+              4,
+              15
+            ],
+            [
+              11,
+              10
+            ]
+          ],
+          "roc_auc": 0.24812030075187969,
+          "average_precision": 0.3945562961425566,
+          "localization_mae_positive_videos_sec": 5.476190476190476,
+          "localization_within_2s": 0.6190476190476191,
+          "positive_videos_detected_and_localized_within_2s": 8,
+          "n_positive_videos": 21
+        },
+        "leave_one_scene_group_out": {
+          "n_videos": 40,
+          "threshold": 0.5,
+          "precision": 0.5238095238095238,
+          "recall": 0.5238095238095238,
+          "f1": 0.5238095238095238,
+          "accuracy": 0.5,
+          "confusion_matrix_labels_0_1": [
+            [
+              9,
+              10
+            ],
+            [
+              10,
+              11
+            ]
+          ],
+          "roc_auc": 0.531328320802005,
+          "average_precision": 0.6002731617813521,
+          "localization_mae_positive_videos_sec": 3.5714285714285716,
+          "localization_within_2s": 0.47619047619047616,
+          "positive_videos_detected_and_localized_within_2s": 5,
+          "n_positive_videos": 21
+        },
+        "appearance_holdout_pink_to_white": {
+          "n_videos": 11,
+          "threshold": 0.5,
+          "precision": 0.6666666666666666,
+          "recall": 0.3333333333333333,
+          "f1": 0.4444444444444444,
+          "accuracy": 0.5454545454545454,
+          "confusion_matrix_labels_0_1": [
+            [
+              4,
+              1
+            ],
+            [
+              4,
+              2
+            ]
+          ],
+          "roc_auc": 0.5333333333333333,
+          "average_precision": 0.7044973544973544,
+          "localization_mae_positive_videos_sec": 7.166666666666667,
+          "localization_within_2s": 0.5,
+          "positive_videos_detected_and_localized_within_2s": 2,
+          "n_positive_videos": 6
+        }
+      },
+      "external_pretrained_augmented": {
+        "oof_same_scene": {
+          "n_videos": 40,
+          "threshold": 0.5,
+          "precision": 0.3333333333333333,
+          "recall": 0.14285714285714285,
+          "f1": 0.2,
+          "accuracy": 0.4,
+          "confusion_matrix_labels_0_1": [
+            [
+              13,
+              6
+            ],
+            [
+              18,
+              3
+            ]
+          ],
+          "roc_auc": 0.4486215538847118,
+          "average_precision": 0.49516596857356054,
+          "localization_mae_positive_videos_sec": 9.666666666666666,
+          "localization_within_2s": 0.19047619047619047,
+          "positive_videos_detected_and_localized_within_2s": 1,
+          "n_positive_videos": 21
+        },
+        "leave_one_scene_group_out": {
+          "n_videos": 40,
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.047619047619047616,
+          "f1": 0.09090909090909091,
+          "accuracy": 0.5,
+          "confusion_matrix_labels_0_1": [
+            [
+              19,
+              0
+            ],
+            [
+              20,
+              1
+            ]
+          ],
+          "roc_auc": 0.5563909774436091,
+          "average_precision": 0.5973429819885794,
+          "localization_mae_positive_videos_sec": 8.80952380952381,
+          "localization_within_2s": 0.19047619047619047,
+          "positive_videos_detected_and_localized_within_2s": 0,
+          "n_positive_videos": 21
+        },
+        "appearance_holdout_pink_to_white": {
+          "n_videos": 11,
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "accuracy": 0.45454545454545453,
+          "confusion_matrix_labels_0_1": [
+            [
+              5,
+              0
+            ],
+            [
+              6,
+              0
+            ]
+          ],
+          "roc_auc": 0.3333333333333333,
+          "average_precision": 0.5083333333333333,
+          "localization_mae_positive_videos_sec": 12.166666666666666,
+          "localization_within_2s": 0.0,
+          "positive_videos_detected_and_localized_within_2s": 0,
+          "n_positive_videos": 6
+        }
+      }
+    },
+    "elapsed_sec": 9.598005874999217,
+    "backbone_frozen": true,
+    "automatic_production_replacement": false
+  },
+  "smoke_inference": {
+    "candidate_status": "candidates_found",
+    "automatic_violation_detection": false,
+    "source_seen_during_training": true,
+    "duration_sec": 25.9,
+    "device": "mps",
+    "elapsed_sec": 5.3003284170117695
+  },
+  "verification": {
+    "unit_tests_passed": 10,
+    "offline_mps_inference": true,
+    "git_diff_check": true
+  }
+}

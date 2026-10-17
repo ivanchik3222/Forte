@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 from datetime import timedelta
 
@@ -57,6 +58,16 @@ class Config:
     ML_ROOT = str(Path(BACKEND_DIR).parent / 'ML')
     ML_WEIGHTS = os.environ.get('ML_WEIGHTS', str(Path(BACKEND_DIR).parent / 'ML/deployment/cash_detector.pt'))
     ML_ENABLED = os.environ.get('ML_ENABLED', 'true').lower() == 'true'
+    ML_ENGINE = os.environ.get('ML_ENGINE', 'reviewed_pipeline')
+    ML_AUTO_ANALYZE = os.environ.get('ML_AUTO_ANALYZE', 'true').lower() == 'true'
+    ML_REVIEWED_BUNDLE = os.environ.get('ML_REVIEWED_BUNDLE', str(Path(ML_ROOT) / 'deployment/reviewed/model_bundle.json'))
+    ML_REVIEWED_BACKBONE = os.environ.get('ML_REVIEWED_BACKBONE', str(Path(ML_ROOT) / 'models/r3d_18-b3b3357e.pth'))
+    _local_ml_python = Path(ML_ROOT) / ('.venv/Scripts/python.exe' if os.name == 'nt' else '.venv/bin/python')
+    ML_REVIEWED_PYTHON = os.environ.get('ML_REVIEWED_PYTHON', str(_local_ml_python) if _local_ml_python.is_file() else sys.executable)
+    ML_VLM_PYTHON = os.environ.get('ML_VLM_PYTHON', str(Path(BACKEND_DIR).parent / 'ML/.venv-review/bin/python'))
+    ML_VLM_ADAPTER = os.environ.get('ML_VLM_ADAPTER') or None
+    ML_VLM_MODEL_SIZE = os.environ.get('ML_VLM_MODEL_SIZE', '4b')
+    ML_VLM_INPUT_MODE = os.environ.get('ML_VLM_INPUT_MODE', 'images')
     ML_DEVICE = os.environ.get('ML_DEVICE') or None
     ML_JOB_TIMEOUT = 300
     ML_QUEUE_LIMIT = 20
@@ -65,6 +76,8 @@ class Config:
     API_KEY_GLOBAL_ISSUE_LIMIT = 100
     API_UPLOAD_IP_LIMIT = 10
     API_JOB_DEADLINE = 300
+    JURY_API_KEY = os.environ.get('JURY_API_KEY', '')
+    JURY_API_KEY_FILE = os.environ.get('JURY_API_KEY_FILE', str(Path(BACKEND_DIR)/'instance/jury-api-key.txt'))
 
 
 class DevelopmentConfig(Config):

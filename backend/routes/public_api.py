@@ -5,11 +5,11 @@ import secrets
 from datetime import timedelta
 from flask import Blueprint, current_app, g, jsonify, request
 from filelock import FileLock, Timeout
-from models import db, ApiClient, MediaRecord, AnalysisJob, utcnow, as_utc, _utc_iso
-from services.api_keys import api_key_required, key_digest
+from models import db, ApiClient, MediaRecord, AnalysisJob, utcnow, as_utc, _utc_iso, uid
+from services.api_keys import authenticate_key, api_key_required, key_digest
 from services.security import throttle
 from services.media import root, _save_upload
-from services.analysis import available, expire_pending_api_jobs
+from services.analysis import available, enqueue_job, expire_pending_api_jobs
 from utils.errors import ApiError
 
 public_api_bp = Blueprint('public_api', __name__)
@@ -35,9 +35,30 @@ def revoke_key():
     return '', 204
 
 
+def _jury_analyze():
+    from services.jury import authenticate, response
+    from services.analysis import available
+    from services.media import save_upload
+    authenticate(create=True)
+    if current_app.config['ML_ENGINE'] != 'reviewed_pipeline' or not available():
+        raise ApiError(503,'analysis_unavailable','Для API жюри требуется полный локальный анализ с проверкой правил.')
+    if AnalysisJob.query.filter(AnalysisJob.status.in_(['queued','processing'])).count():
+        raise ApiError(429,'analysis_busy','Модель занята. Повторите после завершения текущего анализа.')
+    record,_ = save_upload(request.headers.get('Idempotency-Key') or uid())
+    job,status = enqueue_job(record.id,'full_frame',retry_failed=False,require_idle=True)
+    return jsonify(response(job)),status
+
+
 @public_api_bp.post('/analyze')
-@api_key_required
 def analyze():
+    # Preserve the registered client-key API and the jury contract on one URL.
+    # Database-issued client keys are routed to the legacy isolated-upload flow;
+    # all other keys must match the configured jury secret.
+    key = request.headers.get('X-API-Key', '')
+    client = ApiClient.query.filter_by(key_hash=key_digest(key)).first() if 20 <= len(key) <= 128 else None
+    if client is None:
+        return _jury_analyze()
+    authenticate_key()
     if not available():
         raise ApiError(503, 'analysis_unavailable', 'Локальная модель недоступна.')
     throttle(request.remote_addr or 'unknown', 'api-upload-ip', current_app.config['API_UPLOAD_IP_LIMIT'])

@@ -1,0 +1,485 @@
+{
+  "status": "research_only_requires_review",
+  "development_videos": 38,
+  "positive_videos": 20,
+  "negative_videos": 18,
+  "confirmed_development_observations": 87,
+  "specific_action_observations": 56,
+  "generic_or_visibility_not_used_for_action_training": 31,
+  "split": {
+    "version": 1,
+    "name": "bank_future_test_v1",
+    "holdout_source_hashes": [
+      "0378b8026b2e6afd1775a5d0fdd12dd09c491785b626e9c20428f7dc6bd59364",
+      "3f516431cf37e3900b7eae857a7b09be258f485702ab56bc6e5b6129103f1fa5"
+    ],
+    "development_source_hashes": [
+      "05af66ce27b83d7c10c5d33b6f1847ec042c01ed21afdcbd43a13abcefd28199",
+      "16065504b21260bff18698c7bbf048ffa356c9de43d43b92643b6c2eddedac0f",
+      "1f5840bff58f298e89c4afa00cb1c18f6dafc5c4096c251d9b507604ebefe906",
+      "209e8aaca88df59064e5f28b3bcc489fee3eea9eb920889b69c03c83d52430c6",
+      "21468fcef4ea5f45ce7d465e620f84e09c8b50314f4ecdc06f69224c701b3a5b",
+      "26430119e074d6f0eb5dbc7ec3e26bbc31cf18903265bb4372bd7d7104908640",
+      "39e28d7be01cdb090ede1881ce3ef704fa413271deb69d6735c1953f340d6069",
+      "524bf9ff2d5e81211dbbeff73129dbb5f3a5e5e35a64f443f53e16b1c2d471c7",
+      "5385be9420e6a70547d6bcfd0b13d60f9c0738877645afa277d09550a96b8445",
+      "57a0e46c7a45f0e831f61d9c80722fefe4b74dbcfe1d3031ff58307d481f9a5c",
+      "5a6f6a13ef88191ec1d9a2a303f1be74d16aa3381a57aaadba8850aac715ff10",
+      "66fc5d28c2371592f9260305589bdc86636fdd2ebe7a7ec976eec00a23d43df4",
+      "69caf59620fcd80bedcb664514730ab38f2f800da27000a8e037d7440be5dc7a",
+      "6a53e10acdcf52396ad5b1697eead32d8322c0911d792523a5c33fe5b388f4e7",
+      "6a81739ced0efdcd4a4feb76ea16562a20ceb53a2232a801528716c450366c9f",
+      "6a9fa7dd2e6db4cbe57f3c96a6cb256f23c04aa4e6fd44622fdf5de662cc0649",
+      "7d6890ecb4a2b28bbdd3b61b6711566eee84a53ab3439c40cd9b6a3a6714c681",
+      "7e585e33517f7258bd2d1ed3e139556609bc997bb07b78355555060ef193b77a",
+      "8911a9219b9433091824e553a70bb80335f075fd8ac982d2062d2ecf023c16bc",
+      "901f61cf1a1b8754dda56466308c19fc203a1a4c0e85d1e7827849d34e2d52f0",
+      "90607b0b0cb772fcf29b0c7e0e56fa6af36da6fac0efe93b8a616b5de94a156c",
+      "955755baf54418b48ea645dcd98e7e8dcca1d1e227e9b286a9427062db304fd4",
+      "9774ed882153af3ba1a7e71c9b9249619e2b3a97ae336aad6143369802ca3522",
+      "9932ae0a10d3b9371bf52ea558dc19092fcf47adcd275a73a52a56b95464bca6",
+      "a37930cf119bb691be77d8624b18333b04d9c67066a7f4627d63e3208dfa6057",
+      "ac4cf04844c0aa08a5e19f5f7fe984f1477943294922d6ef77bdc5b88b97160e",
+      "b3a954a5b761ad47943e061599315e3fe9d22573eeb92bb14bf315cdcd422fc5",
+      "b637677ef5a7f0fa54d9f116ce6493cf74a4c99b8149a9c9916b96ef257535bd",
+      "b9bfb76ac8ea47eb368fc78a2f6370e4d98e79185972f63cf301ee22f12b5941",
+      "bcc277cbf1a36245156b2bb9a0e0b826432390b42040c0b82201a8c21ab23ce9",
+      "c175a683749401d5a9ecf6f1c188b64fa8a09543f41482c1e4eb2232255715d3",
+      "c9a30d44907e4a41b3a8ccf101774cd2e0804de20927bfbc9e1ccba1f2326b78",
+      "d15ef04bcfae571bd2d7fc4e4d709ba595ae19f44136a43e7277f17e7b6e5b6d",
+      "d3d21494d74e40a7586fe4f6164e515f6621a2d413538c4e15c67d394e85fc2d",
+      "deeeee54539fb894b17447296bd7f0807b9dc662bad9af4dcd27f4fbdd677187",
+      "e3a00b6e0f38b1d9b5498140f14906c71e204359262a90ce7a9974d64bf081e9",
+      "efd876a04224cac781ac64bf5d6e107ded67340b7b7715fd9ca3408b240a1075",
+      "f3e351bea71150f4e8c76e2c8f0656a4e92063319d7cd39e264078c5ba9139c3"
+    ],
+    "holdout_videos": [
+      {
+        "video_ids": [
+          16
+        ],
+        "source_sha256": "3f516431cf37e3900b7eae857a7b09be258f485702ab56bc6e5b6129103f1fa5",
+        "filename": "Х-16.mov",
+        "bank_label": 0
+      },
+      {
+        "video_ids": [
+          17
+        ],
+        "source_sha256": "0378b8026b2e6afd1775a5d0fdd12dd09c491785b626e9c20428f7dc6bd59364",
+        "filename": "Х-17.mov",
+        "bank_label": 1
+      }
+    ],
+    "held_scene_groups": [
+      "green_bag"
+    ],
+    "selection": "Complete green_bag scene group; one bank-positive and one bank-negative; no prediction-based selection",
+    "historical_contamination": "Earlier experiments used all bank videos. This reservation applies to fresh subsequent training, not a previously unseen historical test.",
+    "evaluation_status": "reserved_not_evaluated",
+    "policy": "No train/validation/threshold selection/augmentation on these source hashes or their copies"
+  },
+  "results": {
+    "bank_only": {
+      "events_development_scene_cv": {
+        "n_videos": 38,
+        "threshold": 0.5,
+        "precision": 0.6521739130434783,
+        "recall": 0.75,
+        "f1": 0.6976744186046512,
+        "accuracy": 0.6578947368421053,
+        "confusion_matrix_labels_0_1": [
+          [
+            10,
+            8
+          ],
+          [
+            5,
+            15
+          ]
+        ],
+        "roc_auc": 0.5861111111111111,
+        "average_precision": 0.5820044793809124,
+        "localization_mae_positive_videos_sec": 3.5,
+        "localization_within_2s": 0.65,
+        "positive_videos_detected_and_localized_within_2s": 11,
+        "n_positive_videos": 20,
+        "balanced_accuracy": 0.6527777777777778
+      },
+      "actions_development_scene_cv": {
+        "annotated_windows": 0,
+        "sources": 0
+      }
+    },
+    "bank_only_augmented": {
+      "events_development_scene_cv": {
+        "n_videos": 38,
+        "threshold": 0.5,
+        "precision": 0.5714285714285714,
+        "recall": 0.6,
+        "f1": 0.5853658536585366,
+        "accuracy": 0.5526315789473685,
+        "confusion_matrix_labels_0_1": [
+          [
+            9,
+            9
+          ],
+          [
+            8,
+            12
+          ]
+        ],
+        "roc_auc": 0.5888888888888889,
+        "average_precision": 0.6197560611642448,
+        "localization_mae_positive_videos_sec": 3.75,
+        "localization_within_2s": 0.6,
+        "positive_videos_detected_and_localized_within_2s": 7,
+        "n_positive_videos": 20,
+        "balanced_accuracy": 0.55
+      },
+      "actions_development_scene_cv": {
+        "annotated_windows": 0,
+        "sources": 0
+      }
+    },
+    "human_auxiliary": {
+      "events_development_scene_cv": {
+        "n_videos": 38,
+        "threshold": 0.5,
+        "precision": 0.6086956521739131,
+        "recall": 0.7,
+        "f1": 0.6511627906976745,
+        "accuracy": 0.6052631578947368,
+        "confusion_matrix_labels_0_1": [
+          [
+            9,
+            9
+          ],
+          [
+            6,
+            14
+          ]
+        ],
+        "roc_auc": 0.575,
+        "average_precision": 0.5755613278620244,
+        "localization_mae_positive_videos_sec": 4.15,
+        "localization_within_2s": 0.65,
+        "positive_videos_detected_and_localized_within_2s": 10,
+        "n_positive_videos": 20,
+        "balanced_accuracy": 0.6
+      },
+      "actions_development_scene_cv": {
+        "annotated_windows": 223,
+        "sources": 27,
+        "top1_known_label_hit_rate": 0.17937219730941703,
+        "source_balanced_top1_hit_rate": 0.21392958892958894,
+        "source_balanced_frequency_baseline": 0.13024013024013023,
+        "top3_known_label_hit_rate": 0.6905829596412556,
+        "windows_without_supported_train_label": 36,
+        "per_known_kind": {
+          "cash_handling": {
+            "windows": 42,
+            "sources": 6,
+            "top1_retrieval_rate": 0.023809523809523808,
+            "top3_retrieval_rate": 0.8571428571428571
+          },
+          "cash_on_work_surface": {
+            "windows": 11,
+            "sources": 3,
+            "top1_retrieval_rate": 0.0,
+            "top3_retrieval_rate": 0.18181818181818182
+          },
+          "object_handover": {
+            "windows": 13,
+            "sources": 2,
+            "top1_retrieval_rate": 0.0,
+            "top3_retrieval_rate": 0.0
+          },
+          "object_moved_toward_clothing": {
+            "windows": 6,
+            "sources": 2,
+            "top1_retrieval_rate": 0.0,
+            "top3_retrieval_rate": 0.0
+          },
+          "cabinet_door_opening": {
+            "windows": 72,
+            "sources": 10,
+            "top1_retrieval_rate": 0.2777777777777778,
+            "top3_retrieval_rate": 0.8472222222222222
+          },
+          "cabinet_door_closing": {
+            "windows": 18,
+            "sources": 6,
+            "top1_retrieval_rate": 0.0,
+            "top3_retrieval_rate": 0.0
+          },
+          "person_leaves_work_area": {
+            "windows": 76,
+            "sources": 12,
+            "top1_retrieval_rate": 0.25,
+            "top3_retrieval_rate": 0.8421052631578947
+          },
+          "document_presented": {
+            "windows": 11,
+            "sources": 2,
+            "top1_retrieval_rate": 0.0,
+            "top3_retrieval_rate": 0.0
+          }
+        },
+        "interpretation": "Conditional known-action retrieval on annotated windows only. Not full-video detection precision/recall."
+      }
+    },
+    "human_auxiliary_augmented": {
+      "events_development_scene_cv": {
+        "n_videos": 38,
+        "threshold": 0.5,
+        "precision": 0.5714285714285714,
+        "recall": 0.6,
+        "f1": 0.5853658536585366,
+        "accuracy": 0.5526315789473685,
+        "confusion_matrix_labels_0_1": [
+          [
+            9,
+            9
+          ],
+          [
+            8,
+            12
+          ]
+        ],
+        "roc_auc": 0.5805555555555556,
+        "average_precision": 0.5953652496161751,
+        "localization_mae_positive_videos_sec": 4.3,
+        "localization_within_2s": 0.6,
+        "positive_videos_detected_and_localized_within_2s": 7,
+        "n_positive_videos": 20,
+        "balanced_accuracy": 0.55
+      },
+      "actions_development_scene_cv": {
+        "annotated_windows": 223,
+        "sources": 27,
+        "top1_known_label_hit_rate": 0.18385650224215247,
+        "source_balanced_top1_hit_rate": 0.1825905575905576,
+        "source_balanced_frequency_baseline": 0.13024013024013023,
+        "top3_known_label_hit_rate": 0.695067264573991,
+        "windows_without_supported_train_label": 36,
+        "per_known_kind": {
+          "cash_handling": {
+            "windows": 42,
+            "sources": 6,
+            "top1_retrieval_rate": 0.0,
+            "top3_retrieval_rate": 0.8333333333333334
+          },
+          "cash_on_work_surface": {
+            "windows": 11,
+            "sources": 3,
+            "top1_retrieval_rate": 0.0,
+            "top3_retrieval_rate": 0.18181818181818182
+          },
+          "object_handover": {
+            "windows": 13,
+            "sources": 2,
+            "top1_retrieval_rate": 0.0,
+            "top3_retrieval_rate": 0.0
+          },
+          "object_moved_toward_clothing": {
+            "windows": 6,
+            "sources": 2,
+            "top1_retrieval_rate": 0.0,
+            "top3_retrieval_rate": 0.0
+          },
+          "cabinet_door_opening": {
+            "windows": 72,
+            "sources": 10,
+            "top1_retrieval_rate": 0.2638888888888889,
+            "top3_retrieval_rate": 0.8194444444444444
+          },
+          "cabinet_door_closing": {
+            "windows": 18,
+            "sources": 6,
+            "top1_retrieval_rate": 0.0,
+            "top3_retrieval_rate": 0.0
+          },
+          "person_leaves_work_area": {
+            "windows": 76,
+            "sources": 12,
+            "top1_retrieval_rate": 0.2894736842105263,
+            "top3_retrieval_rate": 0.868421052631579
+          },
+          "document_presented": {
+            "windows": 11,
+            "sources": 2,
+            "top1_retrieval_rate": 0.0,
+            "top3_retrieval_rate": 0.0
+          }
+        },
+        "interpretation": "Conditional known-action retrieval on annotated windows only. Not full-video detection precision/recall."
+      }
+    }
+  },
+  "selected_candidate_variant": "bank_only",
+  "selected_action_variant": "actions_linear_augmented",
+  "elapsed_sec": 3.7022527090011863,
+  "automatic_production_replacement": false,
+  "reserved_test_evaluated": false,
+  "limitations": [
+    "Research candidates only; not a legal verdict or a calibrated violation probability",
+    "Action scores are conditional ranks among annotated actions, not probabilities of their occurrence",
+    "Partial annotations: unknown actions can be missing even inside annotated windows",
+    "Generic actions and visibility flags are not negative/background examples",
+    "Only 38 development videos from one camera; no independent new-camera validation",
+    "Two reserved videos excluded from every new fit/validation; historical models previously used them",
+    "Backbone frozen at Kinetics400 weights; only a 64-unit shared adapter and heads are trained",
+    "Four-second symmetric context; not a causal early-warning or intent model",
+    "Small cash/documents at 112px per view can be unrecognizable",
+    "Some action classes have only two source videos; a missing suggestion does not prove absence",
+    "Development metrics are used for selection and are not an independent final quality estimate"
+  ],
+  "action_only_followup": {
+    "protocol": {
+      "seed": 42,
+      "epochs": 200,
+      "learning_rate": 0.01,
+      "l2_coefficient": 0.05,
+      "standard_deviation_floor": 0.01,
+      "class_balance": "equal target mass over known train labels",
+      "objective": "conditional classification on human windows; no event loss or background class",
+      "selection": "development source-balanced top1 known-label hit rate; no reserved-test evaluation"
+    },
+    "results": {
+      "actions_linear": {
+        "metrics": {
+          "annotated_windows": 223,
+          "sources": 27,
+          "top1_known_label_hit_rate": 0.336322869955157,
+          "source_balanced_top1_hit_rate": 0.2710287201300273,
+          "source_balanced_frequency_baseline": 0.13024013024013023,
+          "top3_known_label_hit_rate": 0.6322869955156951,
+          "windows_without_supported_train_label": 36,
+          "per_known_kind": {
+            "cash_handling": {
+              "windows": 42,
+              "sources": 6,
+              "top1_retrieval_rate": 0.11904761904761904,
+              "top3_retrieval_rate": 0.8571428571428571
+            },
+            "cash_on_work_surface": {
+              "windows": 11,
+              "sources": 3,
+              "top1_retrieval_rate": 0.0,
+              "top3_retrieval_rate": 0.2727272727272727
+            },
+            "object_handover": {
+              "windows": 13,
+              "sources": 2,
+              "top1_retrieval_rate": 0.0,
+              "top3_retrieval_rate": 0.0
+            },
+            "object_moved_toward_clothing": {
+              "windows": 6,
+              "sources": 2,
+              "top1_retrieval_rate": 0.0,
+              "top3_retrieval_rate": 0.0
+            },
+            "cabinet_door_opening": {
+              "windows": 72,
+              "sources": 10,
+              "top1_retrieval_rate": 0.5972222222222222,
+              "top3_retrieval_rate": 0.7916666666666666
+            },
+            "cabinet_door_closing": {
+              "windows": 18,
+              "sources": 6,
+              "top1_retrieval_rate": 0.0,
+              "top3_retrieval_rate": 0.0
+            },
+            "person_leaves_work_area": {
+              "windows": 76,
+              "sources": 12,
+              "top1_retrieval_rate": 0.35526315789473684,
+              "top3_retrieval_rate": 0.6842105263157895
+            },
+            "document_presented": {
+              "windows": 11,
+              "sources": 2,
+              "top1_retrieval_rate": 0.0,
+              "top3_retrieval_rate": 0.0
+            }
+          },
+          "interpretation": "Conditional known-action retrieval on annotated windows only. Not full-video detection precision/recall."
+        },
+        "artifact": {
+          "file": "actions_linear.npz",
+          "sha256": "904450e0a5a85e0ce67eb473e9c747f995798efc4858f31f6f39686596db6725"
+        }
+      },
+      "actions_linear_augmented": {
+        "metrics": {
+          "annotated_windows": 223,
+          "sources": 27,
+          "top1_known_label_hit_rate": 0.3452914798206278,
+          "source_balanced_top1_hit_rate": 0.28304371131168515,
+          "source_balanced_frequency_baseline": 0.13024013024013023,
+          "top3_known_label_hit_rate": 0.6547085201793722,
+          "windows_without_supported_train_label": 36,
+          "per_known_kind": {
+            "cash_handling": {
+              "windows": 42,
+              "sources": 6,
+              "top1_retrieval_rate": 0.09523809523809523,
+              "top3_retrieval_rate": 0.9523809523809523
+            },
+            "cash_on_work_surface": {
+              "windows": 11,
+              "sources": 3,
+              "top1_retrieval_rate": 0.0,
+              "top3_retrieval_rate": 0.36363636363636365
+            },
+            "object_handover": {
+              "windows": 13,
+              "sources": 2,
+              "top1_retrieval_rate": 0.0,
+              "top3_retrieval_rate": 0.0
+            },
+            "object_moved_toward_clothing": {
+              "windows": 6,
+              "sources": 2,
+              "top1_retrieval_rate": 0.0,
+              "top3_retrieval_rate": 0.0
+            },
+            "cabinet_door_opening": {
+              "windows": 72,
+              "sources": 10,
+              "top1_retrieval_rate": 0.6111111111111112,
+              "top3_retrieval_rate": 0.7916666666666666
+            },
+            "cabinet_door_closing": {
+              "windows": 18,
+              "sources": 6,
+              "top1_retrieval_rate": 0.0,
+              "top3_retrieval_rate": 0.0
+            },
+            "person_leaves_work_area": {
+              "windows": 76,
+              "sources": 12,
+              "top1_retrieval_rate": 0.3815789473684211,
+              "top3_retrieval_rate": 0.6842105263157895
+            },
+            "document_presented": {
+              "windows": 11,
+              "sources": 2,
+              "top1_retrieval_rate": 0.0,
+              "top3_retrieval_rate": 0.0
+            }
+          },
+          "interpretation": "Conditional known-action retrieval on annotated windows only. Not full-video detection precision/recall."
+        },
+        "artifact": {
+          "file": "actions_linear_augmented.npz",
+          "sha256": "b1f4b4ffcdb4f2cb4c04af242c42d7b847893a84d74e38c41e089ac50660b2cb"
+        }
+      }
+    },
+    "reason": "Exploratory development follow-up after weak auxiliary-action results; no new independent evaluation"
+  }
+}

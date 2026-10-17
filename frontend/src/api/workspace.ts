@@ -15,8 +15,8 @@ export interface Media {
   duration_sec: number | null;
   status: "stored";
   analysis_status: "not_requested" | "queued" | "processing" | "done" | "failed";
-  verdict: null;
-  violations: [];
+  verdict: 'violation' | 'no_violation' | null;
+  violations: {type: string; timecode_sec: number; description: string; classification_status?: 'grounded' | 'unclassified'; rule: {title: string; section?: string; url?: string} | null}[];
 }
 export interface Camera {
   id: string;
@@ -101,9 +101,11 @@ export function parseMedia(v: unknown): Media {
       (v.duration_sec === null || number(v.duration_sec)) &&
       v.status === "stored" &&
       ["not_requested", "queued", "processing", "done", "failed"].includes(v.analysis_status) &&
-      v.verdict === null &&
+      (v.verdict === null || (v.analysis_status === 'done' && ['violation','no_violation'].includes(v.verdict))) &&
       Array.isArray(v.violations) &&
-      !v.violations.length,
+      ((v.verdict === 'violation') === (v.violations.length > 0)) &&
+      v.violations.every((e: any)=>object(e) && typeof e.type==='string' && number(e.timecode_sec) &&
+        typeof e.description==='string' && (e.classification_status==='unclassified' ? e.rule===null : object(e.rule) && typeof e.rule.title==='string')),
   );
   return v as unknown as Media;
 }
@@ -227,7 +229,8 @@ export const asRecord = (m: Media): AnalysisRecord => ({
   duration: m.duration_sec ?? undefined,
   status: m.analysis_status === "not_requested" ? "stored" : m.analysis_status === "queued" ? "processing" : m.analysis_status,
   mode: "api",
-  violations: [],
+  verdict: m.verdict ?? undefined,
+  violations: m.violations.map(v=>({...v,rule:v.rule ?? undefined,evidence_frames:[]})),
 });
 export async function load<T>(
   path: string,

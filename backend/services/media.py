@@ -64,8 +64,8 @@ def probe(path, extension):
         raise ApiError(415, 'invalid_video', 'Файл не содержит поддерживаемое видео MOV, MP4 или WebM.')
 
 
-def save_upload():
-    key = request.headers.get('Idempotency-Key', '')
+def save_upload(idempotency_key=None):
+    key = idempotency_key or request.headers.get('Idempotency-Key', '')
     if not key or len(key) > 80 or not all(c.isalnum() or c in '-_' for c in key):
         raise ApiError(400, 'idempotency_key_required', 'Передайте корректный Idempotency-Key (до 80 символов).')
     try:

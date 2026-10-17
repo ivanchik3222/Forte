@@ -21,6 +21,7 @@ const paths = {
   clock: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20 M12 6v6l4 2",
   lock: "M6 10h12v11H6z M8 10V6a4 4 0 0 1 8 0v4 M12 14v3",
   play: "m8 4 12 8-12 8z",
+  pause: "M8 5v14 M16 5v14",
   scan: "M8 3H3v5 M16 3h5v5 M3 16v5h5 M21 16v5h-5 M7 12h10 M12 7v10",
   search: "M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14 M15 15l6 6",
   close: "m6 6 12 12 M6 18 18 6",

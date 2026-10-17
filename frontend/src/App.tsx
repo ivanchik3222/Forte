@@ -18,10 +18,14 @@ import { API_BASE_URL, AnalysisMode } from "./features/analysis/types";
 import { regulatorySource } from "./data/demo";
 import { OverviewPage } from "./pages/OverviewPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
+import { MonitoringPage } from "./pages/MonitoringPage";
+import { ShiftPage } from "./pages/ShiftPage";
 import { useNotificationStore } from "./store/useNotificationStore";
 
 const navigation: { id: string; label: string; icon: IconName }[] = [
   { id: "overview", label: "Обзор", icon: "grid" },
+  { id: "shift", label: "Смена за минуту", icon: "play" },
+  { id: "monitoring", label: "Контроль камер", icon: "eye" },
   { id: "notifications", label: "Оповещения", icon: "bell" },
   { id: "history", label: "История проверок", icon: "history" },
   { id: "sources", label: "Нормативная база", icon: "book" },
@@ -56,6 +60,9 @@ function WorkspaceApp() {
   };
   const open = (id: string) => navigate(`analysis/${id}`);
   const active = route.startsWith("analysis/") ? "history" : route;
+  const mobileActive = ["shift", "monitoring"].includes(active)
+    ? "overview"
+    : active;
   const currentRecord = route.startsWith("analysis/")
     ? records.find((item) => item.id === route.slice(9))
     : undefined;
@@ -200,6 +207,8 @@ function WorkspaceApp() {
           {route === "notifications" && (
             <NotificationsPage onNew={() => setModal("upload")} />
           )}
+          {route === "monitoring" && <MonitoringPage />}
+          {route === "shift" && <ShiftPage />}
           {route === "history" && (
             <div className="page-enter">
               <div className="page-title-row">
@@ -239,6 +248,8 @@ function WorkspaceApp() {
           {![
             "overview",
             "notifications",
+            "monitoring",
+            "shift",
             "history",
             "sources",
             "settings",
@@ -279,7 +290,7 @@ function WorkspaceApp() {
                 ? `Оповещения, новых: ${unread}`
                 : undefined
             }
-            aria-current={active === item.id ? "page" : undefined}
+            aria-current={mobileActive === item.id ? "page" : undefined}
           >
             <span className="mobile-tab-icon">
               <Icon name={item.icon} size={23} />

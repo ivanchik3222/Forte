@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from datetime import timedelta
 
 # Путь к директории backend
@@ -46,6 +47,12 @@ class Config:
     PUBLIC_REGISTRATION = True
     ALLOW_TEST_EVENTS = False
     REQUIRE_SECURE_CONFIG = False
+    ML_ROOT = str(Path(BACKEND_DIR).parent / 'ML')
+    ML_WEIGHTS = os.environ.get('ML_WEIGHTS', str(Path(BACKEND_DIR).parent / 'ML/deployment/cash_detector.pt'))
+    ML_ENABLED = os.environ.get('ML_ENABLED', 'true').lower() == 'true'
+    ML_DEVICE = os.environ.get('ML_DEVICE') or None
+    ML_JOB_TIMEOUT = 300
+    ML_QUEUE_LIMIT = 20
 
 
 class DevelopmentConfig(Config):
@@ -56,6 +63,7 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     """Конфигурация для тестирования"""
     TESTING = True
+    ML_ENABLED = False
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=5)
 

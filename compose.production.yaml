@@ -1,4 +1,7 @@
 services:
+  ml-worker:
+    environment:
+      DATABASE_URL: postgresql+psycopg://forte:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/forte
   backend:
     environment:
       DATABASE_URL: postgresql+psycopg://forte:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/forte

@@ -1,0 +1,798 @@
+{
+  "videos": 42,
+  "succeeded": 42,
+  "failed": 0,
+  "unique_videos": 40,
+  "frames": 2911,
+  "events": 652,
+  "video_seconds": 1444.164,
+  "inference_seconds": 155.125,
+  "elapsed_seconds": 169.847,
+  "protocol": "All original videos, no duplicate inference cache; real Flask API, migrations and worker; existing files registered locally, upload/ffprobe excluded",
+  "parameters": {
+    "fps": 2,
+    "confidence": 0.25,
+    "nms_iou": 0.7,
+    "imgsz": 640,
+    "camera_profile": "forte_open"
+  },
+  "limitations": [
+    "Operational integration test, not an independent accuracy evaluation",
+    "Includes train/val/test videos; no tuning on this run",
+    "Object detector does not classify regulatory violations; no binary accuracy inferred"
+  ],
+  "records": [
+    {
+      "file": "X-1.mov",
+      "status": "done",
+      "duration_sec": 25.933,
+      "frames": 52,
+      "boxes": {
+        "person": 103,
+        "storage_cabinet": 52,
+        "hand": 135,
+        "cash": 36
+      },
+      "events": 12,
+      "evidence_frames": 12,
+      "inference_seconds": 4.228,
+      "job_id": "cddd653d-1345-4659-ae82-339ada2046c2",
+      "source_sha256": "8911a9219b9433091824e553a70bb80335f075fd8ac982d2062d2ecf023c16bc",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 12.165
+    },
+    {
+      "file": "X-2.mov",
+      "status": "done",
+      "duration_sec": 17.067,
+      "frames": 35,
+      "boxes": {
+        "person": 62,
+        "storage_cabinet": 35,
+        "hand": 50,
+        "cash": 5
+      },
+      "events": 5,
+      "evidence_frames": 6,
+      "inference_seconds": 2.146,
+      "job_id": "1727a8be-aef8-42e1-84c3-632968bdc3ca",
+      "source_sha256": "9932ae0a10d3b9371bf52ea558dc19092fcf47adcd275a73a52a56b95464bca6",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 2.334
+    },
+    {
+      "file": "Х-3.mov",
+      "status": "done",
+      "duration_sec": 20.033,
+      "frames": 41,
+      "boxes": {
+        "person": 79,
+        "storage_cabinet": 41,
+        "hand": 98,
+        "cash": 22
+      },
+      "events": 19,
+      "evidence_frames": 11,
+      "inference_seconds": 2.796,
+      "job_id": "b55dbb93-bde0-4dea-9501-eda35a63f868",
+      "source_sha256": "21468fcef4ea5f45ce7d465e620f84e09c8b50314f4ecdc06f69224c701b3a5b",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 3.058
+    },
+    {
+      "file": "Х-4.mov",
+      "status": "done",
+      "duration_sec": 72.7,
+      "frames": 146,
+      "boxes": {
+        "person": 275,
+        "storage_cabinet": 146,
+        "hand": 412,
+        "cash": 147
+      },
+      "events": 43,
+      "evidence_frames": 16,
+      "inference_seconds": 10.315,
+      "job_id": "325384e8-cc05-4da6-a718-0aab00cc8191",
+      "source_sha256": "5385be9420e6a70547d6bcfd0b13d60f9c0738877645afa277d09550a96b8445",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 10.695
+    },
+    {
+      "file": "Х-5.mov",
+      "status": "done",
+      "duration_sec": 71.6,
+      "frames": 144,
+      "boxes": {
+        "person": 282,
+        "storage_cabinet": 146,
+        "hand": 444,
+        "cash": 89
+      },
+      "events": 29,
+      "evidence_frames": 16,
+      "inference_seconds": 11.151,
+      "job_id": "1e319dee-2e3b-4db5-8227-be809fad7200",
+      "source_sha256": "1f5840bff58f298e89c4afa00cb1c18f6dafc5c4096c251d9b507604ebefe906",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 11.574
+    },
+    {
+      "file": "Х-8.mov",
+      "status": "done",
+      "duration_sec": 38.033,
+      "frames": 77,
+      "boxes": {
+        "storage_cabinet": 77,
+        "person": 78,
+        "hand": 221,
+        "cash": 3
+      },
+      "events": 9,
+      "evidence_frames": 10,
+      "inference_seconds": 7.102,
+      "job_id": "6bfcd8d7-85a3-4535-87dd-63795f9c2aba",
+      "source_sha256": "6a53e10acdcf52396ad5b1697eead32d8322c0911d792523a5c33fe5b388f4e7",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 7.286
+    },
+    {
+      "file": "Х-10.mov",
+      "status": "done",
+      "duration_sec": 15.567,
+      "frames": 32,
+      "boxes": {
+        "cash": 44,
+        "storage_cabinet": 32,
+        "person": 32,
+        "hand": 73
+      },
+      "events": 8,
+      "evidence_frames": 7,
+      "inference_seconds": 2.946,
+      "job_id": "deafab73-f31a-4e06-aa1f-7a590a350ee3",
+      "source_sha256": "57a0e46c7a45f0e831f61d9c80722fefe4b74dbcfe1d3031ff58307d481f9a5c",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 3.093
+    },
+    {
+      "file": "Х-11.mov",
+      "status": "done",
+      "duration_sec": 25.6,
+      "frames": 52,
+      "boxes": {
+        "storage_cabinet": 51,
+        "person": 44,
+        "hand": 66
+      },
+      "events": 13,
+      "evidence_frames": 10,
+      "inference_seconds": 3.789,
+      "job_id": "dda01536-fc72-4b6a-a88b-ba8fac35e41f",
+      "source_sha256": "b3a954a5b761ad47943e061599315e3fe9d22573eeb92bb14bf315cdcd422fc5",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 3.902
+    },
+    {
+      "file": "Х-12.mov",
+      "status": "done",
+      "duration_sec": 42.3,
+      "frames": 85,
+      "boxes": {
+        "storage_cabinet": 86,
+        "person": 80,
+        "hand": 132
+      },
+      "events": 20,
+      "evidence_frames": 16,
+      "inference_seconds": 4.277,
+      "job_id": "f15db4ef-94c0-4c2c-b7f2-2c1979da7eaf",
+      "source_sha256": "955755baf54418b48ea645dcd98e7e8dcca1d1e227e9b286a9427062db304fd4",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 4.371
+    },
+    {
+      "file": "Х-13.mov",
+      "status": "done",
+      "duration_sec": 65.3,
+      "frames": 131,
+      "boxes": {
+        "person": 132,
+        "storage_cabinet": 125,
+        "hand": 131,
+        "cash": 77
+      },
+      "events": 23,
+      "evidence_frames": 16,
+      "inference_seconds": 6.192,
+      "job_id": "ff16a849-c860-4fec-ae06-db2c7048528a",
+      "source_sha256": "a37930cf119bb691be77d8624b18333b04d9c67066a7f4627d63e3208dfa6057",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 6.307
+    },
+    {
+      "file": "Х-14.mov",
+      "status": "done",
+      "duration_sec": 142.533,
+      "frames": 286,
+      "boxes": {
+        "person": 286,
+        "storage_cabinet": 268,
+        "hand": 876,
+        "cash": 435,
+        "bag": 5
+      },
+      "events": 160,
+      "evidence_frames": 16,
+      "inference_seconds": 12.702,
+      "job_id": "1dca5178-e823-45d4-82ee-8b407203f0b0",
+      "source_sha256": "7d6890ecb4a2b28bbdd3b61b6711566eee84a53ab3439c40cd9b6a3a6714c681",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 12.869
+    },
+    {
+      "file": "Х-15.mov",
+      "status": "done",
+      "duration_sec": 20.867,
+      "frames": 42,
+      "boxes": {
+        "storage_cabinet": 42,
+        "person": 47,
+        "hand": 31,
+        "bag": 30
+      },
+      "events": 2,
+      "evidence_frames": 4,
+      "inference_seconds": 2.128,
+      "job_id": "21a7b5d0-4040-4eb0-a548-06cc05b5563a",
+      "source_sha256": "69caf59620fcd80bedcb664514730ab38f2f800da27000a8e037d7440be5dc7a",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 2.209
+    },
+    {
+      "file": "Х-16.mov",
+      "status": "done",
+      "duration_sec": 22.733,
+      "frames": 46,
+      "boxes": {
+        "storage_cabinet": 46,
+        "person": 96,
+        "hand": 84
+      },
+      "events": 4,
+      "evidence_frames": 6,
+      "inference_seconds": 2.356,
+      "job_id": "af992dd1-b13e-47a5-9a73-988ce169a614",
+      "source_sha256": "3f516431cf37e3900b7eae857a7b09be258f485702ab56bc6e5b6129103f1fa5",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 2.442
+    },
+    {
+      "file": "Х-17.mov",
+      "status": "done",
+      "duration_sec": 14.733,
+      "frames": 30,
+      "boxes": {
+        "storage_cabinet": 30,
+        "person": 64,
+        "hand": 26
+      },
+      "events": 1,
+      "evidence_frames": 3,
+      "inference_seconds": 1.651,
+      "job_id": "f1fb28f3-01be-452f-b6eb-3b05fdd03ade",
+      "source_sha256": "0378b8026b2e6afd1775a5d0fdd12dd09c491785b626e9c20428f7dc6bd59364",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 1.745
+    },
+    {
+      "file": "Х-18.mov",
+      "status": "done",
+      "duration_sec": 22.6,
+      "frames": 46,
+      "boxes": {
+        "storage_cabinet": 46,
+        "person": 109,
+        "hand": 112,
+        "cash": 32
+      },
+      "events": 14,
+      "evidence_frames": 12,
+      "inference_seconds": 2.297,
+      "job_id": "6ab18a12-a0b2-41f1-9b6a-9ff5c56e3bbc",
+      "source_sha256": "90607b0b0cb772fcf29b0c7e0e56fa6af36da6fac0efe93b8a616b5de94a156c",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 2.395
+    },
+    {
+      "file": "Х-19.mov",
+      "status": "done",
+      "duration_sec": 57.433,
+      "frames": 115,
+      "boxes": {
+        "person": 224,
+        "storage_cabinet": 116,
+        "hand": 166,
+        "cash": 78
+      },
+      "events": 21,
+      "evidence_frames": 15,
+      "inference_seconds": 5.348,
+      "job_id": "0e82d2e9-301b-46cb-9bbe-4369236a3087",
+      "source_sha256": "16065504b21260bff18698c7bbf048ffa356c9de43d43b92643b6c2eddedac0f",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 5.454
+    },
+    {
+      "file": "Х-20.mov",
+      "status": "done",
+      "duration_sec": 11.633,
+      "frames": 24,
+      "boxes": {
+        "storage_cabinet": 25,
+        "person": 24,
+        "hand": 51
+      },
+      "events": 11,
+      "evidence_frames": 11,
+      "inference_seconds": 1.292,
+      "job_id": "5b520deb-2451-4dae-b1bf-8b328f615f35",
+      "source_sha256": "7e585e33517f7258bd2d1ed3e139556609bc997bb07b78355555060ef193b77a",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 1.365
+    },
+    {
+      "file": "Х-21.mov",
+      "status": "done",
+      "duration_sec": 19.6,
+      "frames": 40,
+      "boxes": {
+        "storage_cabinet": 42,
+        "person": 42,
+        "hand": 87
+      },
+      "events": 10,
+      "evidence_frames": 9,
+      "inference_seconds": 1.848,
+      "job_id": "72e520d3-426e-42a7-8778-f9436ab45d8b",
+      "source_sha256": "efd876a04224cac781ac64bf5d6e107ded67340b7b7715fd9ca3408b240a1075",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 1.926
+    },
+    {
+      "file": "Х-22.mov",
+      "status": "done",
+      "duration_sec": 21.033,
+      "frames": 43,
+      "boxes": {
+        "person": 30,
+        "hand": 45,
+        "storage_cabinet": 34
+      },
+      "events": 4,
+      "evidence_frames": 5,
+      "inference_seconds": 2.102,
+      "job_id": "f69eafc0-8347-4c68-ba88-1ccf0160b1bf",
+      "source_sha256": "c9a30d44907e4a41b3a8ccf101774cd2e0804de20927bfbc9e1ccba1f2326b78",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 2.182
+    },
+    {
+      "file": "Х-23.mov",
+      "status": "done",
+      "duration_sec": 18.267,
+      "frames": 37,
+      "boxes": {
+        "person": 27,
+        "hand": 42,
+        "storage_cabinet": 30
+      },
+      "events": 4,
+      "evidence_frames": 5,
+      "inference_seconds": 1.627,
+      "job_id": "de51f687-38fe-4474-9e5f-1cb35304a41d",
+      "source_sha256": "b637677ef5a7f0fa54d9f116ce6493cf74a4c99b8149a9c9916b96ef257535bd",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 1.704
+    },
+    {
+      "file": "Х-24.mov",
+      "status": "done",
+      "duration_sec": 14.7,
+      "frames": 30,
+      "boxes": {
+        "person": 20,
+        "storage_cabinet": 34,
+        "hand": 39
+      },
+      "events": 6,
+      "evidence_frames": 5,
+      "inference_seconds": 1.399,
+      "job_id": "d6b2cdb4-a091-43c0-b3bf-1ccd29a0d66b",
+      "source_sha256": "c175a683749401d5a9ecf6f1c188b64fa8a09543f41482c1e4eb2232255715d3",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 1.476
+    },
+    {
+      "file": "Х-25.mov",
+      "status": "done",
+      "duration_sec": 31.7,
+      "frames": 64,
+      "boxes": {
+        "person": 55,
+        "storage_cabinet": 66,
+        "hand": 99
+      },
+      "events": 18,
+      "evidence_frames": 15,
+      "inference_seconds": 3.023,
+      "job_id": "eddffd13-aa0f-4769-8efa-79a63bb75200",
+      "source_sha256": "901f61cf1a1b8754dda56466308c19fc203a1a4c0e85d1e7827849d34e2d52f0",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 3.114
+    },
+    {
+      "file": "Х-26.mov",
+      "status": "done",
+      "duration_sec": 19.8,
+      "frames": 40,
+      "boxes": {
+        "person": 30,
+        "storage_cabinet": 43,
+        "hand": 73,
+        "cash": 24
+      },
+      "events": 14,
+      "evidence_frames": 10,
+      "inference_seconds": 2.06,
+      "job_id": "157e31a7-0b31-4f9f-8178-18807194c45b",
+      "source_sha256": "e3a00b6e0f38b1d9b5498140f14906c71e204359262a90ce7a9974d64bf081e9",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 2.144
+    },
+    {
+      "file": "Х-27.mov",
+      "status": "done",
+      "duration_sec": 26.433,
+      "frames": 53,
+      "boxes": {
+        "person": 43,
+        "storage_cabinet": 58,
+        "hand": 96
+      },
+      "events": 18,
+      "evidence_frames": 13,
+      "inference_seconds": 2.438,
+      "job_id": "d9215c78-046c-4eb1-adeb-5b0b25ff9c67",
+      "source_sha256": "d3d21494d74e40a7586fe4f6164e515f6621a2d413538c4e15c67d394e85fc2d",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 2.522
+    },
+    {
+      "file": "Х-28.mov",
+      "status": "done",
+      "duration_sec": 16.533,
+      "frames": 34,
+      "boxes": {
+        "person": 25,
+        "storage_cabinet": 35,
+        "hand": 44
+      },
+      "events": 8,
+      "evidence_frames": 6,
+      "inference_seconds": 1.718,
+      "job_id": "b8a7c193-f672-4ec0-87f8-8b80fb9f6566",
+      "source_sha256": "d15ef04bcfae571bd2d7fc4e4d709ba595ae19f44136a43e7277f17e7b6e5b6d",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 1.799
+    },
+    {
+      "file": "Х-29.mov",
+      "status": "done",
+      "duration_sec": 17.3,
+      "frames": 35,
+      "boxes": {
+        "person": 24,
+        "storage_cabinet": 35,
+        "hand": 35
+      },
+      "events": 5,
+      "evidence_frames": 5,
+      "inference_seconds": 1.597,
+      "job_id": "85e795c3-eff0-4dae-a6aa-3ae8d254576c",
+      "source_sha256": "b9bfb76ac8ea47eb368fc78a2f6370e4d98e79185972f63cf301ee22f12b5941",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 1.68
+    },
+    {
+      "file": "Х-30.mov",
+      "status": "done",
+      "duration_sec": 18.8,
+      "frames": 38,
+      "boxes": {
+        "hand": 70,
+        "person": 43
+      },
+      "events": 2,
+      "evidence_frames": 3,
+      "inference_seconds": 1.77,
+      "job_id": "8608d140-c59d-4842-93b6-bd7dd68ed8a9",
+      "source_sha256": "05af66ce27b83d7c10c5d33b6f1847ec042c01ed21afdcbd43a13abcefd28199",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 1.855
+    },
+    {
+      "file": "Х-31.mov",
+      "status": "done",
+      "duration_sec": 23.8,
+      "frames": 48,
+      "boxes": {
+        "hand": 50,
+        "person": 34
+      },
+      "events": 0,
+      "evidence_frames": 2,
+      "inference_seconds": 2.327,
+      "job_id": "6eebf038-b50a-436d-a1a3-73b00ebe1779",
+      "source_sha256": "6a9fa7dd2e6db4cbe57f3c96a6cb256f23c04aa4e6fd44622fdf5de662cc0649",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 2.399
+    },
+    {
+      "file": "Х-32.mov",
+      "status": "done",
+      "duration_sec": 21.3,
+      "frames": 43,
+      "boxes": {
+        "person": 35,
+        "hand": 57
+      },
+      "events": 2,
+      "evidence_frames": 4,
+      "inference_seconds": 2.018,
+      "job_id": "6ebf128b-8998-43b3-bc7b-363bce3a5319",
+      "source_sha256": "bcc277cbf1a36245156b2bb9a0e0b826432390b42040c0b82201a8c21ab23ce9",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 2.095
+    },
+    {
+      "file": "Х-33.mov",
+      "status": "done",
+      "duration_sec": 14.333,
+      "frames": 29,
+      "boxes": {
+        "person": 16,
+        "hand": 42
+      },
+      "events": 0,
+      "evidence_frames": 2,
+      "inference_seconds": 1.322,
+      "job_id": "bee3f950-9256-4d54-a36f-8c3907a212bc",
+      "source_sha256": "209e8aaca88df59064e5f28b3bcc489fee3eea9eb920889b69c03c83d52430c6",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 1.399
+    },
+    {
+      "file": "Х-34.mov",
+      "status": "done",
+      "duration_sec": 17.733,
+      "frames": 36,
+      "boxes": {
+        "person": 63,
+        "storage_cabinet": 36,
+        "hand": 43,
+        "cash": 5
+      },
+      "events": 2,
+      "evidence_frames": 3,
+      "inference_seconds": 1.726,
+      "job_id": "079efdc1-f13f-44ce-a68c-f00da00d4477",
+      "source_sha256": "f3e351bea71150f4e8c76e2c8f0656a4e92063319d7cd39e264078c5ba9139c3",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 1.805
+    },
+    {
+      "file": "Х-35.mov",
+      "status": "done",
+      "duration_sec": 56.767,
+      "frames": 114,
+      "boxes": {
+        "person": 239,
+        "storage_cabinet": 114,
+        "hand": 146,
+        "cash": 13
+      },
+      "events": 14,
+      "evidence_frames": 10,
+      "inference_seconds": 5.303,
+      "job_id": "0629c63b-06e5-4d34-aac6-722b4800d96b",
+      "source_sha256": "26430119e074d6f0eb5dbc7ec3e26bbc31cf18903265bb4372bd7d7104908640",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 5.408
+    },
+    {
+      "file": "Х-37.mov",
+      "status": "done",
+      "duration_sec": 15.867,
+      "frames": 32,
+      "boxes": {
+        "person": 60,
+        "storage_cabinet": 32,
+        "hand": 41,
+        "cash": 3
+      },
+      "events": 3,
+      "evidence_frames": 3,
+      "inference_seconds": 1.565,
+      "job_id": "355b1136-fac9-4a41-8c12-ae338ee9512e",
+      "source_sha256": "ac4cf04844c0aa08a5e19f5f7fe984f1477943294922d6ef77bdc5b88b97160e",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 1.64
+    },
+    {
+      "file": "Х-38.mov",
+      "status": "done",
+      "duration_sec": 58.967,
+      "frames": 118,
+      "boxes": {
+        "person": 221,
+        "storage_cabinet": 118,
+        "hand": 124,
+        "cash": 79
+      },
+      "events": 12,
+      "evidence_frames": 10,
+      "inference_seconds": 5.289,
+      "job_id": "b489407f-dd5f-44a6-a071-a6e15ecdad46",
+      "source_sha256": "5a6f6a13ef88191ec1d9a2a303f1be74d16aa3381a57aaadba8850aac715ff10",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 5.388
+    },
+    {
+      "file": "Х-39.mov",
+      "status": "done",
+      "duration_sec": 78.733,
+      "frames": 158,
+      "boxes": {
+        "person": 313,
+        "storage_cabinet": 161,
+        "hand": 275,
+        "cash": 4
+      },
+      "events": 26,
+      "evidence_frames": 16,
+      "inference_seconds": 7.719,
+      "job_id": "baf806d0-489c-4f07-8d54-4685c3603c2a",
+      "source_sha256": "deeeee54539fb894b17447296bd7f0807b9dc662bad9af4dcd27f4fbdd677187",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 7.842
+    },
+    {
+      "file": "Х-40.mov",
+      "status": "done",
+      "duration_sec": 25.267,
+      "frames": 51,
+      "boxes": {
+        "person": 41,
+        "hand": 57
+      },
+      "events": 2,
+      "evidence_frames": 4,
+      "inference_seconds": 2.451,
+      "job_id": "4def8afa-76fa-4ee3-8710-7ae8fa1bd536",
+      "source_sha256": "6a81739ced0efdcd4a4feb76ea16562a20ceb53a2232a801528716c450366c9f",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 2.529
+    },
+    {
+      "file": "Х-43.mov",
+      "status": "done",
+      "duration_sec": 23.367,
+      "frames": 47,
+      "boxes": {
+        "person": 47,
+        "hand": 172,
+        "cash": 13
+      },
+      "events": 7,
+      "evidence_frames": 6,
+      "inference_seconds": 2.181,
+      "job_id": "2ac81529-8b97-4158-ac3b-2a08cf3a622b",
+      "source_sha256": "39e28d7be01cdb090ede1881ce3ef704fa413271deb69d6735c1953f340d6069",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 2.261
+    },
+    {
+      "file": "Х-44.mov",
+      "status": "done",
+      "duration_sec": 20.433,
+      "frames": 41,
+      "boxes": {
+        "hand": 158,
+        "person": 41,
+        "cash": 5
+      },
+      "events": 5,
+      "evidence_frames": 4,
+      "inference_seconds": 1.851,
+      "job_id": "2f294d18-3a84-4232-a307-eb048d96ed05",
+      "source_sha256": "9774ed882153af3ba1a7e71c9b9249619e2b3a97ae336aad6143369802ca3522",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 1.93
+    },
+    {
+      "file": "Х-45.mov",
+      "status": "done",
+      "duration_sec": 33.333,
+      "frames": 67,
+      "boxes": {
+        "person": 67,
+        "hand": 246,
+        "cash": 21
+      },
+      "events": 14,
+      "evidence_frames": 10,
+      "inference_seconds": 3.085,
+      "job_id": "3ea77cd4-26ac-4114-8ab0-1224d92401c4",
+      "source_sha256": "524bf9ff2d5e81211dbbeff73129dbb5f3a5e5e35a64f443f53e16b1c2d471c7",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 3.183
+    },
+    {
+      "file": "Х-46.mov",
+      "status": "done",
+      "duration_sec": 19.133,
+      "frames": 39,
+      "boxes": {
+        "hand": 95,
+        "person": 39,
+        "cash": 24
+      },
+      "events": 10,
+      "evidence_frames": 10,
+      "inference_seconds": 1.864,
+      "job_id": "3073a49b-9ddf-42c6-a13b-68ad5d47ecbd",
+      "source_sha256": "66fc5d28c2371592f9260305589bdc86636fdd2ebe7a7ec976eec00a23d43df4",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 1.949
+    },
+    {
+      "file": "Х-47.mov",
+      "status": "done",
+      "duration_sec": 72.7,
+      "frames": 146,
+      "boxes": {
+        "person": 275,
+        "storage_cabinet": 146,
+        "hand": 412,
+        "cash": 147
+      },
+      "events": 43,
+      "evidence_frames": 16,
+      "inference_seconds": 6.905,
+      "job_id": "1c29e47c-f221-4f80-8a71-edaf7e4a1fea",
+      "source_sha256": "5385be9420e6a70547d6bcfd0b13d60f9c0738877645afa277d09550a96b8445",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 7.03
+    },
+    {
+      "file": "Х-48.mov",
+      "status": "done",
+      "duration_sec": 71.6,
+      "frames": 144,
+      "boxes": {
+        "person": 282,
+        "storage_cabinet": 146,
+        "hand": 444,
+        "cash": 89
+      },
+      "events": 29,
+      "evidence_frames": 16,
+      "inference_seconds": 7.221,
+      "job_id": "f30e33e9-c368-4549-8dcc-c4f7d7076558",
+      "source_sha256": "1f5840bff58f298e89c4afa00cb1c18f6dafc5c4096c251d9b507604ebefe906",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 7.353
+    }
+  ]
+}

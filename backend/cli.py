@@ -12,6 +12,24 @@ from services.demo_account import DEMO_EMAIL, seed_demo_user
 
 
 def register_cli(app):
+    @app.cli.command('analysis-worker')
+    @click.option('--once', is_flag=True, help='Process at most one queued job and exit.')
+    def analysis_worker(once):
+        """Run the local ML queue in a separate process using the ML environment."""
+        from services.analysis import run_next_job, detector, available
+        if not available():
+            raise click.ClickException('Local weights missing or ML disabled.')
+        detector()  # Fail at startup on missing ML dependencies or incompatible weights.
+        while True:
+            job_id = run_next_job()
+            if job_id:
+                click.echo(f'Completed job {job_id}')
+            if once:
+                break
+            if not job_id:
+                db.session.remove()
+                time.sleep(1)
+
     @app.cli.command('init-db')
     def init_db():
         """Apply versioned migrations to an empty or already versioned database."""

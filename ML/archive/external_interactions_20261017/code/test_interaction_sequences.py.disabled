@@ -1,0 +1,51 @@
+import unittest
+
+import numpy as np
+
+from interaction_timeline import build_timeline
+from prepare_interaction_data import timestamp, primitive
+from train_interaction_temporal import targets
+
+
+def box(label,xyxy):
+    return dict(label=label,xyxy=xyxy,confidence=.9)
+
+
+class SequenceTests(unittest.TestCase):
+    def test_merl_native_30fps_is_distinct_from_15fps_prediction_results(self):
+        intervals=[np.array([[156,183]])]+[np.empty((0,2)) for _ in range(4)]
+        labels=targets(np.array([5.,5.2,6.,10.4]),intervals)
+        self.assertEqual(labels[:,0].tolist(),[0.,1.,1.,0.])
+
+    def test_merl_inclusive_frame_alignment_and_overlap(self):
+        intervals=[np.array([[1,15]]),np.array([[15,30]]),np.empty((0,2)),np.empty((0,2)),np.empty((0,2))]
+        labels=targets(np.array([0.,14/15,1.,2.]),intervals,annotation_fps=15.)
+        self.assertEqual(labels[:,:2].tolist(),[[1.,0.],[1.,1.],[0.,1.],[0.,0.]])
+
+    def test_timestamps_and_mapping_do_not_invent_cash(self):
+        self.assertAlmostEqual(timestamp('01:02:03.45'),3723.45)
+        self.assertEqual(primitive('put-into'),'place')
+        self.assertEqual(primitive('cut'),'other')
+
+    def test_cash_miss_breaks_visibility_evidence(self):
+        report=dict(frames=[dict(timestamp_sec=t,boxes=[box('cash',[1,1,10,10])] if t!=1. else [])
+                            for t in (0.,.5,1.,1.5,2.)])
+        result=build_timeline(report)
+        self.assertEqual(result['frames'][2]['cash_visibility'],'unconfirmed')
+        self.assertEqual([(e['start_sec'],e['end_sec']) for e in result['events']],[(0.,.5),(1.5,2.)])
+
+    def test_tracks_follow_positions_when_detector_order_changes(self):
+        report=dict(frames=[dict(timestamp_sec=0.,boxes=[box('hand',[10,10,20,20]),box('hand',[100,10,110,20])]),
+                            dict(timestamp_sec=.5,boxes=[box('hand',[102,10,112,20]),box('hand',[12,10,22,20])])])
+        result=build_timeline(report)
+        self.assertEqual([h['track_id'] for h in result['frames'][1]['hands']],[2,1])
+
+    def test_unknown_never_becomes_violation(self):
+        result=build_timeline(dict(frames=[dict(timestamp_sec=t,boxes=[]) for t in (0.,.5,1.)]))
+        self.assertEqual(result['events'],[])
+        self.assertEqual(result['rule_evaluation'],'not performed')
+        with self.assertRaises(ValueError):
+            build_timeline(dict(frames=[dict(timestamp_sec=1.,boxes=[]),dict(timestamp_sec=0.,boxes=[])]))
+
+
+if __name__=='__main__':unittest.main()

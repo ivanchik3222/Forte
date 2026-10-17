@@ -1,0 +1,23 @@
+{
+  "checked_on": "2026-10-17",
+  "verification_scope": "Publicly indexed extracts of official acts; full current consolidated text was not retrievable. Verify revision before product release.",
+  "sources": {
+    "cash_231": {"title": "Постановление Правления НБРК от 29.11.2019 № 231", "url": "https://adilet.zan.kz/rus/docs/V1900019680", "indexed_url": "https://old.adilet.zan.kz/rus/docs/V1900019680"},
+    "security_14": {"title": "Постановление Правления НБРК от 24.02.2020 № 14", "url": "https://adilet.zan.kz/rus/docs/V2000020075"}
+  },
+  "rules": [
+    {"id": "cash_count_without_customer", "source": "cash_231", "paragraph": "20", "basis": "Приём и пересчёт денег в присутствии клиента.", "required_observations": ["acceptance transaction", "cash counting", "customer absent throughout counting"], "exclusions": ["internal cash sorting", "customer outside camera field of view", "transaction context unclear"], "auto_enabled": false},
+    {"id": "previous_cash_left_on_desk", "source": "cash_231", "paragraph": "20", "basis": "Ранее принятые деньги хранятся в запираемых устройствах.", "required_observations": ["previous customer transaction completed", "previous cash remains on desk", "new transaction begins"], "exclusions": ["current customer's cash", "documents mistaken for money", "transaction boundary unclear"], "auto_enabled": false},
+    {"id": "cash_handover_without_visible_receipt", "source": "cash_231", "paragraph": "19, подпункт 6", "basis": "Клиенту выдаётся документ о приёме денег.", "required_observations": ["cash acceptance completed", "entire transaction visible", "no document handover"], "exclusions": ["electronic document delivery possible", "handover obscured or outside recording"], "auto_enabled": false},
+    {"id": "collection_bag_not_visibly_checked", "source": "cash_231", "paragraph": "24, подпункты 3–4", "basis": "Проверяются целостность и пломбирование инкассаторской сумки.", "required_observations": ["collection bag acceptance", "entire acceptance visible", "absence of observable inspection"], "exclusions": ["personal bag", "inspection too subtle to resolve", "recording starts late"], "auto_enabled": false},
+    {"id": "counting_without_controller", "source": "cash_231", "paragraph": "42", "basis": "Контроль пересчёта, сортировки и упаковки; приём и выдача клиенту исключены.", "required_observations": ["internal recounting/sorting/packaging", "no controller present"], "exclusions": ["customer acceptance or payout", "controller outside frame", "roles unknown"], "auto_enabled": false},
+    {"id": "cash_room_door_context", "source": "security_14", "paragraph": "16, подпункт 1", "basis": "Касса оборудуется отдельным входом с запираемой дверью.", "revision_note": "Проверить временную редакцию: действие пункта 16 приостановлено до 01.01.2027 с замещающим текстом (постановление № 88 от 24.12.2024).", "required_observations": ["cash room entrance and locking hardware visible"], "exclusions": ["cannot infer locked status from a closed door", "provision is about room equipment, not every departure"], "auto_enabled": false},
+    {"id": "storage_keys_context", "source": "cash_231", "paragraph": "80", "basis": "Порядок хранения и передачи ключей определяется внутренними документами банка.", "required_observations": ["key handling"], "exclusions": ["internal policy unavailable", "authorization unknown", "small object cannot be identified as key"], "auto_enabled": false}
+  ],
+  "unverified_candidates": [
+    {"id": "cashier_leaves_storage_open", "reason": "Уход и открытая дверца наблюдаемы; конкретный запрет и применимость требуют проверки, закрытие не доказывает запирание."},
+    {"id": "personal_bag_in_cash_zone", "reason": "Наличие сумки наблюдаемо; принадлежность и действующий банковский запрет не подтверждены."},
+    {"id": "hand_near_mouth", "reason": "Жест наблюдаем; нельзя автоматически утверждать приём пищи, смачивание пальцев или нарушение."},
+    {"id": "other_person_in_cash_zone", "reason": "Присутствие наблюдаемо; полномочия и статус постороннего по видео неизвестны."}
+  ]
+}

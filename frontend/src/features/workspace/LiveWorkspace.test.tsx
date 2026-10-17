@@ -100,7 +100,7 @@ test("upload uses multipart JWT API and shows stored without a verdict", async (
   await screen.findByRole("heading", { name: "camera.mp4" });
   expect(window.location.pathname).toBe("/analysis/saved-id");
   expect(
-    screen.getByText(/Видео сохранено. Анализ пока недоступен/),
+    screen.getByText(/Видео сохранено. Запустите поиск объектов/),
   ).toBeInTheDocument();
   expect(screen.queryByText("Нарушение не обнаружено")).not.toBeInTheDocument();
   const call = (global.fetch as jest.Mock).mock.calls.find((c) =>

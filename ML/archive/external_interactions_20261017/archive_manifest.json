@@ -1,0 +1,189 @@
+﻿{
+    "status":  "archived",
+    "reason":  "User requested cancellation of MERL, EPIC and MECCANO additions",
+    "protected":  [
+                      {
+                          "path":  "models/cash_detector/best.pt",
+                          "sha256":  "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f"
+                      },
+                      {
+                          "path":  "datasets/cash_objects_v1/manifest.json",
+                          "sha256":  "8a2a33d969d11711c45cd89354a72b5d6a5885ec41f9d3a935979e57698b5a4f"
+                      },
+                      {
+                          "path":  "datasets/cash_objects_aug_v1/manifest.json",
+                          "sha256":  "c26ed492597362d66310307cd37a5fd0f80156ca860396cf463f1fb128ef7816"
+                      },
+                      {
+                          "path":  "rules.json",
+                          "sha256":  "144997ddddb5d707033a3b01e5752e7415874cd33853bd4d819b623e1d4ec9c5"
+                      }
+                  ],
+    "entries":  [
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\external\\interaction_sources",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\external\\interaction_sources",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\models\\interaction_research",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\models\\interaction_research",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\cache\\merl_temporal",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\cache\\merl_temporal",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\datasets\\meccano_hands_research_v1",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\datasets\\meccano_hands_research_v1",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\datasets\\native_hands_research_v1",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\datasets\\native_hands_research_v1",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\datasets\\mixed_hands_research_v1",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\datasets\\mixed_hands_research_v1",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\datasets\\interaction_sequences_v1",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\datasets\\interaction_sequences_v1",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\hand_native_control_v1",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\hand_native_control_v1",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\hand_native_control_v1.log",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\hand_native_control_v1.log",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\hand_native_control_v1_val",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\hand_native_control_v1_val",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\hand_meccano_adapted_v1",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\hand_meccano_adapted_v1",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\hand_meccano_adapted_v1.log",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\hand_meccano_adapted_v1.log",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\hand_meccano_adapted_v1_val",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\hand_meccano_adapted_v1_val",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\hand_meccano_mixed_v1",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\hand_meccano_mixed_v1",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\hand_meccano_mixed_v1.log",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\hand_meccano_mixed_v1.log",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\hand_meccano_mixed_v1_val",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\hand_meccano_mixed_v1_val",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\hand_meccano_pretrain_v1",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\hand_meccano_pretrain_v1",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\hand_meccano_pretrain_v1.log",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\hand_meccano_pretrain_v1.log",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\merl_temporal_research_v1",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\merl_temporal_research_v1",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\hand_transfer_comparison.json",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\hand_transfer_comparison.json",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\interaction_research_comparison.png",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\interaction_research_comparison.png",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\longest_video_hand_research",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\longest_video_hand_research",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\longest_video_interactions\\timeline_control_hands.json",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\longest_video_interactions\\timeline_control_hands.json",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\longest_video_interactions\\timeline_merl_features.features.npz",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\longest_video_interactions\\timeline_merl_features.features.npz",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\runs\\longest_video_interactions\\timeline_merl_features.json",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\artifacts\\runs\\longest_video_interactions\\timeline_merl_features.json",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\fetch_interaction_sources.py",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\code\\fetch_interaction_sources.py.disabled",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\prepare_interaction_data.py",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\code\\prepare_interaction_data.py.disabled",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\train_interaction_temporal.py",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\code\\train_interaction_temporal.py.disabled",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\run_hand_transfer.py",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\code\\run_hand_transfer.py.disabled",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\run_hand_mixed_probe.py",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\code\\run_hand_mixed_probe.py.disabled",
+                        "mode":  "move"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\EXTERNAL_INTERACTIONS.md",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\REPORT.md",
+                        "mode":  "copy"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\interaction_timeline.py",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\code\\interaction_timeline.py.disabled",
+                        "mode":  "copy"
+                    },
+                    {
+                        "source":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\test_interaction_sequences.py",
+                        "target":  "C:\\Users\\ggakl\\Desktop\\Forte\\ML\\archive\\external_interactions_20261017\\code\\test_interaction_sequences.py.disabled",
+                        "mode":  "copy"
+                    }
+                ]
+}

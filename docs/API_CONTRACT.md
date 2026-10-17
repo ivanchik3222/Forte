@@ -25,7 +25,7 @@
 
 | Метод и путь | Вход и результат |
 | --- | --- |
-| GET `/api/v1/capabilities` | `{uploads:true,analysis:false,camera_stream:false,monitoring:true,shift_review:true,automatic_quality_checks:false,formats:["mov","mp4","webm"],max_file_size:209715200}` |
+| GET `/api/v1/capabilities` | `analysis` зависит от наличия локальной модели; `analysis_kind="object_observations"`, `automatic_violation_detection=false`; остальные возможности загрузки/мониторинга сохранены |
 | POST `/api/v1/media` | Multipart, один `file`, обязательный `Idempotency-Key` до 80 букв/цифр/`-`/`_`. 201 для новой записи, 200 для повтора |
 | GET `/api/v1/media` | `search` по имени, `status=all|stored`, `sort=newest|oldest`, page/per_page |
 | GET `/api/v1/media/{id}` | Одна запись |
@@ -50,7 +50,7 @@
 }
 ```
 
-`duration_sec` может быть null. Состояния stored/not_requested постоянны для этой версии и вычисляются сериализатором: в БД не создаются фиктивные задания или результаты анализа. Служебные storage_key и owner_id в DTO не раскрываются.
+`duration_sec` может быть null. `status="stored"` означает сохранение файла, `analysis_status` — `not_requested|queued|processing|done|failed`. `verdict=null` и `violations=[]` сохраняются: наблюдения модели не подтверждают нарушение. Контракт задач, результатов и подписанных кадров: [ML_INTEGRATION.md](ML_INTEGRATION.md). Служебные storage_key и owner_id в DTO не раскрываются.
 
 Лимит файла — 200 МиБ; HTTP-body допускает дополнительно 1 МиБ для multipart. Файл проверяется ffprobe по контейнеру и видеопотоку. На пользователя разрешена одна одновременная загрузка и 30 новых записей в час. Повтор ключа сравнивает SHA-256 содержимого и исходного имени; другой файл с тем же ключом → 409. Ключ хранится вместе с записью без автоматического истечения. При потере ответа повторяется тот же ключ. Отмена ожидания в браузере не гарантирует отмену уже сохранённого файла.
 

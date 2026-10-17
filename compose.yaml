@@ -1,6 +1,8 @@
 services:
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     env_file: .env
     ports:
       - "${BACKEND_PORT:-6767}:6767"
@@ -33,6 +35,24 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
+  ml-worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.ml
+    env_file: .env
+    environment:
+      FLASK_ENV: production
+      DATABASE_URL: sqlite:////app/database/database.db
+      MEDIA_ROOT: /app/media
+      ML_DEVICE: cpu
+    volumes:
+      - database:/app/database
+      - media_data:/app/media
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   database:

@@ -1,0 +1,5 @@
+# Install in ML/.venv after the existing ML dependencies. No CUDA required.
+ultralytics==8.3.253
+ultralytics-thop==2.0.18
+polars==1.44.2
+av==16.1.0

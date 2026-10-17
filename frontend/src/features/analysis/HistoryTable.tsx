@@ -15,10 +15,11 @@ export function StatusBadge({ record }: { record: AnalysisRecord }) {
     record.status === "done"
       ? record.verdict === "violation"
         ? "review"
-        : "clear"
+        : record.verdict === "no_violation" ? "clear" : "observations"
       : record.status;
   const config = {
     stored: { icon: "video", text: "Без анализа" },
+    observations: { icon: "video", text: "Наблюдения готовы" },
     review: { icon: "alert", text: "Требует внимания" },
     clear: { icon: "checkCircle", text: "Без признаков нарушений" },
     uploading: { icon: "upload", text: "Загрузка" },

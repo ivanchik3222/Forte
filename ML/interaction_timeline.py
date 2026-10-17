@@ -1,0 +1,120 @@
+"""Observed hand trajectories and object proximity; no inferred violations/contact."""
+import argparse
+import json
+import math
+from pathlib import Path
+
+import numpy as np
+from scipy.optimize import linear_sum_assignment
+
+
+def center(box):
+    return np.asarray([(box[0]+box[2])/2,(box[1]+box[3])/2],dtype=float)
+
+
+def box_gap(left,right):
+    dx=max(left[0]-right[2],right[0]-left[2],0.)
+    dy=max(left[1]-right[3],right[1]-left[3],0.)
+    return math.hypot(dx,dy)
+
+
+def build_timeline(report, width=464, height=848, max_gap=1., proximity_fraction=.02,
+                   motion_fraction_per_sec=.025, min_event_duration=.5):
+    rows=report['frames']
+    times=[float(r['timestamp_sec']) for r in rows]
+    if any(b<=a for a,b in zip(times,times[1:])):
+        raise ValueError('Timestamps must be strictly increasing')
+    diagonal=math.hypot(width,height)
+    tracks={};next_id=1;observations=[]
+    for row in rows:
+        sec=float(row['timestamp_sec'])
+        hands=[b for b in row['boxes'] if b['label']=='hand']
+        cash=[b for b in row['boxes'] if b['label']=='cash']
+        cabinets=[b for b in row['boxes'] if b['label']=='storage_cabinet']
+        active={i:t for i,t in tracks.items() if sec-t['time']<=max_gap}
+        ids=list(active);matches={}
+        if ids and hands:
+            costs=np.asarray([[np.linalg.norm(center(h['xyxy'])-active[i]['center'])/diagonal
+                               for h in hands] for i in ids])
+            gated=costs.copy()
+            for j,i in enumerate(ids):
+                # Gating before assignment prevents an impossible match stealing a valid one.
+                gated[j,costs[j]>.12*max(sec-active[i]['time'],.25)]=1e6
+            old,new=linear_sum_assignment(gated)
+            for j,k in zip(old,new):
+                if gated[j,k]<1e6:matches[int(k)]=ids[int(j)]
+        signals=[];current=[]
+        if cash:
+            signals.append(dict(kind='cash_detected',track_id=None,
+                                confidence=max(b['confidence'] for b in cash)))
+        for k,hand in enumerate(hands):
+            identity=matches.get(k)
+            position=center(hand['xyxy']);speed=None;direction=None
+            if identity is None:
+                identity=next_id;next_id+=1
+            else:
+                old=active[identity];delta=position-old['center'];dt=sec-old['time']
+                speed=float(np.linalg.norm(delta)/diagonal/dt)
+                if speed>=motion_fraction_per_sec:
+                    direction=('right' if delta[0]>0 else 'left') if abs(delta[0])>=abs(delta[1]) else ('down' if delta[1]>0 else 'up')
+                    signals.append(dict(kind='hand_motion_'+direction,track_id=identity,confidence=hand['confidence']))
+            for objects,kind in ((cash,'hand_near_cash'),(cabinets,'hand_near_cabinet')):
+                nearby=[b for b in objects if box_gap(hand['xyxy'],b['xyxy'])<=proximity_fraction*diagonal]
+                if nearby:
+                    signals.append(dict(kind=kind,track_id=identity,
+                                        confidence=min(hand['confidence'],max(b['confidence'] for b in nearby))))
+            tracks[identity]=dict(time=sec,center=position)
+            current.append(dict(track_id=identity,xyxy=hand['xyxy'],confidence=hand['confidence'],
+                                speed_diagonals_per_sec=speed,direction=direction))
+        tracks={i:t for i,t in tracks.items() if sec-t['time']<=max_gap}
+        observations.append(dict(timestamp_sec=sec,cash_visibility='detected' if cash else 'unconfirmed',
+                                 cash_boxes=cash,hands=current,signals=signals))
+    # Group only consecutive observed samples. A gap with missing detections breaks evidence.
+    open_events={};completed=[]
+    for row in observations:
+        sec=row['timestamp_sec'];seen=set()
+        for signal in row['signals']:
+            key=(signal['kind'],signal['track_id']);seen.add(key)
+            if key in open_events and sec-open_events[key]['end_sec']>max_gap:
+                completed.append(open_events.pop(key))
+            if key not in open_events:
+                open_events[key]=dict(kind=signal['kind'],track_id=signal['track_id'],start_sec=sec,
+                                      end_sec=sec,samples=0,confidence_sum=0.)
+            event=open_events[key];event['end_sec']=sec;event['samples']+=1
+            event['confidence_sum']+=signal['confidence']
+        for key in list(open_events):
+            if key not in seen:completed.append(open_events.pop(key))
+    completed.extend(open_events.values());events=[]
+    for event in completed:
+        if event['end_sec']-event['start_sec']>=min_event_duration and event['samples']>=2:
+            event['mean_detector_confidence']=event.pop('confidence_sum')/event['samples']
+            events.append(event)
+    events.sort(key=lambda e:(e['start_sec'],e['end_sec'],e['kind']))
+    return dict(source=report.get('source'),task='Observed motion/proximity timeline',
+                detector_weights=report.get('weights'),
+                coordinate_system='original pixels; directions relative to image',
+                parameters=dict(width=width,height=height,max_gap_sec=max_gap,
+                                proximity_fraction_of_diagonal=proximity_fraction,
+                                motion_diagonals_per_sec=motion_fraction_per_sec,
+                                min_event_duration_sec=min_event_duration),
+                frames=observations,events=events,rule_evaluation='not performed',
+                limitations=['Detector misses are unknown visibility, not proof of absence or concealment',
+                             '2D proximity is not physical contact, taking, counting or handing over',
+                             'Tracks can switch identities under occlusion; no role/face identification',
+                             'Events describe sampled evidence; times between frames are not verified',
+                             'Motion/proximity thresholds are heuristics, not a trained banking action model'])
+
+
+if __name__=='__main__':
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('predictions',type=Path)
+    parser.add_argument('--output',type=Path,required=True)
+    parser.add_argument('--width',type=int,default=464)
+    parser.add_argument('--height',type=int,default=848)
+    args=parser.parse_args()
+    report=json.loads(args.predictions.read_text(encoding='utf-8'))
+    result=build_timeline(report,args.width,args.height)
+    args.output.parent.mkdir(parents=True,exist_ok=True)
+    args.output.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
+    print(json.dumps(dict(frames=len(result['frames']),events=len(result['events']),
+                          kinds=sorted({r['kind'] for r in result['events']})),indent=2))

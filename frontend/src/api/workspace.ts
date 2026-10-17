@@ -14,7 +14,7 @@ export interface Media {
   created_at: string;
   duration_sec: number | null;
   status: "stored";
-  analysis_status: "not_requested";
+  analysis_status: "not_requested" | "queued" | "processing" | "done" | "failed";
   verdict: null;
   violations: [];
 }
@@ -100,7 +100,7 @@ export function parseMedia(v: unknown): Media {
       date(v.created_at) &&
       (v.duration_sec === null || number(v.duration_sec)) &&
       v.status === "stored" &&
-      v.analysis_status === "not_requested" &&
+      ["not_requested", "queued", "processing", "done", "failed"].includes(v.analysis_status) &&
       v.verdict === null &&
       Array.isArray(v.violations) &&
       !v.violations.length,
@@ -225,7 +225,7 @@ export const asRecord = (m: Media): AnalysisRecord => ({
   fileSize: m.file_size,
   createdAt: m.created_at,
   duration: m.duration_sec ?? undefined,
-  status: "stored",
+  status: m.analysis_status === "not_requested" ? "stored" : m.analysis_status === "queued" ? "processing" : m.analysis_status,
   mode: "api",
   violations: [],
 });

@@ -1,0 +1,33 @@
+{
+  "python": "3.11.0 (main, Oct 24 2022, 18:26:48) [MSC v.1933 64 bit (AMD64)]",
+  "venv_uses_system_site_packages": true,
+  "packages": {
+    "torch": "2.6.0+cu124",
+    "torchvision": "0.21.0+cu124",
+    "numpy": "2.4.6",
+    "opencv-python": "4.11.0.86",
+    "Pillow": "11.3.0",
+    "scikit-learn": "1.9.0",
+    "transformers": "5.10.2",
+    "huggingface-hub": "1.18.0",
+    "safetensors": "0.7.0",
+    "ultralytics": "8.3.253",
+    "ultralytics-thop": "2.0.18",
+    "polars": "1.44.2",
+    "polars-runtime-32": "1.44.2",
+    "sympy": "1.13.1",
+    "av": "16.1.0"
+  },
+  "cuda": "12.4",
+  "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU",
+  "cuda_available": true,
+  "cuda_smoke_tests": {
+    "matrix_multiplication": "passed",
+    "nms": "passed"
+  },
+  "local_cuda_packages": [
+    "torch",
+    "torchvision"
+  ],
+  "baseline_environment": "runs/baseline/environment_original.json"
+}

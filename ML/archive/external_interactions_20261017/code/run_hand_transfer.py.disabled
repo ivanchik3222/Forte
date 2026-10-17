@@ -1,0 +1,80 @@
+"""Compare native hand training with MECCANO-pretrained hand training on VAL only."""
+import hashlib
+import json
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+import torch
+
+from evaluate_detector import fixed_counts
+from train_detector import ROOT, local_yolo
+
+
+def train(data, weights, name, epochs):
+    run=ROOT/'runs'/name
+    if run.exists():raise FileExistsError(run)
+    env=dict(os.environ,PYTHONIOENCODING='utf-8',PYTHONUTF8='1')
+    with (ROOT/'runs'/(name+'.log')).open('w',encoding='utf-8') as log:
+        subprocess.run([sys.executable,str(ROOT/'train_detector.py'),'--data',str(data/'data.yaml'),
+                        '--weights',str(weights),'--name',name,'--epochs',str(epochs),
+                        '--batch','5','--imgsz','640','--lr','0.0003','--freeze','0'],
+                       stdout=log,stderr=subprocess.STDOUT,check=True,env=env)
+    print('Trained',name,flush=True)
+    return run/'weights/best.pt'
+
+
+def evaluate(weights, data, name):
+    model=local_yolo()(str(weights));device='0' if torch.cuda.is_available() else 'cpu'
+    metrics=model.val(data=str(data/'data.yaml'),split='val',imgsz=640,batch=5,device=device,
+                      workers=0,conf=.001,iou=.3,plots=True,project=str(ROOT/'runs'),
+                      name=name,exist_ok=False,verbose=False)
+    records=[r for r in json.loads((data/'manifest.json').read_text(encoding='utf-8')) if r['split']=='val']
+    total=dict(tp=0,fp=0,fn=0);predictions=[]
+    for row in records:
+        result=model.predict(str(data/'images/val'/(row['name']+'.jpg')),imgsz=640,
+                             device=device,conf=.25,iou=.3,verbose=False)[0]
+        pred=[dict(label='hand',confidence=float(c),xyxy=b.tolist())
+              for b,c in zip(result.boxes.xyxy.cpu(),result.boxes.conf.cpu())]
+        truth=[b for b in row['boxes'] if b['label']=='hand']
+        counts=fixed_counts(truth,pred,['hand'])['hand']
+        for key in total:total[key]+=counts[key]
+        predictions.append(dict(name=row['name'],ground_truth=truth,predictions=pred,counts=counts))
+    tp,fp,fn=total.values()
+    total.update(precision=tp/(tp+fp) if tp+fp else 0.,recall=tp/(tp+fn) if tp+fn else 0.,
+                 f1=2*tp/(2*tp+fp+fn) if 2*tp+fp+fn else 0.)
+    report=dict(map50=float(metrics.box.map50),map50_95=float(metrics.box.map),fixed=total,
+                confidence=.25,nms_iou=.3,matching_iou=.5,images=len(records),
+                weights_sha256=hashlib.sha256(weights.read_bytes()).hexdigest())
+    out=Path(metrics.save_dir)
+    (out/'metrics.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
+    (out/'predictions.json').write_text(json.dumps(predictions,indent=2),encoding='utf-8')
+    return report
+
+
+if __name__=='__main__':
+    torch.set_num_threads(4)
+    native=ROOT/'datasets/native_hands_research_v1';external=ROOT/'datasets/meccano_hands_research_v1'
+    original=ROOT/'models/yolo11n.pt'
+    baseline=train(native,original,'hand_native_control_v1',20)
+    baseline_metrics=evaluate(baseline,native,'hand_native_control_v1_val')
+    pretrained=train(external,original,'hand_meccano_pretrain_v1',20)
+    adapted=train(native,pretrained,'hand_meccano_adapted_v1',20)
+    adapted_metrics=evaluate(adapted,native,'hand_meccano_adapted_v1_val')
+    target=ROOT/'models/interaction_research/hands';target.mkdir(parents=True,exist_ok=True)
+    shutil.copyfile(adapted,target/'meccano_adapted.pt')
+    shutil.copyfile(baseline,target/'native_control.pt')
+    report=dict(task='Hand detection only',control=baseline_metrics,meccano_adapted=adapted_metrics,
+                delta_map50_95=adapted_metrics['map50_95']-baseline_metrics['map50_95'],
+                source_data='MECCANO hand boxes; native/Roboflow hand labels, train variants',
+                comparison='Same 20-epoch native adaptation; transfer has extra 20-epoch source pretraining',
+                production_model_replaced=False,
+                limitations=['Single seed, 10 native validation frames, not independent final test',
+                             'Egocentric to surveillance domain shift; reviewed source boxes need target-domain verification',
+                             'MECCANO usage terms need clarification before commercial release',
+                             'No cash detector or banking action classifier trained by this experiment'])
+    (ROOT/'runs/hand_transfer_comparison.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
+    (target/'model_card.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
+    print(json.dumps(report,indent=2),flush=True)

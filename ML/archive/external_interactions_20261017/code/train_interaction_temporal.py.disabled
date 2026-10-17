@@ -1,0 +1,211 @@
+"""Research temporal model on a subject-separated MERL subset; no banking labels."""
+import argparse
+import hashlib
+import io
+import json
+import random
+import zipfile
+from pathlib import Path
+
+import numpy as np
+import torch
+from scipy.io import loadmat
+from sklearn.metrics import average_precision_score
+from torch import nn
+from torchvision.models import resnet18, ResNet18_Weights
+
+from fetch_interaction_sources import OUT, ROOT
+from predict_objects import frames
+
+CLASSES = ['reach_to_shelf','retract_from_shelf','hand_in_shelf','inspect_product','inspect_shelf']
+
+
+class TemporalNet(nn.Module):
+    def __init__(self, temporal=True):
+        super().__init__()
+        self.temporal = temporal
+        channels = 1024 if temporal else 512
+        layers = []
+        for dilation in (1,2,4):
+            kernel = 3 if temporal else 1
+            layers.extend([nn.Conv1d(channels,64,kernel,padding=dilation if temporal else 0,
+                                     dilation=dilation if temporal else 1),nn.ReLU(),nn.Dropout(.2)])
+            channels = 64
+        self.encoder = nn.Sequential(*layers)
+        self.head = nn.Conv1d(64,5,1)
+
+    def latent(self, x):
+        if self.temporal:
+            delta = torch.cat([torch.zeros_like(x[:,:,:1]),x[:,:,1:]-x[:,:,:-1]],dim=2)
+            x = torch.cat([x,delta],dim=1)
+        return self.encoder(x)
+
+    def forward(self, x):
+        return self.head(self.latent(x))
+
+
+def load_encoder(device):
+    model = resnet18(weights=None)
+    model.load_state_dict(torch.load(ROOT/'models/resnet18-f37072fd.pth',map_location='cpu',weights_only=True))
+    model.fc = nn.Identity()
+    return model.eval().to(device), ResNet18_Weights.IMAGENET1K_V1.transforms()
+
+
+def extract(path, model, transform, device, fps=2.):
+    times, vectors, batch = [], [], []
+    def flush():
+        if batch:
+            with torch.inference_mode():
+                vectors.extend(model(torch.stack(batch).to(device)).cpu().numpy())
+            batch.clear()
+    from PIL import Image
+    for sec, rgb in frames(path,fps):
+        times.append(sec)
+        batch.append(transform(Image.fromarray(rgb)))
+        if len(batch)==32:
+            flush()
+    flush()
+    return np.asarray(times,dtype=np.float32),np.asarray(vectors,dtype=np.float32)
+
+
+def targets(times, intervals, annotation_fps=30.):
+    # tlabs refers to native video frames (30 FPS in the downloaded subset).
+    # The README's 15 FPS refers to their released prediction results, not tlabs.
+    frame_ids = np.floor(times * annotation_fps + 1e-5).astype(int) + 1
+    labels = np.zeros((len(times),5),dtype=np.float32)
+    for cls, ranges in enumerate(intervals):
+        for start, end in np.asarray(ranges).reshape(-1,2):
+            labels[(frame_ids>=start)&(frame_ids<=end),cls] = 1
+    return labels
+
+
+def run_training(temporal, train, val, mean, std, device, epochs):
+    torch.manual_seed(42)
+    model = TemporalNet(temporal).to(device)
+    optimizer = torch.optim.AdamW(model.parameters(),lr=.001,weight_decay=.001)
+    y = np.concatenate([r['labels'] for r in train])
+    pos = y.sum(0)
+    weight = torch.tensor(np.clip((len(y)-pos)/np.maximum(pos,1),1,10),device=device)
+    loss_fn = nn.BCEWithLogitsLoss(pos_weight=weight[None,:,None])
+    def tensor(row):
+        return torch.tensor(((row['features']-mean)/std).T[None],device=device)
+    best, history, best_state = -1., [], None
+    for epoch in range(epochs):
+        model.train()
+        total = 0.
+        for i in np.random.default_rng(42+epoch).permutation(len(train)):
+            row = train[i]
+            x=tensor(row); truth=torch.tensor(row['labels'].T[None],device=device)
+            optimizer.zero_grad()
+            loss=loss_fn(model(x),truth)
+            loss.backward();nn.utils.clip_grad_norm_(model.parameters(),5)
+            optimizer.step();total+=float(loss.detach())
+        model.eval();pred=[];truth=[]
+        with torch.inference_mode():
+            for row in val:
+                pred.append(model(tensor(row)).sigmoid().squeeze(0).T.cpu().numpy())
+                truth.append(row['labels'])
+        truth=np.concatenate(truth);pred=np.concatenate(pred)
+        ap={c:float(average_precision_score(truth[:,i],pred[:,i])) for i,c in enumerate(CLASSES)}
+        score=float(np.mean(list(ap.values())))
+        history.append(dict(epoch=epoch+1,train_loss=total/len(train),val_frame_map=score,per_class_ap=ap))
+        if score>best:
+            best=score;best_state={k:v.detach().cpu().clone() for k,v in model.state_dict().items()}
+        if (epoch+1)%5==0:
+            print('TCN' if temporal else 'Frame',epoch+1,'VAL frame mAP',round(score,4),flush=True)
+    return dict(state_dict=best_state,mean=torch.tensor(mean),std=torch.tensor(std),temporal=temporal,
+                classes=CLASSES,feature_encoder='resnet18-f37072fd',fps=2.,seed=42), history
+
+
+def order_probe(checkpoint, source, device):
+    """Same weights and frames: destroy ordering, then restore predictions to GT order."""
+    import av
+    state=torch.load(checkpoint,map_location='cpu',weights_only=True)
+    model=TemporalNet(state['temporal']).to(device);model.load_state_dict(state['state_dict']);model.eval()
+    predictions={k:[] for k in ('ordered','shuffled','reversed')};truth=[]
+    rng=np.random.default_rng(42)
+    with zipfile.ZipFile(OUT/'merl/labels.zip') as archive,torch.inference_mode():
+        for row in source:
+            if row['split']!='val':continue
+            path=ROOT/row['path'];name=path.stem.replace('_crop','')
+            with np.load(ROOT/'cache/merl_temporal'/(name+'.npz')) as cache:
+                times=cache['times'];features=cache['features']
+            with av.open(str(path)) as video:fps=float(video.streams.video[0].average_rate)
+            ranges=loadmat(io.BytesIO(archive.read(f'Labels_MERL_Shopping_Dataset/{name}_label.mat')))['tlabs'].ravel()
+            truth.append(targets(times,ranges,fps))
+            x=torch.tensor(features,device=device)
+            x=((x-state['mean'].to(device))/state['std'].to(device)).T[None]
+            for kind,order in (('ordered',np.arange(len(times))),('shuffled',rng.permutation(len(times))),
+                               ('reversed',np.arange(len(times)-1,-1,-1))):
+                pred=model(x[:,:,order.copy()]).sigmoid().squeeze(0).T.cpu().numpy()
+                predictions[kind].append(pred[np.argsort(order)])
+    truth=np.concatenate(truth)
+    return {kind:dict(frame_map=float(average_precision_score(truth,np.concatenate(values),average='macro')))
+            for kind,values in predictions.items()}
+
+
+def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--epochs',type=int,default=30)
+    parser.add_argument('--out',type=Path,default=ROOT/'runs/merl_temporal_research_v1')
+    parser.add_argument('--model-dir',type=Path,default=ROOT/'models/interaction_research/merl_temporal')
+    args=parser.parse_args()
+    if args.out.exists():raise FileExistsError(args.out)
+    model_dir=args.model_dir
+    if any((model_dir/(name+'_best.pt')).exists() for name in ('frame','temporal')):
+        raise FileExistsError(f'Choose a new --model-dir: {model_dir}')
+    random.seed(42);np.random.seed(42);torch.manual_seed(42);torch.set_num_threads(4)
+    device='cuda' if torch.cuda.is_available() else 'cpu'
+    encoder,transform=load_encoder(device)
+    source=json.loads((OUT/'merl/subset.json').read_text(encoding='utf-8'))
+    cache=ROOT/'cache/merl_temporal';cache.mkdir(parents=True,exist_ok=True)
+    records=[]
+    with zipfile.ZipFile(OUT/'merl/labels.zip') as archive:
+        for r in source:
+            path=ROOT/r['path'];name=path.stem.replace('_crop','');cached=cache/(name+'.npz')
+            if cached.exists():
+                with np.load(cached) as stored:times=stored['times'];features=stored['features']
+            else:
+                times,features=extract(path,encoder,transform,device)
+                np.savez_compressed(cached,times=times,features=features)
+            intervals=loadmat(io.BytesIO(archive.read(f'Labels_MERL_Shopping_Dataset/{name}_label.mat')))['tlabs'].ravel()
+            import av
+            with av.open(str(path)) as video:
+                annotation_fps=float(video.streams.video[0].average_rate)
+                native_frames=video.streams.video[0].frames
+            if max((int(x.max()) for x in intervals if x.size),default=0)>native_frames:
+                raise ValueError('MERL frame/time alignment failed')
+            records.append(dict(name=name,split=r['split'],subject=r['subject'],features=features,
+                                times=times,labels=targets(times,intervals,annotation_fps)))
+            print('Features',name,len(times),flush=True)
+    train=[r for r in records if r['split']=='train'];val=[r for r in records if r['split']=='val']
+    assert set(r['subject'] for r in train).isdisjoint(r['subject'] for r in val)
+    all_features=np.concatenate([r['features'] for r in train]);mean=all_features.mean(0);std=np.maximum(all_features.std(0),.05)
+    args.out.mkdir(parents=True)
+    results={}
+    model_dir.mkdir(parents=True,exist_ok=True)
+    for temporal in (False,True):
+        name='temporal' if temporal else 'frame'
+        state,history=run_training(temporal,train,val,mean,std,device,args.epochs)
+        target=model_dir/(name+'_best.pt')
+        if target.exists():raise FileExistsError(target)
+        torch.save(state,target)
+        (args.out/(name+'_history.json')).write_text(json.dumps(history,indent=2),encoding='utf-8')
+        results[name]=dict(best_val=max(history,key=lambda r:r['val_frame_map']),weights=str(target),
+                           sha256=hashlib.sha256(target.read_bytes()).hexdigest())
+    report=dict(task='MERL multi-label frame action recognition at 2 FPS',device=device,
+                train_videos=len(train),val_videos=len(val),train_subjects=sorted({r['subject'] for r in train}),
+                val_subjects=sorted({r['subject'] for r in val}),epochs=args.epochs,results=results,
+                source_subset_sha256=hashlib.sha256((OUT/'merl/subset.json').read_bytes()).hexdigest(),
+                labels_sha256=hashlib.sha256((OUT/'merl/labels.zip').read_bytes()).hexdigest(),
+                val_positive_samples={c:int(np.concatenate([r['labels'] for r in val])[:,i].sum()) for i,c in enumerate(CLASSES)},
+                limitations=['Pilot subset; original subject split, no test evaluated',
+                             'Frame AP is not event AP or banking violation accuracy',
+                             'Single seed; different parameter counts for frame and temporal models',
+                             'MERL research/education permission; transfer to banking actions unvalidated'])
+    report['temporal_order_probe']=order_probe(model_dir/'temporal_best.pt',source,device)
+    (args.out/'metrics.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
+    print(json.dumps(report,indent=2),flush=True)
+
+
+if __name__=='__main__':main()

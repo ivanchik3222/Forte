@@ -55,6 +55,8 @@ def create_app(config_object=None):
     app.register_blueprint(workspace_bp, url_prefix='/api/v1')
     from routes.review import review_bp
     app.register_blueprint(review_bp, url_prefix='/api/v1')
+    from routes.analysis import analysis_bp
+    app.register_blueprint(analysis_bp, url_prefix='/api/v1')
     from cli import register_cli
     register_cli(app)
 

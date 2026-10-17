@@ -1,0 +1,46 @@
+{
+  "videos": 1,
+  "succeeded": 1,
+  "failed": 0,
+  "unique_videos": 1,
+  "frames": 52,
+  "events": 12,
+  "video_seconds": 25.933,
+  "inference_seconds": 2.776,
+  "elapsed_seconds": 7.991,
+  "protocol": "Real multipart upload and ffprobe; real Flask API, migrations and worker; no duplicate inference cache",
+  "http_upload": true,
+  "parameters": {
+    "fps": 2,
+    "confidence": 0.25,
+    "nms_iou": 0.7,
+    "imgsz": 640,
+    "camera_profile": "forte_open"
+  },
+  "limitations": [
+    "Operational integration test, not an independent accuracy evaluation",
+    "Source dataset contains train/val/test videos; run not used for tuning",
+    "Object detector does not classify regulatory violations; no binary accuracy inferred"
+  ],
+  "records": [
+    {
+      "file": "X-1.mov",
+      "status": "done",
+      "duration_sec": 25.933,
+      "frames": 52,
+      "boxes": {
+        "person": 103,
+        "storage_cabinet": 52,
+        "hand": 135,
+        "cash": 36
+      },
+      "events": 12,
+      "evidence_frames": 12,
+      "inference_seconds": 2.776,
+      "job_id": "805b04f6-9c53-4b37-be46-923043c1e8ce",
+      "source_sha256": "8911a9219b9433091824e553a70bb80335f075fd8ac982d2062d2ecf023c16bc",
+      "model_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+      "total_seconds": 7.793
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+"""Convert source hand boxes and temporal labels without inventing cash labels."""
+import csv
+import io
+import json
+import shutil
+import zipfile
+from collections import Counter, defaultdict
+from pathlib import Path
+
+import numpy as np
+import yaml
+from scipy.io import loadmat
+
+from fetch_interaction_sources import OUT, ROOT
+
+PRIMITIVES = ['take', 'place', 'open', 'close', 'inspect', 'manipulate', 'other']
+
+
+def timestamp(value):
+    h, m, s = value.split(':')
+    return int(h) * 3600 + int(m) * 60 + float(s)
+
+
+def primitive(verb):
+    if verb in ('take', 'pick', 'pick-up'):
+        return 'take'
+    if verb in ('put', 'put-down', 'put-into', 'place'):
+        return 'place'
+    if verb in ('open', 'close'):
+        return verb
+    if verb in ('check', 'inspect', 'read', 'look'):
+        return 'inspect'
+    if verb in ('move', 'adjust', 'hold', 'align', 'plug', 'pull', 'screw', 'unscrew', 'tighten', 'loosen'):
+        return 'manipulate'
+    return 'other'
+
+
+def export_hands():
+    subset = json.loads((OUT / 'meccano/subset.json').read_text(encoding='utf-8'))
+    data = ROOT / 'datasets/meccano_hands_research_v1'
+    native = ROOT / 'datasets/native_hands_research_v1'
+    for target in (data, native):
+        if target.exists():
+            raise FileExistsError(f'Preserve existing export: {target}')
+    for target in (data, native):
+        for split in ('train', 'val'):
+            (target / 'images' / split).mkdir(parents=True)
+            (target / 'labels' / split).mkdir(parents=True)
+    def write(target, row, source, boxes):
+        name = row['name']
+        shutil.copyfile(source, target / 'images' / row['split'] / (name + '.jpg'))
+        w, h = row['width'], row['height']
+        lines = [f'0 {(a+c)/2/w:.8f} {(b+d)/2/h:.8f} {(c-a)/w:.8f} {(d-b)/h:.8f}' for a,b,c,d in boxes]
+        (target / 'labels' / row['split'] / (name + '.txt')).write_text('\n'.join(lines), encoding='utf-8')
+    for row in subset:
+        write(data, row, ROOT / row['path'], row['boxes_xyxy'])
+    original = ROOT / 'datasets/cash_objects_aug_v1'
+    records = json.loads((original / 'manifest.json').read_text(encoding='utf-8'))
+    selected = [r for r in records if r['split'] in ('train', 'val')
+                and r['source'] in ('forte', 'roboflow_cash_counter_theft_v2')]
+    for row in selected:
+        write(native, row, original / 'images' / row['split'] / (row['name'] + '.jpg'),
+              [b['xyxy'] for b in row['boxes'] if b['label'] == 'hand'])
+    for target, rows in ((data, subset), (native, selected)):
+        config = dict(path=str(target.resolve()), train='images/train', val='images/val', names={0: 'hand'})
+        (target / 'data.yaml').write_text(yaml.safe_dump(config, sort_keys=False), encoding='utf-8')
+        (target / 'manifest.json').write_text(json.dumps(rows, indent=2), encoding='utf-8')
+        (target / 'summary.json').write_text(json.dumps(dict(images=len(rows),
+            splits=dict(Counter(r['split'] for r in rows)), task='hand only',
+            note='Research export; no cash labels inferred from other objects'), indent=2), encoding='utf-8')
+    print('Hand exports', len(subset), 'MECCANO;',len(selected),'native/Roboflow including train variants',flush=True)
+
+
+def export_sequences():
+    output = ROOT / 'datasets/interaction_sequences_v1'
+    output.mkdir(parents=True, exist_ok=True)
+    segments = []
+    for split, name in (('train', 'epic_train.txt'), ('val', 'epic_val.txt')):
+        with (OUT / name).open(encoding='utf-8', newline='') as handle:
+            for row in csv.DictReader(handle):
+                segments.append(dict(source='epic_kitchens_100', split=split, video=row['video_id'],
+                    start_sec=timestamp(row['start_timestamp']), end_sec=timestamp(row['stop_timestamp']),
+                    source_action=row['verb'], source_object=row['noun'], primitive=primitive(row['verb'])))
+    with zipfile.ZipFile(OUT / 'meccano/actions.zip') as archive:
+        for split in ('train', 'val'):
+            for row in csv.DictReader(io.StringIO(archive.read(f'MECCANO_{split}_actions.csv').decode('utf-8-sig'))):
+                segments.append(dict(source='meccano', split=split, video=row['video_id'],
+                    start_sec=(int(Path(row['start_frame']).stem) - 1) / 12,
+                    end_sec=int(Path(row['end_frame']).stem) / 12,
+                    source_action=row['action_name'], primitive=primitive(row['action_name'].split('_')[0])))
+    with zipfile.ZipFile(OUT / 'merl/labels.zip') as archive:
+        names = ['reach_to_shelf','retract_from_shelf','hand_in_shelf','inspect_product','inspect_shelf']
+        for name in archive.namelist():
+            if not name.endswith('_label.mat'):
+                continue
+            video_path=OUT/'merl/videos'/(Path(name).name.replace('_label.mat','_crop.mp4'))
+            if not video_path.exists():
+                continue
+            import av
+            with av.open(str(video_path)) as video:
+                annotation_fps=float(video.streams.video[0].average_rate)
+            subject = int(Path(name).name.split('_')[0])
+            split = 'train' if subject <= 20 else 'val' if subject <= 26 else 'test'
+            labels = loadmat(io.BytesIO(archive.read(name)))['tlabs'].ravel()
+            for cls, intervals in enumerate(labels):
+                for start, end in np.asarray(intervals).reshape(-1, 2):
+                    segments.append(dict(source='merl_shopping', split=split,
+                        video=Path(name).name.replace('_label.mat',''), start_sec=(int(start)-1)/annotation_fps,
+                        end_sec=int(end)/annotation_fps, annotation_fps=annotation_fps, source_action=names[cls],
+                        primitive='inspect' if cls >= 3 else 'manipulate'))
+    # A transition prior from labels only. Concurrent/overlapping annotations stay concurrent.
+    grouped = defaultdict(list)
+    for row in segments:
+        if row['split'] == 'train' and row['source'] != 'merl_shopping':
+            grouped[(row['source'], row['video'])].append(row)
+    counts = {source: np.zeros((len(PRIMITIVES),len(PRIMITIVES)),dtype=int)
+              for source in ('epic_kitchens_100','meccano')}
+    skipped_overlap = Counter()
+    for (source, _), rows in grouped.items():
+        rows.sort(key=lambda r:(r['start_sec'],r['end_sec']))
+        for left, right in zip(rows, rows[1:]):
+            gap = right['start_sec'] - left['end_sec']
+            if gap < 0:
+                skipped_overlap[source] += 1
+                continue
+            if gap <= 8:
+                counts[source][PRIMITIVES.index(left['primitive']),PRIMITIVES.index(right['primitive'])] += 1
+    prior = dict(classes=PRIMITIVES, max_gap_sec=8, train_only=True,
+                 overlapping_adjacent_pairs_skipped=dict(skipped_overlap),
+                 counts={s:c.tolist() for s,c in counts.items()},
+                 probabilities={s:((c+1)/(c+1).sum(axis=1,keepdims=True)).tolist() for s,c in counts.items()},
+                 note='Label statistics only, not a visual action classifier; never money or violation evidence')
+    (output / 'segments.json').write_text(json.dumps(segments, indent=2), encoding='utf-8')
+    (output / 'transition_prior.json').write_text(json.dumps(prior, indent=2), encoding='utf-8')
+    (output / 'summary.json').write_text(json.dumps(dict(
+        segment_counts=dict(Counter(r['source'] for r in segments)),
+        limitations=['EPIC VISOR frame server unavailable; EPIC RGB/masks not used in training',
+                     'Source actions are not banking actions', 'Frame bases: 1-based inclusive; MERL native video fps, MECCANO 12 fps',
+                     'Research source licensing; see EXTERNAL_INTERACTIONS.md']),indent=2),encoding='utf-8')
+    print('Temporal segments',len(segments),dict(Counter(r['source'] for r in segments)),flush=True)
+
+
+if __name__ == '__main__':
+    export_sequences()
+    if (OUT / 'meccano/subset.json').exists():
+        export_hands()

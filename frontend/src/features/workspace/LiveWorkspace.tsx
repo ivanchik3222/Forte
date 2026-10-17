@@ -25,6 +25,7 @@ import {
   validateVideo,
 } from "../analysis/types";
 import { HistoryTable } from "../analysis/HistoryTable";
+import { MLAnalysisPanel } from "../analysis/MLAnalysisPanel";
 import { useCurrentDay } from "../notifications/types";
 import { useResource } from "./useResource";
 import { MonitoringPage } from "../../pages/MonitoringPage";
@@ -441,7 +442,7 @@ function UploadDialog({
   return (
     <Modal title="Загрузить видео" onClose={close}>
       <section className="upload-panel">
-        <p>Видео сохранится на сервере. Анализ не выполняется.</p>
+        <p>Видео сохранится на сервере. На странице записи можно запустить поиск объектов и движений.</p>
         <div
           className="dropzone"
           onDragOver={(e) => e.preventDefault()}
@@ -544,7 +545,7 @@ function History({
             }}
           >
             <option value="all">Все статусы</option>
-            <option value="stored">Без анализа</option>
+            <option value="stored">Сохранённые записи</option>
           </select>
           <select
             aria-label="Сортировка"
@@ -647,8 +648,8 @@ function MediaDetail({ id }: { id: string }) {
           </div>
           <div className="notice">
             <Icon name="info" />
-            Видео сохранено. Анализ пока недоступен. Вывод о наличии нарушений
-            не сформирован.
+            Видео сохранено. Запустите поиск объектов и движений в блоке ниже.
+            Вывод о наличии нарушений требует ручной проверки.
           </div>
           <section className="panel live-video">
             <StateNotice error={error} />
@@ -698,6 +699,10 @@ function MediaDetail({ id }: { id: string }) {
               кнопкой.
             </p>
           </section>
+          <MLAnalysisPanel key={id} mediaId={id} onSeek={sec => {
+            resumeAt.current = sec;
+            if (video.current) video.current.currentTime = sec;
+          }} />
         </>
       )}
     </>
@@ -1071,7 +1076,7 @@ function Settings() {
           <>
             <p>API доступен. Записи хранятся на сервере.</p>
             <p>
-              ИИ-анализ:{" "}
+              Поиск объектов и движений:{" "}
               {capabilities.data.analysis ? "доступен" : "не подключён"}.
             </p>
             <p>

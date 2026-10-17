@@ -91,9 +91,11 @@ class MediaRecord(db.Model):
     __table_args__ = (db.Index('ix_media_owner_created', 'owner_id', 'created_at', 'id'), db.CheckConstraint('size_bytes > 0', name='positive_media_size'))
 
     def to_dict(self):
+        analysis_status = db.session.query(AnalysisJob.status).filter_by(media_id=self.id).scalar()
         return dict(id=self.id, file_name=self.original_name, file_size=self.size_bytes,
                     duration_sec=self.duration_sec, created_at=_utc_iso(self.created_at),
-                    status='stored', analysis_status='not_requested', verdict=None, violations=[])
+                    status='stored', analysis_status=analysis_status or 'not_requested',
+                    verdict=None, violations=[])
 
 
 class UploadRequest(db.Model):
@@ -105,6 +107,25 @@ class UploadRequest(db.Model):
     media_id = db.Column(db.String(36), db.ForeignKey('media_records.id', ondelete='CASCADE'), nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), default=utcnow, nullable=False)
     __table_args__ = (db.UniqueConstraint('owner_id', 'key', name='uq_upload_owner_key'),)
+
+
+class AnalysisJob(db.Model):
+    __tablename__ = 'analysis_jobs'
+    id = db.Column(db.String(36), primary_key=True, default=uid)
+    media_id = db.Column(db.String(36), db.ForeignKey('media_records.id', ondelete='CASCADE'), nullable=False)
+    camera_profile = db.Column(db.String(20), nullable=False)
+    status = db.Column(db.String(20), nullable=False, default='queued')
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+    started_at = db.Column(db.DateTime(timezone=True))
+    finished_at = db.Column(db.DateTime(timezone=True))
+    error = db.Column(db.Text)
+    result = db.Column(db.JSON)
+    __table_args__ = (
+        db.UniqueConstraint('media_id', name='uq_analysis_media'),
+        db.CheckConstraint("status in ('queued','processing','done','failed')", name='analysis_status'),
+        db.CheckConstraint("camera_profile in ('forte_open','full_frame')", name='analysis_camera_profile'),
+        db.Index('ix_analysis_status_created', 'status', 'created_at'),
+    )
 
 
 class Camera(db.Model):

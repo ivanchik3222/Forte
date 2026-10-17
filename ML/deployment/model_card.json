@@ -1,0 +1,17 @@
+{
+  "architecture": "YOLO11n",
+  "weights_sha256": "be1ff4056ffd36fea226fca6c0beb3cbd5f84bfc2bff34a673934e406ba2ec4f",
+  "classes": ["person", "hand", "cash", "bag", "storage_cabinet"],
+  "native_camera_dimensions": [464, 848],
+  "native_roi_xyxy": [0, 300, 464, 610],
+  "confidence": 0.25,
+  "nms_iou": 0.7,
+  "imgsz": 640,
+  "validation_images": 10,
+  "validation_map50_95": 0.26473405015072804,
+  "test_images": 6,
+  "test_map50_95": 0.189443,
+  "automatic_violation_detection": false,
+  "license": "Ultralytics AGPL-3.0; https://www.ultralytics.com/license",
+  "limitations": ["Small visually reviewed dataset; no expert adjudication", "Weak small-object recall and camera domain shift", "2 FPS observations do not establish a sequence of banking actions", "No face or cashier-role identification", "No regulatory violation evaluation"]
+}

@@ -69,7 +69,9 @@ def alert_dto(alert, detail=False):
 @workspace_bp.get('/capabilities')
 @active_required
 def capabilities():
-    return jsonify(uploads=True, analysis=False, camera_stream=False, monitoring=True, shift_review=True,
+    from services.analysis import available
+    return jsonify(uploads=True, analysis=available(), analysis_kind='object_observations',
+                   automatic_violation_detection=False, camera_stream=False, monitoring=True, shift_review=True,
                    automatic_quality_checks=False, formats=['mov', 'mp4', 'webm'], max_file_size=current_app.config['MAX_FILE_SIZE'])
 
 
@@ -129,7 +131,11 @@ def media_content(record_id):
 @active_required
 def report(record_id):
     payload = get_media(record_id).to_dict()
-    payload['notice'] = 'Видео сохранено. Анализ не выполнялся.'
+    from models import AnalysisJob
+    job = AnalysisJob.query.filter_by(media_id=record_id).first()
+    payload['analysis_status'] = job.status if job else 'not_requested'
+    payload['analysis'] = job.result if job and job.status == 'done' else None
+    payload['notice'] = 'Наблюдения модели требуют проверки специалистом. Оценка нарушений не выполнялась.' if job else 'Видео сохранено. Анализ не выполнялся.'
     response = jsonify(payload)
     response.headers['Content-Disposition'] = f'attachment; filename="forte-report-{payload["id"]}.json"'
     return response

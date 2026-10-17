@@ -1,0 +1,55 @@
+"""Test joint training after a separate MECCANO pretraining stage failed to transfer."""
+import json
+import shutil
+from pathlib import Path
+
+import torch
+import yaml
+
+from run_hand_transfer import train, evaluate
+from train_detector import ROOT
+
+
+if __name__=='__main__':
+    torch.set_num_threads(4)
+    native=ROOT/'datasets/native_hands_research_v1'
+    external=ROOT/'datasets/meccano_hands_research_v1'
+    mixed=ROOT/'datasets/mixed_hands_research_v1'
+    if mixed.exists():raise FileExistsError(mixed)
+    records=json.loads((native/'manifest.json').read_text(encoding='utf-8'))
+    for split in ('train','val'):
+        for kind in ('images','labels'):
+            shutil.copytree(native/kind/split,mixed/kind/split)
+    for row in json.loads((external/'manifest.json').read_text(encoding='utf-8')):
+        if row['split']!='train':continue
+        name='meccano_'+row['name']
+        for kind,suffix in (('images','.jpg'),('labels','.txt')):
+            shutil.copyfile(external/kind/'train'/(row['name']+suffix),mixed/kind/'train'/(name+suffix))
+        records.append(dict(name=name,split='train',source='meccano',source_group='meccano_'+row['video'],
+                            width=row['width'],height=row['height'],
+                            boxes=[dict(label='hand',xyxy=b) for b in row['boxes_xyxy']]))
+    (mixed/'data.yaml').write_text(yaml.safe_dump(dict(path=str(mixed.resolve()),train='images/train',
+                                      val='images/val',names={0:'hand'}),sort_keys=False),encoding='utf-8')
+    (mixed/'manifest.json').write_text(json.dumps(records,indent=2),encoding='utf-8')
+    (mixed/'summary.json').write_text(json.dumps(dict(train=253,val=10,task='hand only',
+        note='165 native/Roboflow train variants + 88 official MECCANO train frames'),indent=2),encoding='utf-8')
+    # 253 images -> 51 batches * 13 epochs = 663 updates; native control 33 * 20 = 660.
+    weights=train(mixed,ROOT/'models/yolo11n.pt','hand_meccano_mixed_v1',13)
+    metrics=evaluate(weights,native,'hand_meccano_mixed_v1_val')
+    path=ROOT/'runs/hand_transfer_comparison.json'
+    report=json.loads(path.read_text(encoding='utf-8'))
+    report['meccano_mixed']=metrics
+    report['mixed_comparison']='663 mixed updates vs 660 native-control updates; same lr, batch, seed, native val'
+    report['mixed_delta_map50_95']=metrics['map50_95']-report['control']['map50_95']
+    candidates={k:report[k] for k in ('control','meccano_adapted','meccano_mixed')}
+    selected=max(candidates,key=lambda k:candidates[k]['map50_95'])
+    report['selected_hand_research_by_val']=selected
+    target=ROOT/'models/interaction_research/hands'
+    shutil.copyfile(weights,target/'meccano_mixed.pt')
+    paths={'control':target/'native_control.pt','meccano_adapted':target/'meccano_adapted.pt',
+           'meccano_mixed':target/'meccano_mixed.pt'}
+    shutil.copyfile(paths[selected],target/'selected_research.pt')
+    report['limitations'].append('Joint training tried after inspecting transfer VAL; all reported scores are development scores')
+    path.write_text(json.dumps(report,indent=2),encoding='utf-8')
+    (target/'model_card.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
+    print(json.dumps(report,indent=2),flush=True)

@@ -1,0 +1,7 @@
+# Install torch==2.6.0 and torchvision==0.21.0 for your platform first.
+# Dockerfile.ml installs CPU wheels; local ML/.venv already has CUDA wheels.
+ultralytics==8.3.253
+av==16.1.0
+scipy==1.15.3
+numpy>=1.26,<3
+Pillow>=10,<12

@@ -2,6 +2,7 @@ import base64
 import io
 from datetime import timedelta
 import pytest
+from PIL import Image
 from sqlalchemy.exc import IntegrityError
 from models import db, ApiClient, AnalysisJob, MediaRecord, utcnow
 from services.analysis import run_next_job
@@ -98,8 +99,8 @@ def test_completed_contract(client, public_ml, verdict):
     job = db.session.get(AnalysisJob, job_id)
     folder = public_ml / 'analysis' / job_id
     folder.mkdir(parents=True)
-    image = b'\xff\xd8test-jpeg'
-    (folder / 'frame.jpg').write_bytes(image)
+    Image.new('RGB', (12, 12), 'blue').save(folder / 'frame.jpg', format='JPEG')
+    image = (folder / 'frame.jpg').read_bytes()
     violation = dict(type='test', description='Visible event', timecode_sec=1.0,
         evidence_frames=[dict(timestamp_sec=1.0, image_file='frame.jpg')])
     job.result = dict(verdict=verdict, violations=[violation] if verdict == 'violation' else [])

@@ -67,11 +67,12 @@ def convert_report(report,output):
 
 
 class CaptionAnalyzer:
-    def __init__(self,python,ml_root,adapter=None,model_size='4b',input_mode='images',assess_rules=False):
+    def __init__(self,python,ml_root,adapter=None,model_size='4b',input_mode='images',assess_rules=False,allow_reserved_test=False):
         self.python=Path(python);self.root=Path(ml_root);self.adapter=Path(adapter) if adapter else None
         if model_size not in ('4b','8b') or input_mode not in ('images','native_video'):raise ValueError('Unknown VLM configuration')
         self.model_size=model_size;self.input_mode=input_mode
         self.assess_rules=assess_rules
+        self.allow_reserved_test=allow_reserved_test
 
     def analyze(self,source,output,camera_profile='full_frame',timeout=300):
         if camera_profile not in ('full_frame','forte_open'):raise ValueError('Unknown camera profile')
@@ -81,6 +82,7 @@ class CaptionAnalyzer:
             '--output',str(destination),'--budget-sec',str(max(1,timeout-20)),
             '--model-size',self.model_size,'--input-mode',self.input_mode]
         if self.adapter:command.extend(['--adapter',str(self.adapter)])
+        if self.allow_reserved_test:command.append('--allow-reserved-test')
         if self.assess_rules:command.extend(['--assess-rules','--max-tokens','1400'])
         # argv rather than a shell; paths never become executable shell fragments.
         with (output/'caption-worker.log').open('w') as log:

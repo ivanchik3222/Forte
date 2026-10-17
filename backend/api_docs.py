@@ -70,14 +70,21 @@ def build_spec():
                     'camera_profile': string(enum=['full_frame', 'forte_open']),
                     'created_at': date_time, 'started_at': nullable_time, 'finished_at': nullable_time,
                     'error': string(nullable=True), 'result': obj(nullable=True,
-                        description='Наблюдения модели requires_review; не вердикт о нарушении.')}),
-        'PublicJob': obj({'job_id': string(), 'status': string(enum=['processing', 'done', 'failed']),
-                          'verdict': string(enum=['violation', 'no_violation']),
-                          'error': obj({'code': string(), 'message': string()}),
-                          'violations': array(obj({'type': string(), 'description': string(),
-                              'timecode_sec': number, 'evidence_frames': array(obj({
-                                  'timestamp_sec': number, 'image_base64': string(format='byte',
-                                      description='JPEG base64 без data-URI.')}), minItems=1, maxItems=3)}))}),
+                        description='Исходный отчёт модели; включает вердикт, если движок его сформировал.')},
+                    ('job_id', 'media_id', 'status', 'result')),
+        'EvidenceFrame': obj({'timestamp_sec': number, 'image_base64': string(format='byte',
+            description='Полный JPEG в base64 без data-URI.')}, ('timestamp_sec', 'image_base64')),
+        'Violation': obj({'type': string(minLength=1), 'description': string(minLength=1),
+            'timecode_sec': number, 'evidence_frames': array(ref('EvidenceFrame'), minItems=1, maxItems=3),
+            'rule': obj(nullable=True), 'classification_status': string()},
+            ('type', 'timecode_sec', 'description', 'evidence_frames')),
+        'ApiJobProcessing': obj({'job_id': string(), 'status': string(enum=['processing'])}, ('job_id', 'status')),
+        'ApiJobDone': obj({'job_id': string(), 'status': string(enum=['done']),
+            'verdict': string(enum=['violation', 'no_violation']), 'violations': array(ref('Violation')),
+            'coverage_status': string(), 'decision_scope': string(), 'rule_evaluation': string()}, ('job_id', 'status', 'verdict', 'violations')),
+        'ApiJobFailed': obj({'job_id': string(), 'status': string(enum=['failed']),
+            'error': obj({'code': string(), 'message': string()}, ('code', 'message'))}, ('job_id', 'status', 'error')),
+        'PublicJob': {'oneOf': [ref('ApiJobProcessing'), ref('ApiJobDone'), ref('ApiJobFailed')]},
         'Branch': obj({'id': string(), 'name': string()}),
         'Access': obj({'branch_ids': array(string(), maxItems=1000),
                        'camera_ids': array(string(), maxItems=1000)}, ('branch_ids', 'camera_ids'),
@@ -259,9 +266,9 @@ def build_spec():
     add('delete', '/api/v1/api-keys/current', 'Отозвать API-ключ', 'Публичный API',
         security=[{'ApiKeyAuth': []}], codes=(204,))
     add('post', '/api/v1/analyze', 'Загрузить видео для анализа по API-ключу', 'Публичный API',
-        {'oneOf': [obj({'job_id': string(), 'status': string(enum=['processing'])}), ref('PublicJob')]}, upload,
-        security=[{'ApiKeyAuth': []}], codes=(202,), multipart=True,
-        description='X-API-Key, выданный через /api/v1/api-keys, запускает изолированный API-клиент; секрет JURY_API_KEY запускает контракт жюри и reviewed pipeline. GET /api/v1/jobs/{job_id} использует тот же ключ и возвращает соответствующий формат. Один файл до 1 ГиБ; дедлайн 300 секунд.')
+        ref('PublicJob'), upload,
+        security=[{'ApiKeyAuth': []}], codes=(202, 200), multipart=True,
+        description='X-API-Key: выданный через /api/v1/api-keys или настроенный JURY_API_KEY. GET /api/v1/jobs/{job_id} использует тот же ключ; формат результата одинаков для обоих типов ключа. Один файл до 1 ГиБ; дедлайн 300 секунд от создания задачи, включая очередь. Наблюдения без бинарного вердикта возвращают failed.')
     return {
         'openapi': '3.0.3', 'info': {'title': 'Forte Control API', 'version': '1.0.0',
             'description': 'Интерактивная документация backend. JWT: выполните login и вставьте access_token в Authorize без Bearer. '

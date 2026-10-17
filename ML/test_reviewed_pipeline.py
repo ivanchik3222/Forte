@@ -49,6 +49,31 @@ class PipelineTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             merge_reports(self.base, None, self.root, 'failed', 1)
 
+    def test_full_pipeline_keeps_trained_positive_when_caption_subprocess_fails(self):
+        source = self.root/'video.mov'; source.write_bytes(b'video')
+        self.base['source_sha256'] = hashlib.sha256(b'video').hexdigest()
+        (self.root/'candidate/result.json').write_text(json.dumps(self.base))
+        class BrokenAssessment:
+            assess_rules = True
+            def analyze(self, *args): raise RuntimeError('Caption subprocess failed')
+        runner = ReviewedPipeline('python', self.root, self.root/'bundle', self.root/'backbone',
+            caption=BrokenAssessment(), allow_reserved_test=True)
+        with patch('reviewed_pipeline.subprocess.run') as run:
+            result = runner.analyze(source, self.root)
+        self.assertIn('--allow-reserved-test', run.call_args.args[0])
+        self.assertEqual(result['verdict'], 'violation')
+        self.assertEqual(result['rule_evaluation'], 'not_performed')
+        self.assertEqual(result['assessment_coverage'], 'partial')
+        self.assertEqual(result['violations'][0]['classification_status'], 'unclassified')
+        self.assertIsNone(result['violations'][0]['rule'])
+        self.assertEqual(result['violations'][0]['timecode_sec'], 2)
+        self.assertEqual((self.root/result['evidence_frames'][0]['image_file']).read_bytes(), b'candidate')
+        # A failed caption plus NO candidate is never silently a clean decision.
+        self.base['events'] = []
+        (self.root/'candidate/result.json').write_text(json.dumps(self.base))
+        with patch('reviewed_pipeline.subprocess.run'), self.assertRaisesRegex(RuntimeError, 'Rule assessment'):
+            runner.analyze(source, self.root)
+
     def test_rule_finding_keeps_its_own_evidence_after_stage_merge(self):
         self.caption.update(verdict='violation',rule_evaluation='performed',assessment_coverage='done',
             assessment_version='test',decision_scope='visible_signs_of_possible_violations',
@@ -84,6 +109,28 @@ class PipelineTests(unittest.TestCase):
                 reviewed_inference.analyze(source, self.root/'held', root/'deployment/reviewed/model_bundle.json',
                     root/'models/r3d_18-b3b3357e.pth')
             decode.assert_not_called(); encoder.assert_not_called()
+
+    def test_serving_can_analyze_reserved_input_and_records_usage_without_training(self):
+        import reviewed_inference
+        from unittest.mock import MagicMock
+        root = Path(__file__).resolve().parent
+        split = json.loads((root/'validation/bank_holdout_v1.json').read_text())
+        source = self.root/'reserved.mov'; source.write_bytes(b'test')
+        actual_hash = reviewed_inference.sha256
+        def digest(path):
+            return split['holdout_source_hashes'][0] if Path(path) == source else actual_hash(path)
+        container = MagicMock()
+        container.__enter__.return_value.streams.video[0].codec_context.width = 640
+        container.__enter__.return_value.streams.video[0].codec_context.height = 480
+        output = self.root/'served'
+        with patch('reviewed_inference.sha256', side_effect=digest), \
+             patch('av.open', return_value=container) as decode:
+            report = reviewed_inference.analyze(source, output, root/'deployment/reviewed/model_bundle.json',
+                root/'models/r3d_18-b3b3357e.pth', allow_reserved_test=True)
+        decode.assert_called_once()
+        self.assertTrue(report['reserved_test'])
+        self.assertFalse(report['source_seen_during_training'])
+        self.assertFalse(json.loads((output/'test-use.json').read_text())['weights_updated'])
 
 
 if __name__ == '__main__': unittest.main()

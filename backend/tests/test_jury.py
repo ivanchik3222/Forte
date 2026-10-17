@@ -1,6 +1,7 @@
 import base64
 import io
 import pytest
+from PIL import Image
 from models import db, MediaRecord, AnalysisJob
 from services.analysis import run_next_job
 
@@ -16,7 +17,7 @@ def jury(app,tmp_path,monkeypatch):
     class Engine:
         def analyze(self,source,output,*args):
             output.mkdir(parents=True)
-            (output/'chosen.jpg').write_bytes(b'\xff\xd8synthetic\xff\xd9')
+            Image.new('RGB', (12, 12), 'blue').save(output/'chosen.jpg', format='JPEG')
             return dict(engine='reviewed_pipeline',verdict='violation',rule_evaluation='performed',
                 assessment_coverage='done',decision_scope='visible_signs_of_possible_violations',
                 evidence_frames=[dict(timestamp_sec=2.033,image_file='chosen.jpg',boxes=[])],
@@ -41,7 +42,9 @@ def test_jury_flat_contract_binary_verdict_and_selected_base64(client,jury):
     assert result['status']=='done' and result['verdict']=='violation' and 'result' not in result
     v=result['violations'][0]
     assert v['timecode_sec']==v['evidence_frames'][0]['timestamp_sec']==2.033
-    assert base64.b64decode(v['evidence_frames'][0]['image_base64'])==b'\xff\xd8synthetic\xff\xd9'
+    with Image.open(io.BytesIO(base64.b64decode(v['evidence_frames'][0]['image_base64']))) as picture:
+        assert picture.format == 'JPEG' and picture.size == (12, 12)
+        picture.load()
     assert len(v['evidence_frames'])==1 and v['rule']['section']=='22'
     assert 'image_file' not in str(result)
 

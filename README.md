@@ -12,13 +12,13 @@
 
 ## Docker
 
-Скопируйте корневой `.env.example` в `.env`, задайте два разных длинных случайных секрета и запустите `docker compose up -d --build`. По умолчанию фронтенд доступен на `http://localhost:8080`, API — на `http://localhost:6767/api`.
+Скопируйте корневой `.env.example` в `.env`, задайте два разных длинных случайных секрета и запустите `docker compose up -d --build`. По умолчанию фронтенд доступен на `http://localhost:3000`, API — на `http://localhost:6767/api`.
 
 На VPS задайте в `/opt/forte/.env` реальные адреса и порты:
 
 ```dotenv
 BACKEND_PORT=6767
-FRONTEND_PORT=8080
+FRONTEND_PORT=3000
 REACT_APP_API_URL=https://api.example.com
 CORS_ORIGINS=https://app.example.com
 SECRET_KEY=...

@@ -138,6 +138,50 @@ test("invalid stored response cannot pretend analysis succeeded", () => {
   expect(() => parseMedia({ ...record, status: "done" })).toThrow();
 });
 
+test("new review routes are available inside the authenticated workspace", async () => {
+  const previous = global.fetch;
+  const summary = {
+    problems: 0,
+    unknown: 0,
+    unavailable_minutes: 0,
+    unknown_minutes: 0,
+    degraded_minutes: 0,
+  };
+  global.fetch = jest.fn(async (input, options) => {
+    if (String(input).includes("/monitoring?"))
+      return response({
+        as_of: new Date().toISOString(),
+        ttl_seconds: 90,
+        cameras: [],
+        signals: {},
+        summary,
+        incidents: { items: [], total: 0, page: 1, per_page: 50 },
+      });
+    if (String(input).includes("/shift?"))
+      return response({
+        as_of: new Date().toISOString(),
+        cameras: [],
+        episodes: [],
+        total: 0,
+        incidents: [],
+        monitoring_summary: summary,
+      });
+    return previous(input, options);
+  });
+  window.history.replaceState(null, "", "/monitoring");
+  render(<App />);
+  await screen.findByText("В журнале нет сбоев за этот день");
+  expect(
+    screen.getByRole("heading", { name: "Всё ли в поле зрения?" }),
+  ).toBeInTheDocument();
+  fireEvent.click(screen.getAllByRole("link", { name: "Смена за минуту" })[0]);
+  await screen.findByRole("heading", { name: "За этот день событий нет" });
+  expect(
+    screen.getByRole("heading", { name: "Смена за минуту" }),
+  ).toBeInTheDocument();
+  expect(screen.queryByText("Страница не найдена")).not.toBeInTheDocument();
+});
+
 test("startup restores the session from cookie before loading the workspace", async () => {
   useAuthStore.setState({ initialized: false, user: null, status: "idle" });
   const previousFetch = global.fetch;

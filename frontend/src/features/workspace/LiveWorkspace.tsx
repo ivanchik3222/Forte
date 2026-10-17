@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { apiRequest, mediaUrl } from "../../api/client";
 import {
   Alert,
@@ -27,10 +27,14 @@ import {
 import { HistoryTable } from "../analysis/HistoryTable";
 import { useCurrentDay } from "../notifications/types";
 import { useResource } from "./useResource";
+import { MonitoringPage } from "../../pages/MonitoringPage";
+import { ShiftPage } from "../../pages/ShiftPage";
 
 const navigation: { path: string; label: string; icon: IconName }[] = [
   { path: "/workspace", label: "Обзор", icon: "grid" },
   { path: "/notifications", label: "Оповещения", icon: "bell" },
+  { path: "/shift", label: "Смена за минуту", icon: "play" },
+  { path: "/monitoring", label: "Контроль камер", icon: "eye" },
   { path: "/history", label: "История записей", icon: "history" },
   { path: "/sources", label: "Нормативная база", icon: "book" },
   { path: "/settings", label: "Настройки", icon: "settings" },
@@ -109,10 +113,11 @@ function Pager({
 
 export function LiveWorkspace() {
   const auth = useAuthStore();
+  const { pathname } = useLocation();
   useEffect(() => {
     void useAuthStore.getState().restore();
   }, []);
-  if (!auth.initialized || auth.status === "loading")
+  if (!auth.initialized)
     return (
       <main className="main-content">
         <StateNotice loading />
@@ -137,6 +142,7 @@ export function LiveWorkspace() {
         </button>
       </main>
     );
+  if (pathname === "/login") return <Navigate to="/workspace" replace />;
   return <AuthenticatedWorkspace key={auth.user.id} />;
 }
 
@@ -239,7 +245,8 @@ function AuthenticatedWorkspace() {
                 </button>
               </div>
               <div className="notice">
-                Источник событий камер и ИИ-анализ пока не подключены.
+                ИИ-анализ пока не подключён. Проверки камер и события поступают
+                от подключённого источника или специалиста.
               </div>
               <StateNotice loading={overview.loading} />
               {overview.data && (
@@ -264,6 +271,30 @@ function AuthenticatedWorkspace() {
                       </div>
                     </dl>
                   </section>
+                  {overview.data.monitoring_summary && (
+                    <section className="panel">
+                      <h2>Доступность наблюдения</h2>
+                      <p>
+                        Камер с проблемами:{" "}
+                        {overview.data.monitoring_summary.problems}. Без свежих
+                        проверок: {overview.data.monitoring_summary.unknown}.
+                      </p>
+                      <p>
+                        Перерывы за день:{" "}
+                        {overview.data.monitoring_summary.unavailable_minutes.toLocaleString(
+                          "ru-RU",
+                          { maximumFractionDigits: 1 },
+                        )}{" "}
+                        камера·мин.
+                      </p>
+                      <Link className="text-button" to="/monitoring">
+                        Проверить интервалы наблюдения
+                      </Link>
+                      <Link className="button button-outline" to="/shift">
+                        Смена за минуту
+                      </Link>
+                    </section>
+                  )}
                   <section className="panel">
                     <h2>Последние события</h2>
                     <AlertList
@@ -298,6 +329,8 @@ function AuthenticatedWorkspace() {
             />
           )}
           {pathname === "/notifications" && <Notifications changed={changed} />}
+          {pathname === "/monitoring" && <MonitoringPage live />}
+          {pathname === "/shift" && <ShiftPage live onChanged={changed} />}
           {pathname === "/sources" && <Sources />}
           {pathname === "/settings" && <Settings />}
           {!navigation.some((n) => n.path === pathname) &&
@@ -738,7 +771,10 @@ function AlertList({
       ) : (
         <div className="notification-empty">
           <h3>Событий пока нет</h3>
-          <p>Источник событий камер ещё не подключён.</p>
+          <p>
+            Для выбранных условий события не поступали. Доступность наблюдения
+            можно проверить в контроле камер.
+          </p>
         </div>
       )}
       {selected && (
@@ -861,7 +897,8 @@ function Notifications({ changed }: { changed: () => void }) {
         </div>
       </div>
       <div className="notice">
-        Источник событий камер не подключён. Тестовые события отмечены отдельно.
+        События поступают от подключённого источника или специалиста. Тестовые
+        события отмечены отдельно.
       </div>
       <section className="panel">
         <div className="table-toolbar">
@@ -1038,7 +1075,7 @@ function Settings() {
               {capabilities.data.analysis ? "доступен" : "не подключён"}.
             </p>
             <p>
-              Источник событий камер:{" "}
+              Захват видеопотока:{" "}
               {capabilities.data.camera_stream ? "подключён" : "не подключён"}.
             </p>
           </>

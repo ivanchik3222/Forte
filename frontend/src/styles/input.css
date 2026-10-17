@@ -4898,6 +4898,13 @@ h1 {
       color 180ms ease,
       background-color 180ms ease;
   }
+  .live-workspace .mobile-bottom-nav {
+    display: flex;
+    overflow-x: auto;
+  }
+  .live-workspace .mobile-tab {
+    flex: 0 0 70px;
+  }
   .mobile-tab-icon {
     display: grid;
     place-items: center;
@@ -6507,6 +6514,12 @@ h1 {
 }
 .shift-blind-band.is-degraded {
   background: #a4c5d1;
+}
+.shift-blind-band.is-unknown {
+  background: repeating-linear-gradient(120deg, #afa6b1 0 3px, #e1dce3 3px 6px);
+}
+.shift-timeline-legend i.is-unknown {
+  background: #afa6b1;
 }
 .shift-event-marker {
   display: block;

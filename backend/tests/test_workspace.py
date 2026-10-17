@@ -196,7 +196,7 @@ def test_legacy_adoption_preserves_users(tmp_path):
         result = fresh.test_cli_runner().invoke(args=['adopt-legacy-db','--backup-confirmed'])
         assert result.exit_code == 0, result.output
         assert User.query.filter_by(email='legacy@test.com').one()
-        assert db.session.execute(text('select version_num from alembic_version')).scalar() == '0002'
+        assert db.session.execute(text('select version_num from alembic_version')).scalar() == '0003'
         db.session.remove(); db.engine.dispose()
 
 

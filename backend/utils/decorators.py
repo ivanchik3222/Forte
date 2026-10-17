@@ -4,6 +4,7 @@ from flask import g
 from flask_jwt_extended import verify_jwt_in_request, get_jwt, get_jwt_identity
 from models import db, User, AuthSession, utcnow, as_utc
 from utils.errors import ApiError
+from services.demo_account import is_demo_user
 
 
 def current_user():
@@ -25,6 +26,17 @@ def active_required(fn):
     def wrapper(*args, **kwargs):
         verify_jwt_in_request()
         g.user = current_user()
+        return fn(*args, **kwargs)
+    return wrapper
+
+
+def personal_account_required(fn):
+    """Keep a shared demo login available to the next visitor."""
+    @active_required
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if is_demo_user(g.user):
+            raise ApiError(403, 'demo_account_shared', 'Профиль общего тестового аккаунта нельзя изменять или удалять.')
         return fn(*args, **kwargs)
     return wrapper
 

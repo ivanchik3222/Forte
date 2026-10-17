@@ -2,10 +2,11 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 from flask import Blueprint, request, jsonify, g, send_file, url_for, current_app
 from flask_jwt_extended import get_jwt
-from models import db, MediaRecord, Camera, CameraAlert, AlertRead, EvidenceFrame, RegulatorySource, _utc_iso
+from models import db, MediaRecord, Camera, CameraAlert, AlertRead, AlertRecording, EvidenceFrame, RegulatorySource, _utc_iso, utcnow
 from utils.decorators import active_required, admin_required
 from utils.errors import ApiError
 from services.media import save_upload, media_query, get_media, sign_file, authorize_file, file_path
+from services.monitoring import latest_reports, camera_dto, monitoring_snapshot
 
 workspace_bp = Blueprint('workspace', __name__)
 
@@ -55,9 +56,12 @@ def alert_dto(alert, detail=False):
         for frame in EvidenceFrame.query.filter_by(alert_id=alert.id).order_by(EvidenceFrame.timestamp_sec, EvidenceFrame.id):
             token = sign_file('frame', frame.id, g.user.id, get_jwt()['sid'])
             frames.append(dict(timestamp_sec=frame.timestamp_sec, image_url=url_for('workspace.frame_content', frame_id=frame.id, token=token)))
+    link = db.session.get(AlertRecording, alert.id)
+    media = media_query().filter_by(id=link.media_id).first() if link else None
+    recording = dict(media_id=media.id, duration_sec=media.duration_sec) if media else None
     return dict(id=alert.id, camera_id=alert.camera_id, camera_name=alert.camera.name,
                 location=alert.camera.location, detected_at=_utc_iso(alert.detected_at), source=alert.source,
-                read_at=_utc_iso(read.read_at) if read else None,
+                read_at=_utc_iso(read.read_at) if read else None, recording=recording,
                 event=dict(type=alert.type, description=alert.description, timecode_sec=alert.timecode_sec,
                            evidence_frames=frames, rule=alert.rule))
 
@@ -65,7 +69,8 @@ def alert_dto(alert, detail=False):
 @workspace_bp.get('/capabilities')
 @active_required
 def capabilities():
-    return jsonify(uploads=True, analysis=False, camera_stream=False, formats=['mov', 'mp4', 'webm'], max_file_size=current_app.config['MAX_FILE_SIZE'])
+    return jsonify(uploads=True, analysis=False, camera_stream=False, monitoring=True, shift_review=True,
+                   automatic_quality_checks=False, formats=['mov', 'mp4', 'webm'], max_file_size=current_app.config['MAX_FILE_SIZE'])
 
 
 @workspace_bp.post('/analyze')
@@ -133,7 +138,8 @@ def report(record_id):
 @workspace_bp.get('/cameras')
 @active_required
 def cameras():
-    return jsonify(pagination(Camera.query.order_by(Camera.name, Camera.id), lambda c: c.to_dict()))
+    reports, now = latest_reports(), utcnow()
+    return jsonify(pagination(Camera.query.order_by(Camera.name, Camera.id), lambda c: camera_dto(c, reports.get(c.id), now)))
 
 
 @workspace_bp.post('/cameras')
@@ -158,7 +164,7 @@ def edit_camera(camera_id=None):
         camera.is_active = data['is_active']
     db.session.add(camera)
     db.session.commit()
-    return jsonify(camera.to_dict()), 200 if camera_id else 201
+    return jsonify(camera_dto(camera, latest_reports().get(camera.id), utcnow())), 200 if camera_id else 201
 
 
 @workspace_bp.get('/notifications')
@@ -220,7 +226,9 @@ def overview():
     query = alerts_for_day()
     total = query.count()
     read = query.filter(is_read()).count()
-    return jsonify(date=day_bounds()[0], today_total=total, today_read=read, today_unread=total-read,
+    day, start, end = day_bounds()
+    health = monitoring_snapshot(start, end)
+    return jsonify(date=day, monitoring_summary=health['summary'], today_total=total, today_read=read, today_unread=total-read,
                    unread_total=CameraAlert.query.filter(~is_read()).count(),
                    camera_total=Camera.query.count(), media_total=media_query().count(),
                    recent_alerts=[alert_dto(a) for a in query.order_by(CameraAlert.detected_at.desc(), CameraAlert.id.desc()).limit(5)],

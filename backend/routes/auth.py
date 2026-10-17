@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify, current_app, g
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt, set_refresh_cookies, unset_jwt_cookies, decode_token
 from models import db, User, AuthSession, MediaRecord, uid, utcnow, as_utc
-from utils.decorators import active_required, current_user
+from utils.decorators import active_required, personal_account_required, current_user
+from services.demo_account import DEMO_EMAIL, is_demo_user
 from utils.errors import ApiError
 from datetime import datetime, timedelta, timezone
 import re
@@ -76,6 +77,9 @@ def register():
 
     if not email and not nickname:
         return jsonify({'error': 'Укажите email или nickname'}), 400
+
+    if email == DEMO_EMAIL:
+        raise ApiError(409, 'reserved_account', 'Этот email используется общим тестовым аккаунтом.')
 
     if not password:
         return jsonify({'error': 'Пароль обязателен'}), 400
@@ -219,7 +223,7 @@ def get_current_user():
 
 
 @auth_bp.route('/profile', methods=['PUT'])
-@active_required
+@personal_account_required
 def update_profile():
     """Обновление профиля пользователя"""
     try:
@@ -263,7 +267,7 @@ def update_profile():
 
 
 @auth_bp.route('/change-password', methods=['POST'])
-@active_required
+@personal_account_required
 def change_password():
     """Смена пароля"""
     try:
@@ -305,7 +309,7 @@ def forgot_password():
 
     user = User.query.filter_by(email=data['email'].lower(), is_active=True).first()
 
-    if not user:
+    if not user or is_demo_user(user):
         # Не сообщаем о том, что пользователь не найден (безопасность)
         return jsonify({'message': 'Если пользователь с таким email существует, инструкции отправлены на почту'})
 
@@ -339,6 +343,9 @@ def reset_password():
 
     if not user or not user.reset_token_expires or as_utc(user.reset_token_expires) < datetime.now(timezone.utc):
         return jsonify({'error': 'Недействительный или истекший токен'}), 400
+
+    if is_demo_user(user):
+        raise ApiError(403, 'demo_account_shared', 'Пароль общего тестового аккаунта нельзя изменять.')
 
     if len(data['password']) < 6:
         return jsonify({'error': 'Пароль должен содержать минимум 6 символов'}), 400
@@ -387,7 +394,7 @@ def verify_email():
 
 
 @auth_bp.route('/deactivate', methods=['POST'])
-@active_required
+@personal_account_required
 def deactivate_account():
     """Деактивация аккаунта"""
     try:
@@ -417,7 +424,7 @@ def deactivate_account():
 
 
 @auth_bp.route('/deactivate', methods=['DELETE'])
-@active_required
+@personal_account_required
 def delete_account():
     """Удаление аккаунта"""
     try:

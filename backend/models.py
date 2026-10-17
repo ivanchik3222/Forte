@@ -143,6 +143,42 @@ class AlertRead(db.Model):
     read_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
 
 
+class AlertRecording(db.Model):
+    __tablename__ = 'alert_recordings'
+    alert_id = db.Column(db.String(36), db.ForeignKey('camera_alerts.id', ondelete='CASCADE'), primary_key=True)
+    media_id = db.Column(db.String(36), db.ForeignKey('media_records.id', ondelete='RESTRICT'), nullable=False, index=True)
+
+
+class CameraHealthReport(db.Model):
+    __tablename__ = 'camera_health_reports'
+    id = db.Column(db.String(36), primary_key=True, default=uid)
+    camera_id = db.Column(db.String(36), db.ForeignKey('cameras.id', ondelete='CASCADE'), nullable=False)
+    external_id = db.Column(db.String(120), nullable=False)
+    source = db.Column(db.String(80), nullable=False)
+    status = db.Column(db.String(20), nullable=False)
+    checked_at = db.Column(db.DateTime(timezone=True), nullable=False)
+    received_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+    __table_args__ = (
+        db.UniqueConstraint('camera_id', 'external_id', name='uq_health_camera_external'),
+        db.Index('ix_health_camera_checked', 'camera_id', 'checked_at'),
+        db.CheckConstraint("status in ('observing','offline','occluded','frozen','poor_visibility')", name='health_report_status'),
+    )
+
+
+class CameraHealthInterval(db.Model):
+    __tablename__ = 'camera_health_intervals'
+    id = db.Column(db.String(36), primary_key=True, default=uid)
+    camera_id = db.Column(db.String(36), db.ForeignKey('cameras.id', ondelete='CASCADE'), nullable=False)
+    kind = db.Column(db.String(20), nullable=False)
+    started_at = db.Column(db.DateTime(timezone=True), nullable=False)
+    ended_at = db.Column(db.DateTime(timezone=True))
+    __table_args__ = (
+        db.Index('ix_health_interval_camera_start', 'camera_id', 'started_at'),
+        db.CheckConstraint("kind in ('offline','occluded','frozen','poor_visibility','unknown')", name='health_interval_kind'),
+        db.CheckConstraint('ended_at IS NULL OR ended_at >= started_at', name='health_interval_order'),
+    )
+
+
 class EvidenceFrame(db.Model):
     __tablename__ = 'evidence_frames'
     id = db.Column(db.String(36), primary_key=True, default=uid)

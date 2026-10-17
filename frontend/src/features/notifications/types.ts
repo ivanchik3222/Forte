@@ -5,7 +5,7 @@ export interface MonitoredCamera {
   id: string;
   name: string;
   location: string;
-  status: "online" | "offline";
+  status: "online" | "offline" | "unknown";
   mode: AnalysisMode;
 }
 
@@ -17,10 +17,15 @@ export interface CameraAlert {
   location: string;
   detectedAt: string;
   mode: AnalysisMode;
-  event: Violation;
+  source?: string;
+  event: Omit<Violation, "evidence_frames"> & {
+    evidence_frames: (Violation["evidence_frames"][number] & {
+      image_url?: string;
+    })[];
+  };
   readAt?: string;
   // timecode_sec and evidence timestamps are offsets from the start of this recording.
-  recording?: { url: string; durationSec: number };
+  recording?: { url: string; durationSec: number; mediaId?: string };
 }
 
 const dayFormatter = new Intl.DateTimeFormat("en-CA", {

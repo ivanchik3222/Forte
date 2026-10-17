@@ -8,6 +8,7 @@ from sqlalchemy import inspect, MetaData
 from alembic.migration import MigrationContext
 from alembic.autogenerate import compare_metadata
 from models import db, User, MediaRecord, EvidenceFrame, Camera, CameraAlert, RegulatorySource, uid, utcnow, as_utc
+from services.demo_account import DEMO_EMAIL, seed_demo_user
 
 
 def register_cli(app):
@@ -15,6 +16,7 @@ def register_cli(app):
     def init_db():
         """Apply versioned migrations to an empty or already versioned database."""
         upgrade()
+        seed_demo_user()
 
     @app.cli.command('adopt-legacy-db')
     @click.option('--backup-confirmed', is_flag=True, required=True, help='Confirm a restorable backup exists.')
@@ -43,6 +45,8 @@ def register_cli(app):
     def create_user(email, password, admin):
         from routes.auth import validate_email
         email = email.strip().lower()
+        if email == DEMO_EMAIL:
+            raise click.ClickException('This email is reserved. Use seed-demo-user.')
         if not validate_email(email) or len(password) < 8:
             raise click.ClickException('Valid email and password of at least 8 characters required.')
         if User.query.filter_by(email=email).first():
@@ -52,6 +56,15 @@ def register_cli(app):
         db.session.add(user)
         db.session.commit()
         click.echo(f'Created {email}')
+
+    @app.cli.command('seed-demo-user')
+    def seed_demo_account():
+        """Ensure the shared, non-admin demo account exists without resetting its data."""
+        try:
+            user = seed_demo_user()
+        except ValueError as exc:
+            raise click.ClickException(str(exc)) from exc
+        click.echo(f'Demo account available: {user.email}')
 
     @app.cli.command('seed-sources')
     def seed_sources():

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import {
@@ -13,8 +13,11 @@ import {
 } from "../features/monitoring/health";
 import { alertTime, useCurrentDay } from "../features/notifications/types";
 import { useNotificationStore } from "../store/useNotificationStore";
+import { parseMonitoring, reviewCameras } from "../api/review";
+import { useResource } from "../features/workspace/useResource";
+import { Camera } from "../api/workspace";
 
-export function MonitoringPage() {
+export function MonitoringPage({ live = false }: { live?: boolean }) {
   const today = useCurrentDay();
   const now = useMonitoringNow();
   const [selectedDay, setSelectedDay] = useState("");
@@ -22,20 +25,44 @@ export function MonitoringPage() {
   const [demoCamera, setDemoCamera] = useState("");
   const [demoKind, setDemoKind] = useState<HealthIssue>("occluded");
   const [announcement, setAnnouncement] = useState("");
-  const {
-    cameras,
-    healthSignals,
-    healthIncidents,
-    connection,
-    simulateCameraIssue,
-    restoreDemoCamera,
-  } = useNotificationStore();
+  const [page, setPage] = useState(1);
+  const demo = useNotificationStore();
+  const { simulateCameraIssue, restoreDemoCamera } = demo;
   const day = selectedDay || today;
+  const query = new URLSearchParams({ date: day, page: String(page) });
+  if (cameraId !== "all") query.set("camera_id", cameraId);
+  const resource = useResource(
+    live ? `/monitoring?${query}` : null,
+    parseMonitoring,
+    true,
+  );
+  const [knownCameras, setKnownCameras] = useState<Camera[]>([]);
+  const cameraOptions = resource.data?.cameras;
+  useEffect(() => {
+    if (cameraOptions) setKnownCameras(cameraOptions);
+  }, [cameraOptions]);
+  const cameras = live
+    ? reviewCameras(cameraOptions || knownCameras)
+    : demo.cameras;
+  const healthSignals = live
+    ? resource.data?.signals || {}
+    : demo.healthSignals;
+  const healthIncidents = live
+    ? resource.data?.incidents.items || []
+    : demo.healthIncidents;
+  const connection = live
+    ? resource.error || !resource.data
+      ? "disconnected"
+      : "connected"
+    : demo.connection;
+  const journalNow =
+    live && resource.data ? Date.parse(resource.data.as_of) : now;
   const scope = cameras.filter((c) => cameraId === "all" || cameraId === c.id);
   const incidents = healthIncidents
     .filter(
       (i) =>
-        scope.some((c) => c.id === i.cameraId) && incidentWindow(i, day, now),
+        scope.some((c) => c.id === i.cameraId) &&
+        incidentWindow(i, day, journalNow),
     )
     .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
   const states = scope.map((camera) =>
@@ -59,6 +86,17 @@ export function MonitoringPage() {
           Смена за минуту
         </Link>
       </div>
+      {live && resource.loading && (
+        <p role="status">Загрузка проверок камер…</p>
+      )}
+      {live && resource.error && (
+        <div className="notice" role="alert">
+          {resource.error}{" "}
+          <button className="text-button" onClick={resource.refresh}>
+            Повторить
+          </button>
+        </div>
+      )}
       <div className="health-intro">
         <span className="health-intro-symbol">
           <Icon name="eye" size={30} />
@@ -68,9 +106,11 @@ export function MonitoringPage() {
           <p>
             {connection === "demo"
               ? "Демо: примеры сбоев и проверок качества. Реальные камеры не подключены."
-              : connection === "disconnected"
-                ? "Связь с сервисом потеряна. Текущее состояние камер неизвестно."
-                : "Свежая проверка изображения подтверждает наблюдение. Без неё состояние камеры неизвестно."}
+              : live && resource.loading && !resource.error
+                ? "Получаем состояние камер и историю проверок."
+                : connection === "disconnected"
+                  ? "Связь с сервисом потеряна. Текущее состояние камер неизвестно."
+                  : "Свежая проверка изображения подтверждает наблюдение. Без неё состояние камеры неизвестно."}
           </p>
         </div>
         <span className="health-mode">
@@ -80,25 +120,47 @@ export function MonitoringPage() {
       <div className="health-metrics">
         <div>
           <span>Требуют внимания сейчас</span>
-          <strong>{String(problems).padStart(2, "0")}</strong>
+          <strong>
+            {live && !resource.data ? "—" : String(problems).padStart(2, "0")}
+          </strong>
           <small>Среди выбранных камер</small>
         </div>
         <div>
           <span>Нет свежих данных</span>
-          <strong>{String(unknown).padStart(2, "0")}</strong>
+          <strong>
+            {live && !resource.data ? "—" : String(unknown).padStart(2, "0")}
+          </strong>
           <small>Доступность не подтверждена</small>
         </div>
         <div>
           <span>Перерывы за выбранный день</span>
           <strong>
-            {unavailableMinutes(incidents, day, now).toLocaleString("ru-RU", {
-              maximumFractionDigits: 1,
-            })}
+            {live && !resource.data
+              ? "—"
+              : (live
+                  ? (resource.data?.summary.unavailable_minutes ?? 0)
+                  : unavailableMinutes(incidents, day, now)
+                ).toLocaleString("ru-RU", {
+                  maximumFractionDigits: 1,
+                })}
             <em>камера·мин</em>
           </strong>
           <small>Сумма перерывов по камерам, без двойного счёта</small>
         </div>
       </div>
+      {live && resource.data && (
+        <p className="notification-session-note">
+          За выбранный день: без подтверждения наблюдения —{" "}
+          {resource.data.summary.unknown_minutes.toLocaleString("ru-RU", {
+            maximumFractionDigits: 1,
+          })}{" "}
+          камера·мин; сниженная видимость —{" "}
+          {resource.data.summary.degraded_minutes.toLocaleString("ru-RU", {
+            maximumFractionDigits: 1,
+          })}{" "}
+          камера·мин. Время до первой проверки камеры не включено в расчёт.
+        </p>
+      )}
       <section className="panel health-cameras" aria-label="Состояние камер">
         <div className="section-heading">
           <div>
@@ -233,7 +295,10 @@ export function MonitoringPage() {
               type="date"
               max={today}
               value={day}
-              onChange={(e) => setSelectedDay(e.target.value)}
+              onChange={(e) => {
+                setSelectedDay(e.target.value);
+                setPage(1);
+              }}
             />
           </label>
           <label>
@@ -241,7 +306,10 @@ export function MonitoringPage() {
             <select
               aria-label="Камера контроля"
               value={cameraId}
-              onChange={(e) => setCameraId(e.target.value)}
+              onChange={(e) => {
+                setCameraId(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="all">Все камеры</option>
               {cameras.map((c) => (
@@ -254,8 +322,9 @@ export function MonitoringPage() {
         </div>
         <ol className="health-incident-list">
           {incidents.map((incident) => {
-            const window = incidentWindow(incident, day, now)!;
-            const ongoing = !incident.endedAt && day === today;
+            const window = incidentWindow(incident, day, journalNow)!;
+            const ongoing =
+              !incident.endedAt && day === today && (!live || !resource.error);
             const degraded = incident.kind === "poor_visibility";
             return (
               <li key={incident.id} className={degraded ? "is-degraded" : ""}>
@@ -275,13 +344,17 @@ export function MonitoringPage() {
                     {incident.mode === "demo" && " · Демо"}
                   </span>
                   <h3>
-                    {degraded
-                      ? "Видимость рабочей зоны снижена"
-                      : "Наблюдение было недоступно"}
+                    {incident.kind === "unknown"
+                      ? "Доступность наблюдения не подтверждена"
+                      : degraded
+                        ? "Видимость рабочей зоны снижена"
+                        : "Наблюдение было недоступно"}
                   </h3>
                   <p>
                     {ongoing
-                      ? "Проблема ещё не устранена"
+                      ? incident.kind === "unknown"
+                        ? "Новые проверки не поступали"
+                        : "Проблема ещё не устранена"
                       : window.end - window.start < 60_000
                         ? "Меньше минуты в выбранном дне"
                         : `${Math.round((window.end - window.start) / 60_000)} мин в выбранном дне`}
@@ -301,17 +374,42 @@ export function MonitoringPage() {
             );
           })}
         </ol>
-        {!incidents.length && (
-          <div className="health-empty">
-            <h3>В журнале нет сбоев за этот день</h3>
-            <p>
-              Это не подтверждает непрерывное наблюдение: для него нужна история
-              проверок качества.
-            </p>
+        {!incidents.length &&
+          (!live || (!resource.loading && !resource.error)) && (
+            <div className="health-empty">
+              <h3>В журнале нет сбоев за этот день</h3>
+              <p>
+                Это не подтверждает непрерывное наблюдение: для него нужна
+                история проверок качества.
+              </p>
+            </div>
+          )}
+        {live && resource.data && resource.data.incidents.total > 50 && (
+          <div className="table-toolbar">
+            <span>
+              Интервалов: {resource.data.incidents.total} · Страница {page}
+            </span>
+            <button
+              className="button button-outline"
+              disabled={page <= 1}
+              onClick={() => setPage(page - 1)}
+            >
+              Назад
+            </button>
+            <button
+              className="button button-outline"
+              disabled={page * 50 >= resource.data.incidents.total}
+              onClick={() => setPage(page + 1)}
+            >
+              Далее
+            </button>
           </div>
         )}
       </section>
       <p className="notification-session-note">
+        {live &&
+          resource.data &&
+          `Журнал обновлён в ${alertTime(resource.data.as_of)}. `}
         Время по Астане. Проблемы видимости не считаются полным перерывом. Без
         обновления проверки более 90 секунд состояние реальной камеры становится
         неизвестным.

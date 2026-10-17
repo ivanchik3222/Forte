@@ -53,6 +53,8 @@ def create_app(config_object=None):
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
     from routes.workspace import workspace_bp
     app.register_blueprint(workspace_bp, url_prefix='/api/v1')
+    from routes.review import review_bp
+    app.register_blueprint(review_bp, url_prefix='/api/v1')
     from cli import register_cli
     register_cli(app)
 
@@ -99,6 +101,8 @@ def create_app(config_object=None):
     @app.get('/api/ready')
     def ready():
         db.session.execute(text('SELECT 1 FROM media_records LIMIT 1'))
+        db.session.execute(text('SELECT 1 FROM camera_health_reports LIMIT 1'))
+        db.session.execute(text('SELECT 1 FROM alert_recordings LIMIT 1'))
         return jsonify(ready=True)
 
     return app

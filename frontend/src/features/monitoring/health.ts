@@ -7,14 +7,14 @@ export type HealthStatus = HealthIssue | "observing" | "unknown";
 export interface HealthSignal {
   cameraId: string;
   mode: AnalysisMode;
-  status: Exclude<HealthStatus, "unknown">;
+  status: HealthStatus;
   checkedAt: string;
 }
 export interface HealthIncident {
   id: string;
   cameraId: string;
   mode: AnalysisMode;
-  kind: HealthIssue;
+  kind: HealthIssue | "unknown";
   startedAt: string;
   endedAt?: string;
 }
@@ -100,7 +100,7 @@ export function unavailableMinutes(
 ) {
   const byCamera = new Map<string, { start: number; end: number }[]>();
   incidents
-    .filter((i) => i.kind !== "poor_visibility")
+    .filter((i) => i.kind !== "poor_visibility" && i.kind !== "unknown")
     .forEach((i) => {
       const window = incidentWindow(i, day, now);
       if (window)

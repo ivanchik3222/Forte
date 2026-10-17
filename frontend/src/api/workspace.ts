@@ -33,6 +33,7 @@ export interface Alert {
   detected_at: string;
   source: string;
   read_at: string | null;
+  recording?: { media_id: string; duration_sec: number } | null;
   event: {
     type: string;
     description: string;
@@ -64,6 +65,13 @@ export interface Overview {
   media_total: number;
   recent_alerts: Alert[];
   recent_media: Media[];
+  monitoring_summary?: {
+    problems: number;
+    unknown: number;
+    unavailable_minutes: number;
+    unknown_minutes: number;
+    degraded_minutes: number;
+  };
 }
 export interface Capabilities {
   uploads: boolean;
@@ -130,6 +138,13 @@ export function parseAlert(v: unknown): Alert {
           (k) => e.rule[k] == null || typeof e.rule[k] === "string",
         ),
     );
+  if (v.recording != null)
+    requireValue(
+      object(v.recording) &&
+        typeof v.recording.media_id === "string" &&
+        number(v.recording.duration_sec) &&
+        v.recording.duration_sec > e.timecode_sec,
+    );
   return v as unknown as Alert;
 }
 export function parseCamera(v: unknown): Camera {
@@ -186,6 +201,18 @@ export function parseOverview(v: unknown): Overview {
       Array.isArray(v.recent_alerts) &&
       Array.isArray(v.recent_media),
   );
+  if (v.monitoring_summary != null) {
+    requireValue(
+      object(v.monitoring_summary) &&
+        [
+          "problems",
+          "unknown",
+          "unavailable_minutes",
+          "unknown_minutes",
+          "degraded_minutes",
+        ].every((k) => number(v.monitoring_summary[k])),
+    );
+  }
   return {
     ...v,
     recent_alerts: v.recent_alerts.map(parseAlert),

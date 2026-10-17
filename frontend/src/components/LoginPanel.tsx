@@ -1,9 +1,14 @@
 import { FormEvent, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { demoAccount } from "../api/demoAccount";
 import { useAuthStore } from "../store/useAuthStore";
+import { useAnalysisStore } from "../store/useAnalysisStore";
 
 export function LoginPanel() {
+  const navigate = useNavigate();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [testLogin, setTestLogin] = useState(false);
   const status = useAuthStore((state) => state.status);
   const user = useAuthStore((state) => state.user);
   const error = useAuthStore((state) => state.error);
@@ -12,7 +17,20 @@ export function LoginPanel() {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (status === "loading") return;
     void login(identifier.trim(), password);
+  };
+
+  const handleTestLogin = async () => {
+    if (status === "loading") return;
+    setTestLogin(true);
+    await login(demoAccount.identifier, demoAccount.password);
+    setTestLogin(false);
+    const session = useAuthStore.getState();
+    if (session.status === "authenticated" && session.user?.email === demoAccount.identifier) {
+      useAnalysisStore.getState().setSettings({ mode: "api", apiKey: "" });
+      navigate("/workspace");
+    }
   };
 
   return (
@@ -73,8 +91,8 @@ export function LoginPanel() {
               Вход в рабочее пространство
             </h2>
             <p className="mt-2 text-sm leading-6 text-zinc-500">
-              Используйте учётную запись сервиса команды. Для демонстрации вход
-              не требуется.
+              Войдите в учётную запись команды или попробуйте рабочий кабинет
+              с тестовым аккаунтом.
             </p>
             <form onSubmit={handleSubmit} className="mt-8 space-y-5">
               <div>
@@ -128,8 +146,20 @@ export function LoginPanel() {
                 disabled={status === "loading"}
                 className="flex w-full items-center justify-center rounded-xl bg-forte-500 px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-forte-500/20 transition hover:bg-forte-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forte-500 disabled:cursor-wait disabled:opacity-60"
               >
-                {status === "loading" ? "Проверяем данные…" : "Войти"}
+                {status === "loading" && !testLogin ? "Проверяем данные…" : "Войти"}
               </button>
+              <button
+                type="button"
+                disabled={status === "loading"}
+                onClick={() => void handleTestLogin()}
+                className="flex w-full items-center justify-center rounded-xl border border-forte-200 bg-forte-50 px-4 py-3.5 text-sm font-semibold text-forte-700 transition hover:border-forte-500 hover:bg-forte-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forte-500 disabled:cursor-wait disabled:opacity-60"
+              >
+                {status === "loading" && testLogin ? "Входим в тестовый аккаунт…" : "Войти в тестовый аккаунт"}
+              </button>
+              <p className="text-center text-xs leading-5 text-zinc-500">
+                Общий тестовый аккаунт: загруженные записи и изменения видны
+                всем, кто в него вошёл.
+              </p>
             </form>
             <p className="mt-5 text-center text-xs leading-5 text-zinc-400">
               Демонстрационный интерфейс. Не вводите данные реального

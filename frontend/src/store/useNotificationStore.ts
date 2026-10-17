@@ -37,7 +37,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   receiveHealthSignal: (signal) => {
     if (
       !signal.cameraId ||
-      !["observing", ...issueKinds].includes(signal.status) ||
+      !["observing", "unknown", ...issueKinds].includes(signal.status) ||
       !Number.isFinite(Date.parse(signal.checkedAt)) ||
       Date.parse(signal.checkedAt) > Date.now()
     )
@@ -60,7 +60,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     if (
       !incident.id ||
       !incident.cameraId ||
-      !issueKinds.includes(incident.kind) ||
+      ![...issueKinds, "unknown"].includes(incident.kind) ||
       !Number.isFinite(start) ||
       start > Date.now() ||
       (end !== undefined &&

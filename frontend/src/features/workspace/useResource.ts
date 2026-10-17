@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { load } from "../../api/workspace";
 
 export function useResource<T>(
-  path: string,
+  path: string | null,
   parse: (v: unknown) => T,
   poll = false,
 ) {
@@ -12,9 +12,16 @@ export function useResource<T>(
   const [revision, setRevision] = useState(0);
   const parser = useRef(parse);
   parser.current = parse;
-  const previousPath = useRef("");
+  const previousPath = useRef<string | null>("");
   const refresh = useCallback(() => setRevision((x) => x + 1), []);
   useEffect(() => {
+    if (path === null) {
+      setData(undefined);
+      setError("");
+      setLoading(false);
+      previousPath.current = null;
+      return;
+    }
     let stopped = false;
     let timer: ReturnType<typeof setTimeout>;
     let controller: AbortController | undefined;

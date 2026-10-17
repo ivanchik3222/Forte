@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify
 from models import db, User, AuthSession, utcnow
 from utils.errors import ApiError
 from utils.decorators import admin_required
+from services.demo_account import is_demo_user
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -56,6 +57,8 @@ def update_user(user_id):
             raise ApiError(422, 'invalid_field', f'{field} должен быть boolean.')
     if 'user_type' in data and data['user_type'] not in ('user', 'admin'):
         raise ApiError(422, 'invalid_role', 'Допустимы роли user и admin.')
+    if is_demo_user(user) and data.get('user_type', 'user') != 'user':
+        raise ApiError(403, 'demo_account_shared', 'Тестовому аккаунту нельзя выдавать права администратора.')
 
     if 'is_active' in data:
         user.is_active = bool(data['is_active'])

@@ -102,4 +102,20 @@ jobs:
           ssh -o StrictHostKeyChecking=yes -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "test -f /root/Forte/.env || { echo '/root/Forte/.env not found' >&2; exit 1; }; mkdir -p /root/Forte/releases/$GITHUB_SHA"
           scp -o StrictHostKeyChecking=yes -P "$VPS_PORT" release.tar.gz "$VPS_USER@$VPS_HOST:/root/Forte/releases/$GITHUB_SHA/release.tar.gz"
           ssh -o StrictHostKeyChecking=yes -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
-            "cd /root/Forte/releases/$GITHUB_SHA && tar -xzf release.tar.gz && ln -sfn /root/Forte/.env .env && docker compose -p forte -f compose.yaml -f compose.production.yaml up -d --build --wait --wait-timeout 180 --remove-orphans && ln -sfn /root/Forte/releases/$GITHUB_SHA /root/Forte/current"
+            bash -s -- "$GITHUB_SHA" <<'REMOTE'
+          set -euo pipefail
+          release="/root/Forte/releases/$1"
+          cd "$release"
+          tar -xzf release.tar.gz
+          ln -sfn /root/Forte/.env .env
+          if docker compose -p forte -f compose.yaml -f compose.production.yaml up -d --build --wait --wait-timeout 180 --remove-orphans; then
+            ln -sfn "$release" /root/Forte/current
+          else
+            deploy_status=$?
+            echo 'Deployment failed. Container status and backend startup logs:'
+            docker compose -p forte -f compose.yaml -f compose.production.yaml ps -a || true
+            docker compose -p forte -f compose.yaml -f compose.production.yaml logs --no-color --tail 160 backend || true
+            docker inspect --format '{{json .State}}' forte-backend-1 || true
+            exit "$deploy_status"
+          fi
+          REMOTE

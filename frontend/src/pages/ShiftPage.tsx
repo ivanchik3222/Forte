@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { Modal } from "../components/Modal";
@@ -6,6 +6,7 @@ import {
   dayBounds,
   incidentWindow,
   useMonitoringNow,
+  HealthIncident,
 } from "../features/monitoring/health";
 import {
   alertTime,
@@ -15,15 +16,48 @@ import {
 import { EpisodeContext, EpisodePlayer } from "../features/shift/EpisodePlayer";
 import { shiftEpisodes } from "../features/shift/model";
 import { useNotificationStore } from "../store/useNotificationStore";
+import { apiRequest } from "../api/client";
+import { parseShift, reviewAlert, reviewCameras } from "../api/review";
+import { useResource } from "../features/workspace/useResource";
+import { Camera } from "../api/workspace";
 
-export function ShiftPage() {
+export function ShiftPage({
+  live = false,
+  onChanged,
+}: {
+  live?: boolean;
+  onChanged?: () => void;
+}) {
   const today = useCurrentDay();
   const [selectedDay, setSelectedDay] = useState("");
   const [cameraId, setCameraId] = useState("all");
-  const { alerts, cameras, connection } = useNotificationStore();
+  const demo = useNotificationStore();
   const day = selectedDay || today;
+  const query = new URLSearchParams({ date: day });
+  if (cameraId !== "all") query.set("camera_id", cameraId);
+  const resource = useResource(
+    live ? `/shift?${query}` : null,
+    parseShift,
+    true,
+  );
+  const alerts = live
+    ? (resource.data?.episodes || []).map(reviewAlert)
+    : demo.alerts;
+  const [knownCameras, setKnownCameras] = useState<Camera[]>([]);
+  const cameraOptions = resource.data?.cameras;
+  useEffect(() => {
+    if (cameraOptions) setKnownCameras(cameraOptions);
+  }, [cameraOptions]);
+  const cameras = live
+    ? reviewCameras(cameraOptions || knownCameras)
+    : demo.cameras;
+  const healthIncidents = live
+    ? resource.data?.incidents || []
+    : demo.healthIncidents;
+  const connection = live ? "connected" : demo.connection;
   const all = shiftEpisodes(alerts, day, cameraId, Number.MAX_SAFE_INTEGER);
   const episodes = all.slice(-6);
+  const total = live ? resource.data?.total || 0 : all.length;
   // Reset playback on a changed selection, new playlist, or updated media contract.
   const playlistKey = JSON.stringify([
     day,
@@ -45,6 +79,16 @@ export function ShiftPage() {
           Контроль камер
         </Link>
       </div>
+      {live && resource.loading && <p role="status">Загрузка обзора смены…</p>}
+      {live && resource.error && (
+        <div className="notice" role="alert">
+          {resource.error} Показаны данные последнего успешного запроса, если
+          они есть.{" "}
+          <button className="text-button" onClick={resource.refresh}>
+            Повторить
+          </button>
+        </div>
+      )}
       <div className="panel shift-filter-panel">
         <div className="review-filters">
           <label>
@@ -75,18 +119,32 @@ export function ShiftPage() {
         </div>
         <span className="shift-selection-note">
           {connection === "demo" ? "ДЕМО · " : ""}
-          {all.length > 6
-            ? `Последние 6 из ${all.length} событий`
-            : `Эпизодов в подборке: ${all.length}`}
+          {total > 6
+            ? `Последние 6 из ${total} событий`
+            : `Эпизодов в подборке: ${total}`}
           {episodes.length > 0 && ` · до ${episodes.length * 10} сек`}
         </span>
       </div>
-      <ShiftReview
-        key={playlistKey}
-        episodes={episodes}
-        day={day}
-        cameraId={cameraId}
-      />
+      {(!live || resource.data) && (
+        <ShiftReview
+          key={playlistKey}
+          episodes={episodes}
+          day={day}
+          cameraId={cameraId}
+          healthIncidents={healthIncidents}
+          asOf={live ? resource.data?.as_of : undefined}
+          onMarkRead={async (id) => {
+            if (live) {
+              await apiRequest("/api/v1/notifications/read", {
+                method: "POST",
+                body: JSON.stringify({ ids: [id] }),
+              });
+              resource.refresh();
+              onChanged?.();
+            } else demo.markRead([id]);
+          }}
+        />
+      )}
       <p className="notification-session-note">
         Подборка включает до шести последних событий дня. Она не заменяет полный
         просмотр смены. Все события доступны в{" "}
@@ -100,10 +158,16 @@ export function ShiftReview({
   episodes,
   day,
   cameraId,
+  healthIncidents = [],
+  onMarkRead,
+  asOf,
 }: {
   episodes: CameraAlert[];
   day: string;
   cameraId: string;
+  healthIncidents?: HealthIncident[];
+  onMarkRead?: (id: string) => Promise<void>;
+  asOf?: string;
 }) {
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -121,10 +185,13 @@ export function ShiftReview({
         )
       : 0,
   );
-  const now = useMonitoringNow();
-  const { healthIncidents, markRead, alerts } = useNotificationStore();
+  const realtime = useMonitoringNow();
+  const now = asOf ? Date.parse(asOf) : realtime;
+  const [readError, setReadError] = useState("");
+  const [marking, setMarking] = useState(false);
+  const [confirmed, setConfirmed] = useState<string[]>([]);
   const selected = episodes[index];
-  const read = alerts.find((a) => a.id === selected?.id)?.readAt;
+  const read = selected?.readAt || confirmed.includes(selected?.id);
   const bounds = dayBounds(day);
   const incidents = healthIncidents.filter(
     (i) =>
@@ -220,7 +287,13 @@ export function ShiftReview({
             <div className="shift-explanation">
               <span className="shift-event-source">
                 {selected.cameraName} ·{" "}
-                {selected.mode === "demo" ? "Демо-событие" : "Событие модели"}
+                {selected.mode === "demo"
+                  ? "Демо-событие"
+                  : selected.source === "test"
+                    ? "Тестовое событие"
+                    : selected.source === "manual"
+                      ? "Отметка специалиста"
+                      : "Событие источника"}
               </span>
               <time className="shift-event-time" dateTime={selected.detectedAt}>
                 {alertTime(selected.detectedAt)}
@@ -239,12 +312,29 @@ export function ShiftReview({
               </button>
               <button
                 className="text-button shift-mark-read"
-                disabled={Boolean(read)}
-                onClick={() => markRead([selected.id])}
+                disabled={Boolean(read) || marking || !onMarkRead}
+                onClick={async () => {
+                  const id = selected.id;
+                  setMarking(true);
+                  setReadError("");
+                  try {
+                    await onMarkRead?.(id);
+                    setConfirmed((v) => [...v, id]);
+                  } catch (e) {
+                    setReadError(
+                      e instanceof Error
+                        ? e.message
+                        : "Не удалось отметить просмотр.",
+                    );
+                  } finally {
+                    setMarking(false);
+                  }
+                }}
               >
                 <Icon name="check" size={16} />
                 {read ? "Отмечено как просмотренное" : "Отметить просмотренным"}
               </button>
+              {readError && <p role="alert">{readError}</p>}
             </div>
           </div>
         </section>
@@ -277,7 +367,7 @@ export function ShiftReview({
               const w = incidentWindow(i, day, now)!;
               return (
                 <span
-                  className={`shift-blind-band ${i.kind === "poor_visibility" ? "is-degraded" : ""}`}
+                  className={`shift-blind-band ${i.kind === "poor_visibility" ? "is-degraded" : i.kind === "unknown" ? "is-unknown" : ""}`}
                   key={i.id}
                   style={{
                     left: `${(w.start - bounds.start) / 864000}%`,
@@ -344,6 +434,10 @@ export function ShiftReview({
           <span>
             <i />
             Плохая видимость
+          </span>
+          <span>
+            <i className="is-unknown" />
+            Нет проверок
           </span>
         </div>
         <p className="shift-timeline-note">

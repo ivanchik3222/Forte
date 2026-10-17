@@ -71,7 +71,7 @@ function WorkspaceApp() {
     (active === "settings" ? "Настройки" : "Обзор");
   const name = user?.full_name || user?.nickname || "Рабочее пространство";
   if (pathname === "/") return <LandingPage />;
-  if (mode === "api") return <LiveWorkspace />;
+  if (mode === "api" || pathname === "/login") return <LiveWorkspace />;
   return (
     <div className="app-shell">
       <a

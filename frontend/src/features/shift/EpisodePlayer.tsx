@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CameraAlert } from "../notifications/types";
 import { timecode } from "../analysis/types";
+import { useEpisodeMedia } from "./useEpisodeMedia";
 import {
   clipBounds,
   EPISODE_SECONDS,
@@ -12,7 +13,8 @@ export function EpisodeFrames({ alert }: { alert: CameraAlert }) {
   const [index, setIndex] = useState(0);
   const [failed, setFailed] = useState(false);
   const frame = alert.event.evidence_frames[index];
-  const source = frameSource(frame?.image_base64);
+  const source =
+    frameSource(frame?.image_base64) || safeMediaUrl(frame?.image_url);
   return (
     <div className="episode-frames">
       <div className="episode-image">
@@ -84,7 +86,8 @@ export function EpisodePlayer({
   const pauseRef = useRef(onPause);
   finishRef.current = onFinish;
   pauseRef.current = onPause;
-  const url = safeMediaUrl(alert.recording?.url);
+  const media = useEpisodeMedia(alert);
+  const url = media.url;
   const declaredBounds = clipBounds(
     alert.event.timecode_sec,
     alert.recording?.durationSec || 0,
@@ -125,13 +128,13 @@ export function EpisodePlayer({
   }, [playing, actualBounds]);
 
   useEffect(() => {
-    if (!playing || videoMode) return;
+    if (!playing || videoMode || media.loading) return;
     const timer = window.setInterval(
       () => setElapsed((value) => Math.min(EPISODE_SECONDS, value + 0.25)),
       250,
     );
     return () => window.clearInterval(timer);
-  }, [playing, videoMode]);
+  }, [playing, videoMode, media.loading]);
 
   useEffect(() => {
     if (playing && elapsed >= length && !finished.current) {
@@ -142,7 +145,9 @@ export function EpisodePlayer({
 
   return (
     <div className="episode-player">
-      {videoMode ? (
+      {media.loading ? (
+        <p role="status">Подготовка видео…</p>
+      ) : videoMode ? (
         <div className="episode-video-wrap">
           <video
             ref={ref}
@@ -218,7 +223,8 @@ export function EpisodePlayer({
         </span>
       </div>
       <p className="episode-media-note">
-        {playError ||
+        {media.error ||
+          playError ||
           (videoMode
             ? "Короткий фрагмент вокруг события. Полная запись доступна в контексте."
             : failed || alert.recording
@@ -227,6 +233,22 @@ export function EpisodePlayer({
                 ? "Демо-подборка иллюстраций: по 10 секунд на эпизод. Это не видео с камеры."
                 : "Видео не передано. Обзор показывает кадры и описание по 10 секунд.")}
       </p>
+      {media.canRefresh && (
+        <button
+          className="text-button"
+          disabled={media.loading}
+          onClick={() => {
+            onPause();
+            setFailed(false);
+            setDuration(undefined);
+            setElapsed(0);
+            finished.current = false;
+            media.refresh();
+          }}
+        >
+          Обновить ссылку на видео
+        </button>
+      )}
     </div>
   );
 }
@@ -234,7 +256,8 @@ export function EpisodePlayer({
 export function EpisodeContext({ alert }: { alert: CameraAlert }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [failed, setFailed] = useState(false);
-  const url = safeMediaUrl(alert.recording?.url);
+  const media = useEpisodeMedia(alert);
+  const url = media.url;
   const bounds = clipBounds(
     alert.event.timecode_sec,
     alert.recording?.durationSec || 0,
@@ -249,7 +272,9 @@ export function EpisodeContext({ alert }: { alert: CameraAlert }) {
         {alert.mode === "demo" && " · ДЕМО"}
       </p>
       <h3>{alert.event.type}</h3>
-      {hasVideo ? (
+      {media.loading ? (
+        <p role="status">Подготовка видео…</p>
+      ) : hasVideo ? (
         <>
           <video
             ref={ref}
@@ -295,6 +320,19 @@ export function EpisodeContext({ alert }: { alert: CameraAlert }) {
           </p>
           <EpisodeFrames alert={alert} />
         </>
+      )}
+      {media.error && <p role="alert">{media.error}</p>}
+      {media.canRefresh && (
+        <button
+          className="text-button"
+          disabled={media.loading}
+          onClick={() => {
+            setFailed(false);
+            media.refresh();
+          }}
+        >
+          Обновить ссылку на видео
+        </button>
       )}
       <p>{alert.event.description}</p>
       {alert.event.rule && (

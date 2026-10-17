@@ -72,9 +72,13 @@ def latest(record_id):
 
 
 @analysis_bp.get('/jobs/<job_id>')
-@active_required
 def job_status(job_id):
-    return jsonify(job_dto(get_job(job_id)))
+    if 'X-API-Key' in request.headers:
+        from services.api_keys import authenticate_key
+        from routes.public_api import public_job
+        authenticate_key()
+        return jsonify(public_job(job_id))
+    return active_required(lambda: jsonify(job_dto(get_job(job_id))))()
 
 
 @analysis_bp.get('/jobs/<job_id>/evidence/<int:index>')

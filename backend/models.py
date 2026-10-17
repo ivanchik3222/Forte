@@ -77,10 +77,20 @@ class AuthSession(db.Model):
     revoked_at = db.Column(db.DateTime(timezone=True))
 
 
+class ApiClient(db.Model):
+    __tablename__ = 'api_clients'
+    id = db.Column(db.String(36), primary_key=True, default=uid)
+    key_hash = db.Column(db.String(64), nullable=False, unique=True)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+    expires_at = db.Column(db.DateTime(timezone=True), nullable=False)
+    revoked_at = db.Column(db.DateTime(timezone=True))
+
+
 class MediaRecord(db.Model):
     __tablename__ = 'media_records'
     id = db.Column(db.String(36), primary_key=True, default=uid)
-    owner_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='RESTRICT'), nullable=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='RESTRICT'), nullable=True)
+    api_client_id = db.Column(db.String(36), db.ForeignKey('api_clients.id', ondelete='RESTRICT'), index=True)
     original_name = db.Column(db.String(255), nullable=False)
     search_name = db.Column(db.String(510), nullable=False, default=lambda context: context.get_current_parameters()['original_name'].casefold())
     storage_key = db.Column(db.String(80), nullable=False, unique=True)
@@ -88,7 +98,8 @@ class MediaRecord(db.Model):
     content_type = db.Column(db.String(80), nullable=False)
     duration_sec = db.Column(db.Float)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
-    __table_args__ = (db.Index('ix_media_owner_created', 'owner_id', 'created_at', 'id'), db.CheckConstraint('size_bytes > 0', name='positive_media_size'))
+    __table_args__ = (db.Index('ix_media_owner_created', 'owner_id', 'created_at', 'id'), db.CheckConstraint('size_bytes > 0', name='positive_media_size'),
+        db.CheckConstraint('(owner_id IS NOT NULL AND api_client_id IS NULL) OR (owner_id IS NULL AND api_client_id IS NOT NULL)', name='media_exactly_one_owner'))
 
     def to_dict(self):
         analysis_status = db.session.query(AnalysisJob.status).filter_by(media_id=self.id).scalar()

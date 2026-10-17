@@ -92,14 +92,29 @@ def run_migrations_online():
     connectable = get_engine()
 
     with connectable.connect() as connection:
+        # SQLite batch ALTER rebuilds referenced tables. Disable FK actions only
+        # on this migration connection so existing children survive the rebuild.
+        sqlite = connection.dialect.name == 'sqlite'
+        if sqlite:
+            connection.exec_driver_sql('PRAGMA foreign_keys=OFF')
+            connection.commit()
         context.configure(
             connection=connection,
             target_metadata=get_metadata(),
             **conf_args
         )
 
-        with context.begin_transaction():
-            context.run_migrations()
+        try:
+            with context.begin_transaction():
+                context.run_migrations()
+                if sqlite and connection.exec_driver_sql('PRAGMA foreign_key_check').fetchone():
+                    raise RuntimeError('Migration produced invalid foreign keys')
+            if sqlite:
+                connection.commit()
+        finally:
+            if sqlite:
+                connection.rollback()
+                connection.exec_driver_sql('PRAGMA foreign_keys=ON')
 
 
 if context.is_offline_mode():

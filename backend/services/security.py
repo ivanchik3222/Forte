@@ -15,7 +15,7 @@ def valid_password(value):
     return isinstance(value, str) and current_app.config['MIN_PASSWORD_LENGTH'] <= len(value) <= current_app.config['MAX_PASSWORD_LENGTH']
 
 
-def throttle(identity, kind='account'):
+def throttle(identity, kind='account', limit=None):
     """Fixed-window counters increment atomically; aliases resolve to user ID."""
     seconds = current_app.config['AUTH_WINDOW_SECONDS']
     window = int(time.time()) // seconds
@@ -33,7 +33,8 @@ def throttle(identity, kind='account'):
     # Expired buckets need not accumulate permanently.
     LoginBucket.query.filter(LoginBucket.window < window - 2).delete(synchronize_session=False)
     db.session.commit()
-    limit = current_app.config['AUTH_IP_LIMIT' if kind == 'ip' else 'AUTH_ACCOUNT_LIMIT']
+    if limit is None:
+        limit = current_app.config['AUTH_IP_LIMIT' if kind == 'ip' else 'AUTH_ACCOUNT_LIMIT']
     if count > limit:
         raise ApiError(429, 'auth_rate_limit', 'Слишком много попыток. Повторите через 5 минут.')
 

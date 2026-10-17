@@ -112,6 +112,7 @@ export function LandingPage() {
             <a href="#questions" onClick={() => setMenuOpen(false)}>
               Вопросы
             </a>
+            <Link to="/api-access">API</Link>
           </nav>
           <Link to="/workspace" className="button button-primary landing-login">
             Открыть кабинет

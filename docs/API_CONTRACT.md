@@ -32,7 +32,7 @@
 | POST `/api/v1/media/{id}/playback-url` | `{url,expires_in:900}`; url относительный от корня API-сервера |
 | GET `/api/v1/media/{id}/content?token=...` | Подписанная выдача; Range → 206, неверный диапазон → 416, `download=1` для скачивания |
 | GET `/api/v1/media/{id}/report` | JSON метаданных с `notice`, Content-Disposition attachment |
-| POST `/api/v1/analyze` | 503, code=`analysis_unavailable`; задача не создаётся |
+| POST `/api/v1/analyze` | Отдельный доступ по `X-API-Key`, multipart `file` → 202 `{job_id,status:"processing"}`; [публичный контракт](PUBLIC_API.md) |
 
 Запись имеет форму:
 

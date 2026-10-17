@@ -77,12 +77,6 @@ def capabilities():
                    automatic_quality_checks=False, formats=['mov', 'mp4', 'webm'], max_file_size=current_app.config['MAX_FILE_SIZE'])
 
 
-@workspace_bp.post('/analyze')
-@active_required
-def analyze_unavailable():
-    raise ApiError(503, 'analysis_unavailable', 'ИИ-анализ пока не подключён.')
-
-
 @workspace_bp.post('/media')
 @active_required
 def upload_media():

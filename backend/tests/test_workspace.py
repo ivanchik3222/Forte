@@ -216,7 +216,7 @@ def test_camera_admin_and_unavailable_analysis(client, auth_headers, admin_heade
     created = client.post('/api/v1/cameras', json={'name':'C','location':'L'}, headers=admin_headers)
     assert created.status_code == 201 and created.json['status'] == 'unknown'
     assert client.patch('/api/v1/cameras/'+created.json['id'], json={'status':'online'}, headers=admin_headers).status_code == 422
-    assert client.post('/api/v1/analyze', headers=auth_headers).json['error']['code'] == 'analysis_unavailable'
+    assert client.post('/api/v1/analyze', headers=auth_headers).json['error']['code'] == 'ambiguous_auth'
 
 
 @pytest.mark.parametrize('path', ['/media?page=0','/media?per_page=101','/media?sort=no','/notifications?date=bad','/notifications?read=wrong'])
@@ -251,7 +251,7 @@ def test_legacy_adoption_preserves_users(tmp_path):
         result = fresh.test_cli_runner().invoke(args=['adopt-legacy-db','--backup-confirmed'])
         assert result.exit_code == 0, result.output
         assert User.query.filter_by(email='legacy@test.com').one()
-        assert db.session.execute(text('select version_num from alembic_version')).scalar() == '0005'
+        assert db.session.execute(text('select version_num from alembic_version')).scalar() == '0006'
         db.session.remove(); db.engine.dispose()
 
 

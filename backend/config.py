@@ -60,6 +60,11 @@ class Config:
     ML_DEVICE = os.environ.get('ML_DEVICE') or None
     ML_JOB_TIMEOUT = 300
     ML_QUEUE_LIMIT = 20
+    API_KEY_DAYS = 30
+    API_KEY_ISSUE_LIMIT = 3
+    API_KEY_GLOBAL_ISSUE_LIMIT = 100
+    API_UPLOAD_IP_LIMIT = 10
+    API_JOB_DEADLINE = 300
 
 
 class DevelopmentConfig(Config):

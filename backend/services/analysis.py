@@ -22,12 +22,24 @@ def detector():
     return current_app.extensions['cash_detector']
 
 
+def expire_pending_api_jobs():
+    """Do not spend inference time on API jobs whose queue deadline elapsed."""
+    cutoff = utcnow() - timedelta(seconds=current_app.config['API_JOB_DEADLINE'])
+    public_media = db.select(MediaRecord.id).where(MediaRecord.api_client_id.is_not(None))
+    AnalysisJob.query.filter(AnalysisJob.media_id.in_(public_media),
+        AnalysisJob.status == 'queued', AnalysisJob.created_at <= cutoff).update(
+            dict(status='failed', error='API queue deadline exceeded.', finished_at=utcnow()),
+            synchronize_session=False)
+    db.session.commit()
+
+
 def run_next_job():
     """One job under a shared filesystem lock, across workers and DB dialects."""
     if not available():
         raise RuntimeError('ML weights are unavailable or ML is disabled')
     try:
         with FileLock(str(root()/'.analysis-worker.lock'), timeout=0):
+            expire_pending_api_jobs()
             # A crashed worker cannot leave its old job processing forever.
             stale = utcnow()-timedelta(seconds=current_app.config['ML_JOB_TIMEOUT']+90)
             AnalysisJob.query.filter(AnalysisJob.status == 'processing', AnalysisJob.started_at < stale).update(

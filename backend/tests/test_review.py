@@ -270,11 +270,16 @@ def test_new_migration_preserves_existing_video_event_and_readiness(tmp_path):
     with app.app_context():
         upgrade(revision='0002')
         user = User(email='old@test.test'); db.session.add(user); db.session.flush()
-        media = MediaRecord(owner_id=user.id, original_name='old.mp4', storage_key='old.mp4', size_bytes=10, content_type='video/mp4')
-        camera = Camera(name='old', location='Astana'); db.session.add_all([media,camera]); db.session.flush()
+        # Insert using the historical schema, not today's ORM columns.
+        from sqlalchemy import Table, MetaData
+        old_media = Table('media_records', MetaData(), autoload_with=db.engine)
+        db.session.execute(old_media.insert().values(id='old-media', owner_id=user.id,
+            original_name='old.mp4', search_name='old.mp4', storage_key='old.mp4',
+            size_bytes=10, content_type='video/mp4', created_at=BASE))
+        camera = Camera(name='old', location='Astana'); db.session.add(camera); db.session.flush()
         alert = CameraAlert(camera_id=camera.id, source='old', type='old', description='old')
         db.session.add(alert); db.session.commit()
-        ids = user.id, media.id, alert.id
+        ids = user.id, 'old-media', alert.id
         upgrade()
         assert db.session.get(User, ids[0]) and db.session.get(MediaRecord, ids[1]) and db.session.get(CameraAlert, ids[2])
         assert app.test_client().get('/api/ready').status_code == 200

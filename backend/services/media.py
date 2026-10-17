@@ -24,7 +24,7 @@ def root():
 
 
 def media_query():
-    query = MediaRecord.query
+    query = MediaRecord.query.filter(MediaRecord.api_client_id.is_(None))
     from models import AlertRecording, CameraAlert
     from services.access import camera_ids
     # A private upload linked to an out-of-scope camera is no longer visible,
@@ -78,7 +78,7 @@ def save_upload():
         raise ApiError(503, 'storage_unavailable', 'Хранилище временно недоступно.')
 
 
-def _save_upload(key, directory):
+def _save_upload(key, directory, api_client_id=None):
     if shutil.disk_usage(directory).free < current_app.config['MAX_FILE_SIZE'] + current_app.config['MIN_FREE_BYTES']:
         raise ApiError(503, 'storage_full', 'Недостаточно места для загрузки.')
     files = request.files.getlist('file')
@@ -105,25 +105,30 @@ def _save_upload(key, directory):
         if not size:
             raise ApiError(422, 'empty_file', 'Файл пустой.')
         fingerprint = digest.hexdigest()
-        existing = UploadRequest.query.filter_by(owner_id=g.user.id, key=key).first()
+        existing = UploadRequest.query.filter_by(owner_id=g.user.id, key=key).first() if api_client_id is None else None
         if existing:
             if existing.fingerprint != fingerprint:
                 raise ApiError(409, 'idempotency_conflict', 'Этот ключ уже использован для другого файла.')
             return db.session.get(MediaRecord, existing.media_id), 200
-        count = UploadRequest.query.filter(UploadRequest.owner_id == g.user.id,
+        count = (UploadRequest.query.filter(UploadRequest.owner_id == g.user.id,
                                           UploadRequest.created_at >= utcnow() - timedelta(hours=1)).count()
+                 if api_client_id is None else MediaRecord.query.filter(
+                     MediaRecord.api_client_id == api_client_id,
+                     MediaRecord.created_at >= utcnow() - timedelta(hours=1)).count())
         if count >= current_app.config['UPLOADS_PER_HOUR']:
             raise ApiError(429, 'upload_rate_limit', 'Лимит загрузок за час исчерпан.')
         duration = probe(temporary, extension)
-        record = MediaRecord(id=uid(), owner_id=g.user.id, original_name=name,
+        record = MediaRecord(id=uid(), owner_id=g.user.id if api_client_id is None else None,
+                             api_client_id=api_client_id, original_name=name,
                              storage_key=uid() + extension, size_bytes=size,
                              content_type=TYPES[extension], duration_sec=duration)
         destination = directory / record.storage_key
         temporary.replace(destination)
         db.session.add(record)
         db.session.flush()
-        db.session.add(UploadRequest(owner_id=g.user.id, key=key, fingerprint=fingerprint, media_id=record.id))
-        db.session.commit()
+        if api_client_id is None:
+            db.session.add(UploadRequest(owner_id=g.user.id, key=key, fingerprint=fingerprint, media_id=record.id))
+            db.session.commit()
         destination = None  # The committed record owns the file.
         return record, 201
     finally:

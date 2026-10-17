@@ -1,0 +1,12 @@
+.api-access-page { max-width: 940px; margin: 0 auto; padding: 40px 24px 72px; }
+.api-access-page header { margin: 36px 0; }
+.api-access-page h1 { font-size: clamp(30px, 5vw, 48px); margin: 12px 0; }
+.api-access-page p { line-height: 1.75; margin: 14px 0; }
+.api-access-card { background: white; border: 1px solid #e5e7eb; border-radius: 20px; padding: 28px; margin-top: 24px; }
+.api-access-card h2 { font-size: 24px; margin-bottom: 16px; }
+.api-access-card h3 { margin-top: 24px; }
+.api-access-card pre { background: #162033; color: #f3f4f6; padding: 20px; border-radius: 12px; overflow-x: auto; margin: 16px 0; }
+.api-key-value { display: block; width: 100%; padding: 14px; border: 1px solid #b6bdca; border-radius: 8px; margin-top: 10px; font-family: monospace; }
+.api-key-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.api-notice { background: #fff6e5; padding: 16px; border-radius: 12px; }
+.api-back { color: #8b174b; }

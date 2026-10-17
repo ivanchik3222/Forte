@@ -1,0 +1,22 @@
+@import "tailwindcss";
+@source "../";
+
+@theme {
+  --color-forte-50: #fff0f7;
+  --color-forte-100: #ffe0ee;
+  --color-forte-500: #d91b72;
+  --color-forte-600: #bd155f;
+  --color-forte-700: #98104d;
+  --color-ink: #24202a;
+  --font-sans: "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-[#faf8fa] font-sans text-ink antialiased;
+  }
+
+  button {
+    @apply cursor-pointer;
+  }
+}

@@ -1,0 +1,36 @@
+services:
+  backend:
+    build: ./backend
+    env_file: .env
+    ports:
+      - "${BACKEND_PORT:-6767}:6767"
+    environment:
+      FLASK_ENV: production
+      DATABASE_URL: sqlite:////app/database/database.db
+    volumes:
+      - database:/app/database
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:6767/api', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:6767}
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  database:

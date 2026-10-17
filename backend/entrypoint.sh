@@ -3,7 +3,7 @@ set -e
 
 echo "[entrypoint] Applying migrations..."
 flask --app app db upgrade
-if [ "${DEMO_MODE:-false}" = "true" ]; then
+if [ "${DEMO_MODE:-true}" = "true" ]; then
     flask --app app seed-demo-user
 fi
 flask --app app seed-sources

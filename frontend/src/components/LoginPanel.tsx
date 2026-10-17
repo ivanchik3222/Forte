@@ -8,7 +8,7 @@ export function LoginPanel() {
   const navigate = useNavigate();
   const [identifier, setIdentifier] = useState("");
   const [otp, setOtp] = useState("");
-  const demoEnabled = process.env.REACT_APP_DEMO_MODE === "true";
+  const demoEnabled = process.env.REACT_APP_DEMO_MODE !== "false";
   const [password, setPassword] = useState("");
   const [testLogin, setTestLogin] = useState(false);
   const status = useAuthStore((state) => state.status);

@@ -44,7 +44,7 @@ class Config:
     PLAYBACK_TTL = 900
     UPLOADS_PER_HOUR = 30
     MIN_FREE_BYTES = 256 * 1024 * 1024
-    DEMO_MODE = os.environ.get('DEMO_MODE', 'false').lower() == 'true'
+    DEMO_MODE = os.environ.get('DEMO_MODE', 'true').lower() == 'true'
     ADMIN_MFA_REQUIRED = False
     AUTH_ACCOUNT_LIMIT = 10
     AUTH_IP_LIMIT = 60

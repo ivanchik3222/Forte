@@ -10,6 +10,7 @@ import { useAnalysisStore } from "../../store/useAnalysisStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import { apiRequest, authApi } from "../../api/client";
 import { parseMedia } from "../../api/workspace";
+import { mockUploads } from "../../test-utils/upload";
 
 const user = {
   id: 1,
@@ -43,7 +44,9 @@ const overview = {
 const response = (payload: unknown, status = 200) =>
   ({ ok: status < 400, status, json: async () => payload }) as Response;
 const originalFetch = global.fetch;
+let uploads: ReturnType<typeof mockUploads>;
 beforeEach(() => {
+  uploads = mockUploads();
   window.scrollTo = jest.fn();
   Object.defineProperty(global, "crypto", {
     configurable: true,
@@ -87,6 +90,7 @@ beforeEach(() => {
   });
 });
 afterEach(() => {
+  uploads.restore();
   global.fetch = originalFetch;
 });
 
@@ -97,18 +101,96 @@ test("upload uses multipart JWT API and shows stored without a verdict", async (
     target: { files: [new File(["video"], "camera.mp4")] },
   });
   fireEvent.click(screen.getByRole("button", { name: "Сохранить видео" }));
+  const request = uploads.requests[0];
+  act(() => request.progress(2, 5));
+  expect(
+    screen.getByRole("progressbar", { name: "Передача видео" }),
+  ).toHaveAttribute("aria-valuenow", "40");
+  expect(
+    screen.getByRole("heading", { name: "Загружаем видео" }),
+  ).toBeInTheDocument();
+  act(() => request.transferred(5));
+  expect(screen.getByRole("progressbar")).toHaveAttribute(
+    "aria-valuenow",
+    "100",
+  );
+  expect(
+    screen.getByRole("heading", { name: "Сохраняем запись" }),
+  ).toBeInTheDocument();
+  expect(window.location.pathname).toBe("/workspace");
+  act(() => request.respond(record));
   await screen.findByRole("heading", { name: "camera.mp4" });
   expect(window.location.pathname).toBe("/analysis/saved-id");
   expect(
     screen.getByText(/Видео сохранено. Запустите поиск объектов/),
   ).toBeInTheDocument();
   expect(screen.queryByText("Нарушение не обнаружено")).not.toBeInTheDocument();
-  const call = (global.fetch as jest.Mock).mock.calls.find((c) =>
-    String(c[0]).endsWith("/media"),
+  expect(request.send.mock.calls[0][0]).toBeInstanceOf(FormData);
+  expect(request.setRequestHeader).not.toHaveBeenCalledWith(
+    "content-type",
+    expect.anything(),
   );
-  expect(call[1].body).toBeInstanceOf(FormData);
-  expect(call[1].headers.get("Content-Type")).toBeNull();
-  expect(call[1].headers.get("Idempotency-Key")).toBe("upload-key");
+  expect(request.setRequestHeader).toHaveBeenCalledWith(
+    "idempotency-key",
+    "upload-key",
+  );
+});
+
+test("upload can be cancelled and retried with the same idempotency key", async () => {
+  render(<App />);
+  fireEvent.click(screen.getByRole("button", { name: "Загрузить видео" }));
+  fireEvent.change(screen.getByLabelText("Выбрать видеофайл"), {
+    target: { files: [new File(["video"], "camera.mp4")] },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Сохранить видео" }));
+  fireEvent.click(screen.getByRole("button", { name: "Отменить загрузку" }));
+  expect(uploads.requests[0].abort).toHaveBeenCalled();
+  await screen.findByText(/Ожидание остановлено/);
+  fireEvent.click(screen.getByRole("button", { name: "Сохранить видео" }));
+  expect(uploads.requests[1].setRequestHeader).toHaveBeenCalledWith(
+    "idempotency-key",
+    "upload-key",
+  );
+  act(() => uploads.requests[1].respond(record));
+  await screen.findByRole("heading", { name: "camera.mp4" });
+});
+
+test("closing the upload sheet keeps progress visible and allows reopening", async () => {
+  render(<App />);
+  fireEvent.click(screen.getByRole("button", { name: "Загрузить видео" }));
+  fireEvent.change(screen.getByLabelText("Выбрать видеофайл"), {
+    target: { files: [new File(["video"], "camera.mp4")] },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Сохранить видео" }));
+  act(() => uploads.requests[0].progress(3, 5));
+  fireEvent.click(screen.getByRole("button", { name: "Закрыть окно" }));
+  const minimized = await screen.findByRole("button", {
+    name: /60% Загружаем видео camera.mp4/,
+  });
+  expect(uploads.requests[0].abort).not.toHaveBeenCalled();
+  fireEvent.click(minimized);
+  expect(screen.getByRole("progressbar")).toHaveAttribute(
+    "aria-valuenow",
+    "60",
+  );
+  act(() => uploads.requests[0].respond(record));
+  await screen.findByRole("heading", { name: "camera.mp4" });
+});
+
+test("a server rejection after transfer keeps the file available for retry", async () => {
+  render(<App />);
+  fireEvent.click(screen.getByRole("button", { name: "Загрузить видео" }));
+  fireEvent.change(screen.getByLabelText("Выбрать видеофайл"), {
+    target: { files: [new File(["video"], "camera.mp4")] },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Сохранить видео" }));
+  act(() => {
+    uploads.requests[0].transferred(5);
+    uploads.requests[0].respond(null, 413);
+  });
+  await screen.findByText(/Сервер не принял файл такого размера/);
+  expect(window.location.pathname).toBe("/workspace");
+  expect(screen.getByRole("button", { name: "Сохранить видео" })).toBeEnabled();
 });
 
 test("direct link restores record from server without an in-memory File", async () => {

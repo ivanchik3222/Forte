@@ -1,7 +1,7 @@
 import { DragEvent, useRef, useState } from "react";
 import { Icon } from "../../components/Icon";
 import { useAnalysisStore } from "../../store/useAnalysisStore";
-import { fileSize, validateVideo } from "./types";
+import { fileSize, MAX_FILE_SIZE_LABEL, validateVideo } from "./types";
 
 export function UploadPanel({ onOpen }: { onOpen: (id: string) => void }) {
   const input = useRef<HTMLInputElement>(null);
@@ -107,7 +107,9 @@ export function UploadPanel({ onOpen }: { onOpen: (id: string) => void }) {
               <Icon name="plus" size={16} />
               Выбрать видео
             </button>
-            <span className="file-hint">MOV, MP4, WebM · до 200 МБ</span>
+            <span className="file-hint">
+              MOV, MP4, WebM · до {MAX_FILE_SIZE_LABEL}
+            </span>
           </>
         )}
       </div>

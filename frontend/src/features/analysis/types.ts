@@ -40,7 +40,13 @@ export interface AnalysisRecord {
   createdAt: string;
   duration?: number;
   mode: AnalysisMode;
-  status: "stored" | "uploading" | "processing" | "done" | "failed" | "cancelled";
+  status:
+    | "stored"
+    | "uploading"
+    | "processing"
+    | "done"
+    | "failed"
+    | "cancelled";
   progress?: number;
   stage?: string;
   verdict?: Verdict;
@@ -55,7 +61,8 @@ export interface ConnectionSettings {
   apiKey: string;
 }
 
-export const MAX_FILE_SIZE = 200 * 1024 * 1024;
+export const MAX_FILE_SIZE = 1024 * 1024 * 1024;
+export const MAX_FILE_SIZE_LABEL = "1 ГБ";
 export const API_BASE_URL = (
   process.env.REACT_APP_API_URL ?? "http://localhost:6767"
 ).replace(/\/$/, "");
@@ -65,7 +72,7 @@ export function validateVideo(file: File): string | null {
     return "Выберите видео в формате MOV, MP4 или WebM.";
   if (!file.size) return "Файл пустой. Выберите другую запись.";
   if (file.size > MAX_FILE_SIZE)
-    return "Файл больше 200 МБ. Загрузите более короткий фрагмент.";
+    return `Файл больше ${MAX_FILE_SIZE_LABEL}. Загрузите более короткий фрагмент.`;
   return null;
 }
 
@@ -80,6 +87,8 @@ export function timecode(seconds: number): string {
 }
 
 export function fileSize(bytes: number): string {
+  if (bytes >= 1024 ** 3)
+    return `${(bytes / 1024 ** 3).toLocaleString("ru-RU", { maximumFractionDigits: 2 })} ГБ`;
   return `${(bytes / 1024 / 1024).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} МБ`;
 }
 

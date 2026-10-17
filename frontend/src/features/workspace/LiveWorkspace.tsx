@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { apiRequest, mediaUrl } from "../../api/client";
+import {
+  apiRequest,
+  mediaUrl,
+  UploadProgress as TransferProgress,
+} from "../../api/client";
 import {
   Alert,
   Camera,
@@ -20,12 +24,14 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { useAnalysisStore } from "../../store/useAnalysisStore";
 import {
   fileSize,
+  MAX_FILE_SIZE_LABEL,
   safeSourceUrl,
   timecode,
   validateVideo,
 } from "../analysis/types";
 import { HistoryTable } from "../analysis/HistoryTable";
 import { MLAnalysisPanel } from "../analysis/MLAnalysisPanel";
+import { UploadProgress, uploadPercent } from "../analysis/UploadProgress";
 import { useCurrentDay } from "../notifications/types";
 import { useResource } from "./useResource";
 import { MonitoringPage } from "../../pages/MonitoringPage";
@@ -367,6 +373,7 @@ function AuthenticatedWorkspace() {
       )}
       <UploadDialog
         visible={modal === "upload"}
+        reopen={() => setModal("upload")}
         close={() => setModal(null)}
         saved={(id) => {
           setModal(null);
@@ -380,16 +387,23 @@ function AuthenticatedWorkspace() {
 
 function UploadDialog({
   visible,
+  reopen,
   close,
   saved,
 }: {
   visible: boolean;
+  reopen: () => void;
   close: () => void;
   saved: (id: string) => void;
 }) {
   const [file, setFile] = useState<File>();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<TransferProgress>({
+    loaded: 0,
+    transferred: false,
+  });
+  const [dragging, setDragging] = useState(false);
   const key = useRef("");
   const controller = useRef<AbortController | undefined>(undefined);
   useEffect(() => () => controller.current?.abort(), []);
@@ -413,6 +427,7 @@ function UploadDialog({
     if (!file || busy) return;
     setBusy(true);
     setError("");
+    setProgress({ loaded: 0, transferred: false });
     controller.current = new AbortController();
     const body = new FormData();
     body.append("file", file);
@@ -423,6 +438,7 @@ function UploadDialog({
           body,
           signal: controller.current.signal,
           headers: { "Idempotency-Key": key.current },
+          onUploadProgress: setProgress,
         }),
       );
       setFile(undefined);
@@ -431,61 +447,109 @@ function UploadDialog({
       setError(
         e instanceof DOMException && e.name === "AbortError"
           ? "Ожидание остановлено. Файл мог сохраниться: повторите отправку с тем же файлом или проверьте историю."
-          : `${message(e)} Повтор использует тот же ключ и не создаст дубликат.`,
+          : `${message(e)} Можно повторить отправку — сохранённая запись не продублируется.`,
       );
     } finally {
       setBusy(false);
       controller.current = undefined;
     }
   };
-  if (!visible) return null;
+  if (!visible)
+    return file && (busy || error) ? (
+      <button className="transfer-mini" onClick={reopen}>
+        <span className="transfer-mini-value">
+          {error
+            ? "!"
+            : `${uploadPercent(progress) ?? "…"}${uploadPercent(progress) !== undefined ? "%" : ""}`}
+        </span>
+        <span>
+          <strong>
+            {error
+              ? "Не удалось загрузить видео"
+              : progress.transferred
+                ? "Сохраняем запись"
+                : "Загружаем видео"}
+          </strong>
+          <small>{file.name}</small>
+        </span>
+        <Icon name="arrow" size={18} />
+      </button>
+    ) : null;
   return (
     <Modal title="Загрузить видео" onClose={close}>
-      <section className="upload-panel">
-        <p>Видео сохранится на сервере. На странице записи можно запустить поиск объектов и движений.</p>
-        <div
-          className="dropzone"
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            e.preventDefault();
-            select(e.dataTransfer.files);
-          }}
-        >
-          <Icon name="upload" size={32} />
-          <label className="button button-outline">
-            Выбрать видео
-            <input
-              aria-label="Выбрать видеофайл"
-              type="file"
-              accept=".mov,.mp4,.webm"
-              disabled={busy}
-              onChange={(e) => select(e.target.files)}
-            />
-          </label>
+      <section className="upload-panel live-upload-panel">
+        {!busy && (
           <p>
-            {file
-              ? `${file.name} · ${fileSize(file.size)}`
-              : "Перетащите один MOV, MP4 или WebM до 200 МиБ"}
+            Видео сохранится на сервере. На странице записи можно запустить
+            поиск объектов и движений.
           </p>
-        </div>
+        )}
+        {busy && file ? (
+          <UploadProgress file={file} progress={progress} />
+        ) : (
+          <div
+            className={`dropzone ${dragging ? "dragging" : ""}`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragging(false);
+              select(e.dataTransfer.files);
+            }}
+          >
+            <Icon name="upload" size={32} />
+            <label className="button button-outline">
+              Выбрать видео
+              <input
+                aria-label="Выбрать видеофайл"
+                type="file"
+                className="visually-hidden"
+                accept=".mov,.mp4,.webm"
+                disabled={busy}
+                onChange={(e) => {
+                  select(e.target.files);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            <p className="selected-filename">
+              {file
+                ? `${file.name} · ${fileSize(file.size)}`
+                : `Перетащите один MOV, MP4 или WebM до ${MAX_FILE_SIZE_LABEL}`}
+            </p>
+          </div>
+        )}
         <StateNotice error={error} />
         <div className="settings-save">
-          <button
-            className="button button-primary"
-            disabled={!file || busy}
-            onClick={() => void upload()}
-          >
-            {busy ? "Отправка и проверка файла…" : "Сохранить видео"}
-          </button>
+          {!busy && (
+            <button
+              className="button button-primary"
+              disabled={!file || busy}
+              onClick={() => void upload()}
+            >
+              Сохранить видео
+            </button>
+          )}
           {busy && (
             <button
               className="button button-outline"
               onClick={() => controller.current?.abort()}
             >
-              Остановить ожидание
+              {progress.transferred
+                ? "Остановить ожидание"
+                : "Отменить загрузку"}
             </button>
           )}
         </div>
+        {busy && (
+          <p className="transfer-hint">
+            Окно можно свернуть — загрузка продолжится. Оставьте вкладку
+            открытой до завершения.
+          </p>
+        )}
       </section>
     </Modal>
   );
@@ -699,10 +763,14 @@ function MediaDetail({ id }: { id: string }) {
               кнопкой.
             </p>
           </section>
-          <MLAnalysisPanel key={id} mediaId={id} onSeek={sec => {
-            resumeAt.current = sec;
-            if (video.current) video.current.currentTime = sec;
-          }} />
+          <MLAnalysisPanel
+            key={id}
+            mediaId={id}
+            onSeek={(sec) => {
+              resumeAt.current = sec;
+              if (video.current) video.current.currentTime = sec;
+            }}
+          />
         </>
       )}
     </>

@@ -1,11 +1,40 @@
 @import "tailwindcss";
 
-.ml-analysis { padding: 24px; margin-top: 24px; }
-.ml-evidence-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 16px 0 24px; }
-.ml-evidence-card { border: 1px solid #ddd; border-radius: 12px; overflow: hidden; cursor: pointer; background: white; }
-.ml-evidence-card img { width: 100%; height: 210px; object-fit: contain; background: #171217; }
-.ml-evidence-card span { display: block; padding: 10px; }
-.ml-event-list { display: flex; flex-wrap: wrap; gap: 8px; max-height: 320px; overflow: auto; margin: 16px 0; }
+.ml-analysis {
+  padding: 24px;
+  margin-top: 24px;
+}
+.ml-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+.ml-evidence-card {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  background: white;
+}
+.ml-evidence-card img {
+  width: 100%;
+  height: 210px;
+  object-fit: contain;
+  background: #171217;
+}
+.ml-evidence-card span {
+  display: block;
+  padding: 10px;
+}
+.ml-event-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 320px;
+  overflow: auto;
+  margin: 16px 0;
+}
 @source "../";
 
 @font-face {
@@ -148,10 +177,13 @@
   z-index: 30;
   background: var(--surface);
   border-right: 1px solid var(--line);
-  padding: 34px 20px 18px;
+  padding: 24px 20px 16px;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow: clip;
+}
+.sidebar > * {
+  flex-shrink: 0;
 }
 .brand {
   display: flex;
@@ -250,7 +282,7 @@
 }
 .sidebar-bottom {
   margin-top: auto;
-  padding-top: 65px;
+  padding-top: 16px;
 }
 .local-card {
   margin: 0 2px 25px;
@@ -308,6 +340,62 @@
   font-size: 8px;
   color: #8c8992;
   letter-spacing: 0.6px;
+}
+/* Keep every navigation action visible; reduce secondary content on short screens. */
+@media (min-width: 761px) and (max-height: 1040px) {
+  .sidebar .local-card {
+    display: none;
+  }
+}
+@media (min-width: 761px) and (max-height: 820px) {
+  .sidebar {
+    padding-top: 20px;
+    padding-bottom: 14px;
+  }
+  .sidebar .workspace-label {
+    margin-top: 20px;
+    padding-block: 14px;
+  }
+  .sidebar .nav-caption {
+    padding-top: 16px;
+    padding-bottom: 10px;
+  }
+  .sidebar .nav-item {
+    min-height: 44px;
+    margin-bottom: 3px;
+  }
+  .sidebar-bottom {
+    padding-top: 12px;
+  }
+  .sidebar-foot {
+    display: none;
+  }
+}
+@media (min-width: 761px) and (max-height: 700px) {
+  .sidebar .workspace-label,
+  .sidebar .nav-caption {
+    display: none;
+  }
+  .sidebar > nav {
+    margin-top: 20px;
+  }
+}
+@media (min-width: 761px) and (max-height: 500px) {
+  .sidebar {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+  .sidebar > nav {
+    margin-top: 12px;
+  }
+  .sidebar .nav-item {
+    min-height: 36px;
+    padding-block: 7px;
+    margin-bottom: 2px;
+  }
+  .sidebar-bottom {
+    padding-top: 8px;
+  }
 }
 .main-shell {
   margin-left: 244px;
@@ -781,6 +869,333 @@ h1 {
 }
 .selected-filename {
   overflow-wrap: anywhere;
+}
+.transfer-card {
+  position: relative;
+  overflow: hidden;
+  margin-top: 22px;
+  border: 1px solid #ebdfe5;
+  border-radius: 24px;
+  background: linear-gradient(125deg, #fff 40%, #fcf3f7);
+  padding: 26px;
+}
+.live-upload-panel {
+  padding: 0;
+}
+.live-upload-panel > .transfer-card:first-child {
+  margin-top: 0;
+}
+.transfer-card::after {
+  content: "";
+  position: absolute;
+  right: -34px;
+  top: 70px;
+  width: 170px;
+  height: 170px;
+  background: url("../assets/forte-oyu.png") center / contain no-repeat;
+  opacity: 0.08;
+  pointer-events: none;
+}
+.transfer-file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.transfer-format {
+  display: grid;
+  place-items: center;
+  flex: 0 0 46px;
+  height: 50px;
+  border: 1px solid #ead8e1;
+  border-radius: 12px;
+  color: var(--brand);
+  background: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.transfer-file > div {
+  min-width: 0;
+  flex: 1;
+}
+.transfer-file strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
+.transfer-file div > span {
+  color: var(--muted);
+  font-size: 11px;
+}
+.transfer-live {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 5px #a315510b;
+  animation: transfer-pulse 2s ease-in-out infinite;
+}
+.transfer-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  padding: 36px 4px;
+}
+.transfer-dial {
+  position: relative;
+  width: 164px;
+  height: 164px;
+  flex-shrink: 0;
+}
+.transfer-dial svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.transfer-dial circle {
+  fill: none;
+  stroke-width: 5;
+}
+.transfer-ring-track {
+  stroke: #efdee6;
+}
+.transfer-ring-fill {
+  stroke: var(--brand);
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.4s ease;
+}
+.transfer-orbit {
+  position: absolute;
+  inset: 0;
+  border: 1px solid #eee7eb;
+  border-radius: 50%;
+  animation: rotate 7s linear infinite;
+}
+.transfer-orbit::after {
+  content: "";
+  position: absolute;
+  left: calc(50% - 4px);
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #57cde8;
+  box-shadow: 0 0 0 4px #57cde81a;
+}
+.transfer-number {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.transfer-number strong {
+  color: var(--brand);
+  font-size: 42px;
+  line-height: 1.15;
+  font-weight: 550;
+  letter-spacing: -2px;
+  font-variant-numeric: tabular-nums;
+}
+.transfer-number small {
+  font-size: 18px;
+  letter-spacing: 0;
+  margin-left: 2px;
+}
+.transfer-number > span {
+  color: #8d7380;
+  font-size: 10px;
+  margin-top: 4px;
+}
+.transfer-copy {
+  min-width: 0;
+  max-width: 400px;
+}
+.transfer-eyebrow {
+  font-size: 9px;
+  letter-spacing: 1.7px;
+  text-transform: uppercase;
+  color: #9d627e;
+}
+.transfer-copy h3 {
+  margin: 8px 0 10px;
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 550;
+  letter-spacing: -0.7px;
+}
+.transfer-copy p {
+  font-size: 12px;
+  line-height: 1.75;
+  color: var(--muted);
+}
+.transfer-volume {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 7px;
+  margin-top: 18px;
+  font-variant-numeric: tabular-nums;
+}
+.transfer-volume strong {
+  font-size: 19px;
+  font-weight: 600;
+}
+.transfer-volume > span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.transfer-stages {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding-top: 18px;
+  border-top: 1px solid #ecdee5;
+  list-style: none;
+}
+.transfer-stages li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #938991;
+}
+.transfer-stages li > span {
+  display: grid;
+  place-items: center;
+  height: 24px;
+  width: 24px;
+  border-radius: 50%;
+  background: #f1ecef;
+  font-size: 9px;
+}
+.transfer-stages .is-current {
+  color: var(--brand);
+  font-weight: 600;
+}
+.transfer-stages .is-current > span {
+  background: var(--brand);
+  color: #fff;
+}
+.transfer-stages .is-complete {
+  color: var(--green);
+}
+.transfer-stages .is-complete > span {
+  background: #e8f2ed;
+}
+.transfer-hint {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-top: 16px;
+}
+.transfer-dial.is-indeterminate svg {
+  animation: rotate 2.5s linear infinite;
+}
+.is-saving .transfer-orbit {
+  animation-duration: 3s;
+}
+.transfer-mini {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(360px, calc(100vw - 32px));
+  padding: 16px;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #ead8e1;
+  border-radius: 18px;
+  box-shadow: 0 10px 40px #47112c1a;
+}
+.transfer-mini-value {
+  flex-shrink: 0;
+  font-size: 20px;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+.transfer-mini > span:nth-child(2) {
+  min-width: 0;
+  flex: 1;
+}
+.transfer-mini strong {
+  display: block;
+  font-size: 12px;
+}
+.transfer-mini small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.transfer-mini > svg {
+  color: var(--brand);
+  flex-shrink: 0;
+}
+@keyframes transfer-pulse {
+  50% {
+    box-shadow: 0 0 0 8px #a3155105;
+    opacity: 0.5;
+  }
+}
+@media (max-width: 760px) {
+  .transfer-mini {
+    right: 16px;
+    bottom: calc(100px + env(safe-area-inset-bottom));
+  }
+}
+@media (max-width: 520px) {
+  .transfer-card {
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .transfer-body {
+    flex-direction: column;
+    gap: 16px;
+    padding: 22px 0 20px;
+    text-align: center;
+  }
+  .transfer-dial {
+    width: 120px;
+    height: 120px;
+  }
+  .transfer-number strong {
+    font-size: 32px;
+  }
+  .transfer-volume {
+    justify-content: center;
+    margin-top: 12px;
+  }
+  .transfer-stages {
+    gap: 16px;
+    justify-content: space-between;
+  }
+  .transfer-stages li {
+    font-size: 10px;
+    gap: 6px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .transfer-orbit,
+  .transfer-live,
+  .transfer-dial.is-indeterminate svg {
+    animation: none;
+  }
+  .transfer-ring-fill {
+    transition: none;
+  }
 }
 .button {
   min-height: 42px;

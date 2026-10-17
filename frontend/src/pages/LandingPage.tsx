@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAnalysisStore } from "../store/useAnalysisStore";
 import { Icon } from "../components/Icon";
+import { MAX_FILE_SIZE_LABEL } from "../features/analysis/types";
 
 const capabilities = [
   {
@@ -63,8 +64,7 @@ const questions = [
   },
   {
     question: "Какие видео можно загрузить?",
-    answer:
-      "Интерфейс принимает MOV, MP4 и WebM до 200 МБ. Основной формат кейса — MOV. Поддержка дополнительных форматов зависит от подключённого сервера. Если кодек не воспроизводится в браузере, исходный MOV всё равно можно отправить на анализ.",
+    answer: `Интерфейс принимает MOV, MP4 и WebM до ${MAX_FILE_SIZE_LABEL}. Основной формат кейса — MOV. Поддержка дополнительных форматов зависит от подключённого сервера. Если кодек не воспроизводится в браузере, исходный MOV всё равно можно отправить на анализ.`,
   },
   {
     question: "Видео передаётся в облачные AI-сервисы?",

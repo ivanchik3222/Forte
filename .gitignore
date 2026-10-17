@@ -1,4 +1,5 @@
 .env
+.cache/
 Кейс_Fortebank.docx
 ML/open
 ML/.venv/

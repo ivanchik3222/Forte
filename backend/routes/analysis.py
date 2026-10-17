@@ -1,6 +1,5 @@
 """Authenticated object observations; automatic violation evaluation is disabled."""
 from flask import Blueprint, request, jsonify, current_app, g, url_for, send_file
-from uuid import uuid4
 from flask_jwt_extended import get_jwt
 from filelock import FileLock, Timeout
 from models import db, AnalysisJob, _utc_iso, utcnow, as_utc
@@ -8,7 +7,6 @@ from services.media import get_media, root, sign_file, authorize_file
 from services.analysis import available
 from utils.decorators import active_required
 from utils.errors import ApiError
-from services.jury import jury_required, authenticate_jury
 from services.final_answer import final_answer, DecisionUnavailable
 
 analysis_bp = Blueprint('analysis', __name__)

@@ -1,5 +1,6 @@
 """Executable proof of the security boundaries shown to the jury."""
 import time
+from types import SimpleNamespace
 import pytest
 import pyotp
 from flask_jwt_extended import decode_token
@@ -18,6 +19,15 @@ def headers(user):
 
 def login(client, identifier='user1', password='test1234', **extra):
     return client.post('/api/auth/login', json=dict(identifier=identifier, password=password, **extra))
+
+
+@pytest.fixture
+def throttle_clock(app, monkeypatch):
+    # Keep requests in one fixed window regardless of CI timing. Replace only
+    # the security module's clock, leaving JWT/session timestamps untouched.
+    clock = SimpleNamespace(now=100 * app.config['AUTH_WINDOW_SECONDS'])
+    monkeypatch.setattr('services.security.time', SimpleNamespace(time=lambda: clock.now))
+    return clock
 
 
 @pytest.fixture
@@ -94,7 +104,7 @@ def test_admin_access_management_and_non_admin_denial(client, admin_headers, use
     assert client.put('/api/admin/cameras/a/scope', headers=admin_headers, json={'branch_id':'a', 'is_demo':True}).status_code == 403
 
 
-def test_login_limit_shared_across_aliases_and_client_addresses(client, app, monkeypatch, user1):
+def test_login_limit_shared_across_aliases_and_client_addresses(client, app, monkeypatch, user1, throttle_clock):
     monkeypatch.setitem(app.config, 'AUTH_ACCOUNT_LIMIT', 2)
     assert login(client, 'user1', 'wrong').status_code == 401
     assert login(client, 'user1@test.com', 'wrong').status_code == 401
@@ -102,11 +112,26 @@ def test_login_limit_shared_across_aliases_and_client_addresses(client, app, mon
     assert result.status_code == 429 and result.headers['Retry-After'] == '300'
 
 
-def test_ip_limit_cannot_be_bypassed_with_forged_forwarded_header(client, app, monkeypatch):
+def test_ip_limit_cannot_be_bypassed_with_forged_forwarded_header(client, app, monkeypatch, throttle_clock):
     monkeypatch.setitem(app.config, 'AUTH_IP_LIMIT', 2)
     for n in range(2):
         assert client.post('/api/auth/login', json={'identifier':str(n), 'password':'wrong'}, headers={'X-Forwarded-For':f'10.1.1.{n}'}).status_code == 401
     assert login(client, 'another', 'wrong').status_code == 429
+
+
+@pytest.mark.parametrize('limit_setting', ['AUTH_ACCOUNT_LIMIT', 'AUTH_IP_LIMIT'])
+def test_login_limit_resets_at_fixed_window_boundary(client, app, monkeypatch, user1, throttle_clock, limit_setting):
+    monkeypatch.setitem(app.config, limit_setting, 2)
+    next_window = throttle_clock.now + app.config['AUTH_WINDOW_SECONDS']
+    throttle_clock.now = next_window - 0.001
+    assert login(client, password='wrong').status_code == 401
+    assert login(client, 'user1@test.com', 'wrong').status_code == 401
+    assert login(client).status_code == 429
+
+    throttle_clock.now = next_window
+    assert login(client).status_code == 200
+    assert login(client, 'user1@test.com').status_code == 200
+    assert login(client).status_code == 429
 
 
 def test_refresh_rotation_replay_revokes_session_and_signed_urls(client, user1, scoped):

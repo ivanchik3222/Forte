@@ -7,6 +7,8 @@ from pathlib import Path
 
 from PIL import Image
 from caption_worker import convert_report
+from caption_worker import CaptionAnalyzer
+from unittest.mock import patch
 
 
 def fixture():
@@ -44,6 +46,16 @@ class CaptionWorkerTests(unittest.TestCase):
         report=fixture();report['automatic_violation_detection']=True
         with tempfile.TemporaryDirectory() as folder,self.assertRaises(ValueError):
             convert_report(report,folder)
+
+    def test_serving_passes_explicit_inference_permission_to_caption_subprocess(self):
+        # Stop at the process boundary; no holdout frames or models are loaded.
+        for enabled in (False, True):
+            with tempfile.TemporaryDirectory() as folder:
+                runner = CaptionAnalyzer('python', folder, allow_reserved_test=enabled)
+                with patch('caption_worker.subprocess.run', side_effect=RuntimeError('stop before inference')) as run:
+                    with self.assertRaisesRegex(RuntimeError, 'stop before inference'):
+                        runner.analyze(Path(folder)/'video.mov', Path(folder)/'output')
+                self.assertEqual('--allow-reserved-test' in run.call_args.args[0], enabled)
 
 
 if __name__=='__main__':unittest.main()

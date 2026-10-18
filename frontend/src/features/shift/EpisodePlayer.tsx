@@ -1,3 +1,4 @@
+import { LoadingState } from "../../components/LoadingState";
 import { t, useLocale } from "../../i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CameraAlert } from "../notifications/types";
@@ -149,7 +150,7 @@ export function EpisodePlayer({
   return (
     <div className="episode-player">
       {media.loading ? (
-        <p role="status">{t("Подготовка видео…")}</p>
+        <LoadingState label="Подготовка видео…" />
       ) : videoMode ? (
         <div className="episode-video-wrap">
           <video
@@ -274,7 +275,7 @@ export function EpisodeContext({ alert }: { alert: CameraAlert }) {
       </p>
       <h3>{t(alert.event.type)}</h3>
       {media.loading ? (
-        <p role="status">{t("Подготовка видео…")}</p>
+        <LoadingState label="Подготовка видео…" />
       ) : hasVideo ? (
         <>
           <video

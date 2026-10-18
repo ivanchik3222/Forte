@@ -44,11 +44,12 @@ is made that their context frames independently prove a particular violation.
     result['unclassified_count']=sum(v['classification_status']=='unclassified' for v in result['violations'])
 
 
-def merge_reports(candidate, caption, output, caption_status, elapsed):
+def merge_reports(candidate, caption, output, caption_status, elapsed, preserve_candidates=False):
     evidence = []
     result = dict(candidate)
     result.update(engine='reviewed_pipeline', observations=[], caption_status=caption_status,
-                  elapsed_seconds=elapsed, verdict='requires_review', violations=[], rule_evaluation='not_performed')
+                  elapsed_seconds=elapsed, verdict='requires_review', violations=[], rule_evaluation='not_performed',
+                  assessment_coverage='partial', decision_scope='visible_signs_of_possible_violations')
     for prefix, report in [('candidate', candidate), ('caption', caption)]:
         if report is None:
             continue
@@ -78,16 +79,18 @@ def merge_reports(candidate, caption, output, caption_status, elapsed):
         result['processed_frames'] = len(times)
     else:
         result.update(coverage_status='partial', coverage_windows=[])
-    if result['rule_evaluation']=='performed': retain_unclassified_signals(result)
+    if result['rule_evaluation']=='performed' or (preserve_candidates and result['events']):
+        retain_unclassified_signals(result)
     return result
 
 
 class ReviewedPipeline:
-    def __init__(self, python, root, bundle, backbone, device=None, caption=None):
+    def __init__(self, python, root, bundle, backbone, device=None, caption=None, allow_reserved_test=False):
         self.python, self.root = Path(python), Path(root)
         self.bundle, self.backbone = Path(bundle), Path(backbone)
         self.device = 'auto' if device is None else ('cuda:0' if device == '0' else device)
         self.caption = caption
+        self.allow_reserved_test = allow_reserved_test
 
     def analyze(self, source, output, camera_profile='forte_open', timeout=300):
         if camera_profile not in ('forte_open', 'full_frame'):
@@ -99,6 +102,7 @@ class ReviewedPipeline:
         command = [str(self.python), str(self.root/'reviewed_inference.py'), str(source),
                    '--output', str(directory), '--bundle', str(self.bundle), '--backbone', str(self.backbone),
                    '--device', self.device, '--timeout', str(max(1, timeout-10))]
+        if self.allow_reserved_test: command.append('--allow-reserved-test')
         with (output/'candidate-worker.log').open('w') as log:
             subprocess.run(command, stdout=log, stderr=subprocess.STDOUT, timeout=timeout, check=True)
         candidate = json.loads((directory/'result.json').read_text())
@@ -128,9 +132,10 @@ class ReviewedPipeline:
                 import traceback
                 (output/'caption-error.log').write_text(traceback.format_exc(), encoding='utf-8')
                 status = 'failed'
-        result = merge_reports(candidate, caption, output, status, time.monotonic()-started)
+        result = merge_reports(candidate, caption, output, status, time.monotonic()-started,
+            preserve_candidates=getattr(self.caption,'assess_rules',False))
         result['camera_profile'] = camera_profile
-        if getattr(self.caption,'assess_rules',False) and result['rule_evaluation'] != 'performed':
+        if getattr(self.caption,'assess_rules',False) and result['rule_evaluation'] != 'performed' and not result['violations']:
             raise RuntimeError('Rule assessment did not complete; no binary verdict is available')
         (output/'result.json').write_text(json.dumps(result, ensure_ascii=False), encoding='utf-8')
         progress(output, 'done')

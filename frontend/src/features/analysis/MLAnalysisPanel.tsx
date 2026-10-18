@@ -1,16 +1,25 @@
+import { LoadingMark, LoadingState } from "../../components/LoadingState";
 import { t, useLocale } from "../../i18n";
 import { useEffect, useState } from 'react';
-import { apiRequest, mediaUrl } from '../../api/client';
+import { apiRequest } from '../../api/client';
 import { useResource } from '../workspace/useResource';
 import { MLJob, observationName, parseMLJob } from './ml';
 import { timecode } from './types';
+import { Icon } from '../../components/Icon';
+import { EvidenceGallery } from './EvidenceGallery';
+import { AnalysisReport } from './AnalysisReport';
+import { ReportContext } from './reportDocument';
+import { intervalTime, SeekToEvidence } from './playback';
+import '../../styles/analysis-review.css';
 
-export function MLAnalysisPanel({ mediaId, onSeek }: { mediaId: string; onSeek: (sec: number) => void }) {
+export function MLAnalysisPanel({ mediaId, onSeek, context }: { mediaId: string; onSeek: SeekToEvidence; context?: ReportContext }) {
   const locale = useLocale();
   const [submitted, setSubmitted] = useState<MLJob | null>(null);
   const [profile, setProfile] = useState('forte_open');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [eventLimit, setEventLimit] = useState(100);
+  const [observationLimit, setObservationLimit] = useState(100);
   const parse = (value: unknown) => {
     const next = parseMLJob(value);
     if (next && next.media_id !== mediaId) throw new Error('Сервер вернул анализ другой записи.');
@@ -43,32 +52,34 @@ export function MLAnalysisPanel({ mediaId, onSeek }: { mediaId: string; onSeek: 
   return <section className="panel ml-analysis" aria-labelledby="ml-analysis-title">
     <div className="section-heading"><div><h2 id="ml-analysis-title">{t("Результат анализа")}</h2>
       <p>{t("Вывод по записи, доказательства и нормативные основания.")}</p></div></div>
-    <p className="notice">{t("Автоматический результат показывает признаки возможных нарушений. Окончательное решение принимает специалист.")}</p>
+    {result && <nav className="analysis-section-nav" aria-label={t("Разделы результата")}>
+      <a href="#analysis-intervals"><Icon name="play" size={17} />{t("Интервалы")}</a>
+      <a href="#analysis-frames"><Icon name="image" size={17} />{t("Кадры")}</a>
+      <a href="#analysis-report"><Icon name="file" size={17} />{t("Отчёт")}</a>
+    </nav>}
     {locale !== "ru" && <p className="muted" lang={locale}>{t("Описание модели показано на языке источника.")}</p>}
+    {resource.loading && !active && <LoadingState label="Загружаем результат анализа…" variant={job ? "inline" : "panel"} />}
     {(!job || job.status === 'failed') && <div className="settings-save">
       <label>{t("Профиль камеры ")}<select aria-label={t("Профиль камеры")} value={profile} onChange={e => setProfile(e.target.value)}>
         <option value="forte_open">Forte Open · 464×848</option><option value="full_frame">{t("Другая камера · полный кадр")}</option>
       </select></label>
       <button className="button button-primary" disabled={busy || resource.loading} onClick={() => void run()}>
-        {t(busy ? 'Постановка в очередь…' : 'Запустить анализ')}</button>
+        {busy && <LoadingMark small />}{t(busy ? 'Постановка в очередь…' : 'Запустить анализ')}</button>
     </div>}
     {t((error || resource.error || job?.error) && <p role="alert">{t(error || resource.error || job?.error)}</p>)}
-    {active && <p role="status">{t(job?.status === 'queued' ? 'Видео в очереди. Анализ начнётся автоматически.' : job?.stage === 'assessing_rules' ? 'Проверяем действия по нормативам и выбираем доказательства…' : job?.stage === 'describing_actions' ? 'Интервалы проверены. Локальная модель описывает действия…' : 'Ищем эпизоды, требующие внимания…')}{t(" Статус обновляется автоматически.")}</p>}
+    {active && <LoadingState label={t(job?.status === 'queued' ? 'Видео в очереди. Анализ начнётся автоматически.' : job?.stage === 'assessing_rules' ? 'Проверяем действия по нормативам и выбираем доказательства…' : job?.stage === 'describing_actions' ? 'Интервалы проверены. Локальная модель описывает действия…' : 'Ищем эпизоды, требующие внимания…') + t(" Статус обновляется автоматически.")} />}
     {result && <>
       {assessed ? <div className={`ml-verdict ml-verdict-${result.verdict}`} role="status">
         <span>{t("Итог проверки")}</span>
         <h3>{t(result.verdict === 'violation' ? 'Обнаружены признаки возможных нарушений' : 'Нарушение не обнаружено')}</h3>
         <p>{t(result.verdict === 'violation' ? t("Выделено эпизодов: {0}. Ниже — основания каждого вывода.", [result.violations.length]) : 'В проверенных фрагментах модель не обнаружила признаков нарушения известных правил.')}</p>
-      </div> : <p role="status">{t(result.coverage_status === 'partial' ? 'Запись обработана частично. Есть участки без результата.' : 'Наблюдения готовы. Требуется ручная проверка.')}</p>}
+      </div> : <p className="analysis-verdict-pending" role="status">{t(result.coverage_status === 'partial' ? 'Запись обработана частично. Есть участки без результата.' : 'Наблюдения готовы. Требуется ручная проверка.')}</p>}
       {result.assessment_coverage === 'partial' && <p role="alert">{t("Проверка правил выполнена частично: есть неразборчивые или необработанные фрагменты. Итог относится к проверенной части записи.")}</p>}
       {assessed && <div className="ml-findings">{result.violations.map((v,i) => <article className="ml-finding" key={`${v.rule_id}-${v.timecode_sec}-${i}`}>
         <div className="ml-finding-heading"><span>{t("Эпизод ")}{String(i+1).padStart(2,'0')}</span>
-          <button className="text-button" onClick={()=>onSeek(v.timecode_sec)}>{timecode(v.timecode_sec)}{t(" · Смотреть в видео")}</button></div>
+          <button className="button button-outline" onClick={()=>onSeek(v.start_sec, { start: v.start_sec, end: v.end_sec, label: v.type })}><Icon name="play" size={16} />{intervalTime(v.start_sec, v.end_sec)}{t(" · Смотреть в видео")}</button></div>
         <h3>{v.type}</h3><p>{v.visible_fact}</p>
-        <div className="ml-evidence-grid">{v.evidence_frames.map((f,j)=><button className="ml-evidence-card" key={j} onClick={()=>onSeek(f.timestamp_sec)}>
-          <img src={mediaUrl(f.image_url)} alt={t("Доказательство эпизода {0}, {1}", [i+1, timecode(f.timestamp_sec)])} loading="lazy" referrerPolicy="no-referrer" />
-          <span>{timecode(f.timestamp_sec)} · {f.explanation}</span>
-        </button>)}</div>
+        <EvidenceGallery frames={v.evidence_frames.map(frame => ({ ...frame, caption: frame.explanation }))} onSeek={onSeek} />
         <div className="ml-rule-basis"><strong>{t(v.classification_status === 'unclassified' ? 'Классификация не завершена' : 'Почему это требует внимания')}</strong><p>{v.explanation}</p>
           {v.rule ? <>
           <a href={v.rule.url} target="_blank" rel="noreferrer">{v.rule.title}{t(" · п. ")}{t(v.rule.section)} ↗</a>
@@ -79,31 +90,31 @@ export function MLAnalysisPanel({ mediaId, onSeek }: { mediaId: string; onSeek: 
       {result.candidate_status === 'unsupported_camera' && <p className="notice">{t("Для этого ракурса используется локальная визуальная модель по полному кадру. Детектор исходной камеры 464×848 не применяется.")}</p>}
       {['failed', 'time_budget_exceeded'].includes(result.caption_status || '') && <p role="alert">{t("Описания действий не готовы. Результат поиска эпизодов сохранён; проверьте запись по таймкодам.")}</p>}
       {result.source_seen_during_training && <p className="muted">{t("Эта запись участвовала в обучении. Результат на ней не является независимой проверкой точности.")}</p>}
-      <p>{result.processed_frames} {t(candidate ? 'отметок времени' : 'кадров')}{t(" · обработка ")}{t(result.elapsed_seconds.toFixed(1))}{t(" с")}</p>
-      <details className="ml-extra-observations"><summary>{t("Дополнительные наблюдения и кадры (")}{result.events.length + (result.observations?.length || 0)})</summary>
-      <h3>{t(textEvents ? 'Кадры из записи' : 'Кадры с найденными объектами')}</h3>
-      <div className="ml-evidence-grid">{result.evidence_frames.map((e, i) => <button key={i} className="ml-evidence-card" onClick={() => onSeek(e.timestamp_sec)}>
-        <img src={mediaUrl(e.image_url)} alt={t("{0} в {1}", [textEvents ? 'Кадр' : 'Объекты', timecode(e.timestamp_sec)])} loading="lazy" referrerPolicy="no-referrer" />
-        <span>{timecode(e.timestamp_sec)}{t(textEvents ? ' · Смотреть эпизод' : t(" · {0} объектов", [e.boxes.length]))}</span>
-      </button>)}</div>
-      <h3>{t(candidate ? 'Эпизоды для проверки' : 'Наблюдаемые интервалы')} ({result.events.length})</h3>
-      {!result.events.length && <p>{t("Устойчивые наблюдения не сформированы. Это не означает, что нарушений нет.")}</p>}
-      <div className="ml-event-list">{result.events.slice(0, 100).map((e, i) => <button key={i} className={`button button-outline${textEvents ? ' ml-caption-event' : ''}`} onClick={() => onSeek(e.timecode_sec ?? e.start_sec)}>
-        <span>{timecode(e.start_sec)}–{timecode(e.end_sec)} · {t(observationName(e.kind))}</span>
-        {t(e.description && <span className="ml-caption-description">{e.description}</span>)}
-      </button>)}</div>
-      {result.events.length > 100 && <p>{t("Показаны первые 100 интервалов. Полный результат доступен в JSON.")}</p>}
-      {result.engine === 'reviewed_pipeline' && <>
-        <h3>{t("Описания видимых действий (")}{result.observations?.length || 0})</h3>
-        <div className="ml-event-list">{result.observations?.slice(0, 100).map((e, i) => <button key={i} className="button button-outline ml-caption-event" onClick={() => onSeek(e.start_sec)}>
-          <span>{timecode(e.start_sec)}–{timecode(e.end_sec)} · {t(observationName(e.kind))}</span>
-          <span className="ml-caption-description">{e.description}</span>
+      <section className="analysis-observations" id="analysis-intervals" aria-labelledby="analysis-intervals-title">
+        <div className="analysis-block-heading"><div><p className="eyebrow">{t("01 / СОБЫТИЯ")}</p><h3 id="analysis-intervals-title">{t(candidate ? 'Эпизоды для проверки' : 'Наблюдаемые интервалы')} ({result.events.length})</h3><p>{t("Нажмите на интервал, чтобы посмотреть этот фрагмент видео.")}</p></div><Icon name="play" size={25} /></div>
+        {!result.events.length && <p>{t("Устойчивые наблюдения не сформированы. Это не означает, что нарушений нет.")}</p>}
+        <div className="ml-event-list">{result.events.slice(0, eventLimit).map((event, index) => <button key={index} className="analysis-interval" onClick={() => onSeek(event.start_sec, { start: event.start_sec, end: event.end_sec, label: t(observationName(event.kind)) })}>
+          <span className="interval-play"><Icon name="play" size={17} /></span><span className="interval-copy"><strong>{intervalTime(event.start_sec, event.end_sec)}</strong><span>{t(observationName(event.kind))}</span>{event.description && <p>{event.description}</p>}</span><Icon name="arrow" size={17} />
         </button>)}</div>
-        {!result.observations?.length && <p>{t("Подтверждаемые кадрами описания не сформированы.")}</p>}
-      </>}
-      <p className="muted">{t(textEvents ? 'Дополнительные наблюдения сами по себе не являются нарушениями.' : 'Близость объектов на изображении не доказывает контакт, передачу или пересчёт денег.')}{t(" Для другой камеры качество пока не проверено.")}</p>
-      </details>
-      <button className="text-button" onClick={resource.refresh}>{t("Обновить кадры и ссылки")}</button>
+        {result.events.length > eventLimit && <button className="button button-outline" onClick={() => setEventLimit(value => value + 100)}>{t("Показать ещё интервалы")}</button>}
+        {result.engine === 'reviewed_pipeline' && <>
+          <h3 className="analysis-captions-title">{t("Описания видимых действий (")}{result.observations?.length || 0})</h3>
+          <div className="ml-event-list">{result.observations?.slice(0, observationLimit).map((event, index) => <button key={index} className="analysis-interval" onClick={() => onSeek(event.start_sec, { start: event.start_sec, end: event.end_sec, label: t(observationName(event.kind)) })}>
+            <span className="interval-play"><Icon name="play" size={17} /></span><span className="interval-copy"><strong>{intervalTime(event.start_sec, event.end_sec)}</strong><span>{t(observationName(event.kind))}</span><p>{event.description}</p></span><Icon name="arrow" size={17} />
+          </button>)}</div>
+          {(result.observations?.length || 0) > observationLimit && <button className="button button-outline" onClick={() => setObservationLimit(value => value + 100)}>{t("Показать ещё описания")}</button>}
+          {!result.observations?.length && <p>{t("Подтверждаемые кадрами описания не сформированы.")}</p>}
+        </>}
+      </section>
+      <section id="analysis-frames" aria-labelledby="analysis-frames-title" className="analysis-frames">
+        <div className="analysis-block-heading"><div><p className="eyebrow">{t("02 / КАДРЫ")}</p><h3 id="analysis-frames-title">{t(textEvents ? 'Кадры из записи' : 'Кадры с найденными объектами')}</h3><p>{t("Откройте кадр, чтобы рассмотреть детали в большом размере.")}</p></div><Icon name="image" size={25} /></div>
+        <EvidenceGallery frames={result.evidence_frames.map(frame => ({ ...frame, caption: textEvents ? t("Кадр из записи") : t("Объектов: {0}", [frame.boxes.length]) }))} onSeek={onSeek} />
+        {!result.evidence_frames.length && <p>{t("Кадры не переданы анализатором.")}</p>}
+      </section>
+      <p className="analysis-review-note"><Icon name="info" size={18} />{t(textEvents ? 'Наблюдения требуют проверки по исходному видео.' : 'Близость объектов на изображении не доказывает контакт, передачу или пересчёт денег.')}</p>
+      <div className="analysis-processing-meta"><span>{t("Обработано отметок: {0}", [result.processed_frames])}</span><span>{t("Время анализа: {0} с", [result.elapsed_seconds.toFixed(1)])}</span></div>
+      <button className="text-button" disabled={resource.loading} onClick={resource.refresh}>{t("Обновить кадры и ссылки")}</button>
     </>}
+    <AnalysisReport job={job} context={context || { fileName: mediaId }} />
   </section>;
 }

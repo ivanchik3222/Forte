@@ -1,11 +1,9 @@
 """Public key issuance and isolated async uploads; no user account required."""
-import base64
-import math
 import secrets
 from datetime import timedelta
 from flask import Blueprint, current_app, g, jsonify, request
 from filelock import FileLock, Timeout
-from models import db, ApiClient, MediaRecord, AnalysisJob, utcnow, as_utc, _utc_iso, uid
+from models import db, ApiClient, MediaRecord, AnalysisJob, utcnow, _utc_iso, uid
 from services.api_keys import authenticate_key, api_key_required, key_digest
 from services.security import throttle
 from services.media import root, _save_upload
@@ -42,6 +40,7 @@ def _jury_analyze():
     authenticate(create=True)
     if current_app.config['ML_ENGINE'] != 'reviewed_pipeline' or not available():
         raise ApiError(503,'analysis_unavailable','Для API жюри требуется полный локальный анализ с проверкой правил.')
+    expire_pending_api_jobs()
     if AnalysisJob.query.filter(AnalysisJob.status.in_(['queued','processing'])).count():
         raise ApiError(429,'analysis_busy','Модель занята. Повторите после завершения текущего анализа.')
     record,_ = save_upload(request.headers.get('Idempotency-Key') or uid())
@@ -87,63 +86,10 @@ def analyze():
         raise
 
 
-def failed(job, code, message):
-    return dict(job_id=job.id, status='failed', error=dict(code=code, message=message))
-
-
 def public_job(job_id):
     job = AnalysisJob.query.join(MediaRecord, AnalysisJob.media_id == MediaRecord.id).filter(
         AnalysisJob.id == job_id, MediaRecord.api_client_id == g.api_client.id).first()
     if not job:
         raise ApiError(404, 'not_found', 'Анализ не найден.')
-    deadline = current_app.config['API_JOB_DEADLINE']
-    elapsed = (as_utc(job.finished_at) if job.finished_at else utcnow()) - as_utc(job.created_at)
-    if elapsed.total_seconds() >= deadline:
-        return failed(job, 'analysis_timeout', 'Результат не получен за 5 минут.')
-    if job.status in ('queued', 'processing'):
-        return dict(job_id=job.id, status='processing')
-    if job.status == 'failed':
-        return failed(job, 'analysis_failed', 'Не удалось обработать видео.')
-    result = job.result or {}
-    # Observation-only models must never be silently relabelled no_violation.
-    if not isinstance(result, dict) or result.get('verdict') not in ('violation', 'no_violation'):
-        return failed(job, 'verdict_unavailable', 'Модель сформировала наблюдения, но не определяет нарушения по ТЗ.')
-    try:
-        violations = serialize_violations(job, result)
-    except (ValueError, TypeError, KeyError, OSError):
-        return failed(job, 'invalid_result', 'Модель не сформировала полный результат с кадрами-доказательствами.')
-    return dict(job_id=job.id, status='done', verdict=result['verdict'], violations=violations)
-
-
-def number(value):
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
-        raise ValueError('Invalid timestamp')
-    return value
-
-
-def serialize_violations(job, result):
-    source = result['violations']
-    if not isinstance(source, list) or (result['verdict'] == 'violation') != bool(source):
-        raise ValueError('Inconsistent verdict')
-    directory = (root() / 'analysis' / job.id).resolve()
-    output = []
-    for item in source:
-        if not all(isinstance(item[k], str) and item[k].strip() for k in ('type', 'description')):
-            raise ValueError('Missing description')
-        evidence = item['evidence_frames']
-        if not isinstance(evidence, list) or not 1 <= len(evidence) <= 3:
-            raise ValueError('Expected 1-3 frames')
-        frames = []
-        for frame in evidence:
-            path = (directory / frame['image_file']).resolve()
-            if path.parent != directory or path.suffix.lower() not in ('.jpg', '.jpeg'):
-                raise ValueError('Invalid evidence path')
-            if path.stat().st_size > 5 * 1024 * 1024:
-                raise ValueError('Evidence too large')
-            data = path.read_bytes()
-            if not data.startswith(b'\xff\xd8'):
-                raise ValueError('Expected JPEG')
-            frames.append(dict(timestamp_sec=number(frame['timestamp_sec']), image_base64=base64.b64encode(data).decode('ascii')))
-        output.append(dict(type=item['type'], description=item['description'],
-                           timecode_sec=number(item['timecode_sec']), evidence_frames=frames))
-    return output
+    from services.api_result import response
+    return response(job, db.session.get(MediaRecord, job.media_id))

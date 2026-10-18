@@ -20,7 +20,10 @@ import {
   parseSource,
 } from "../../api/workspace";
 import { LoginPanel } from "../../components/LoginPanel";
+import { LoadingMark, LoadingState } from "../../components/LoadingState";
+import { RegulatoryGuide } from "../../components/RegulatoryGuide";
 import { Modal } from "../../components/Modal";
+import { MobileNavigation, SidebarAccount, WorkspacePage } from "../../components/WorkspaceNavigation";
 import { Icon, IconName } from "../../components/Icon";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useAnalysisStore } from "../../store/useAnalysisStore";
@@ -32,6 +35,8 @@ import {
   validateVideo,
 } from "../analysis/types";
 import { HistoryTable } from "../analysis/HistoryTable";
+import { useEvidencePlayback } from "../analysis/useEvidencePlayback";
+import { intervalTime } from "../analysis/playback";
 import { MLAnalysisPanel } from "../analysis/MLAnalysisPanel";
 import { UploadProgress, uploadPercent } from "../analysis/UploadProgress";
 import { useCurrentDay } from "../notifications/types";
@@ -65,15 +70,21 @@ function StateNotice({
   error,
   loading,
   retry,
+  data,
+  loadingLabel = "Загружаем данные…",
+  loadingLayout = "panel",
 }: {
   error?: string;
   loading?: boolean;
   retry?: () => void;
+  data?: unknown;
+  loadingLabel?: string;
+  loadingLayout?: "panel" | "inline" | "records";
 }) {
   useLocale();
   return (
     <>
-      {loading && <p role="status">{t("Загрузка…")}</p>}
+      {loading && !error && <LoadingState label={data === undefined ? loadingLabel : "Обновляем данные…"} variant={data === undefined ? loadingLayout : "inline"} />}
       {t(error && (
         <div className="notice" role="alert">
           <span>{t(error)}</span>
@@ -164,6 +175,7 @@ function AuthenticatedWorkspace() {
   const open = (id: string) => navigate(`/analysis/${id}`);
   return (
     <div className="app-shell live-workspace">
+      <a className="skip-link" href="#main-content">{t("Перейти к содержимому")}</a>
       <aside className="sidebar" aria-label={t("Основная навигация")}>
         <Link className="brand" to="/">
           <img src="/forte-logo.svg" width="112" height="34" alt="Forte" />
@@ -178,7 +190,7 @@ function AuthenticatedWorkspace() {
           </div>
         </div>
         <nav>
-          {navigation.map((n) => (
+          {navigation.filter(n => n.path !== "/settings").map((n) => (
             <Link
               className={`nav-item ${active === n.path ? "active" : ""}`}
               aria-current={active === n.path ? "page" : undefined}
@@ -202,9 +214,14 @@ function AuthenticatedWorkspace() {
         </nav>
         <div className="sidebar-bottom">
           <div className="local-card">
+            <span className="local-card-icon"><Icon name="shield" /></span>
             <strong>{t("Записи на сервере команды")}</strong>
             <p>{t("Видео сохраняются и автоматически отправляются на локальный анализ.")}</p>
           </div>
+          <Link to="/settings" className={`nav-item ${active === "/settings" ? "active" : ""}`} aria-current={active === "/settings" ? "page" : undefined}>
+            <Icon name="settings" size={19} /><span>{t("Настройки")}</span>
+          </Link>
+          <SidebarAccount onOpen={() => setModal("account")} />
         </div>
       </aside>
       <div className="main-shell">
@@ -219,19 +236,21 @@ function AuthenticatedWorkspace() {
             <LanguageSwitcher />
             <Link className="mode-badge mode-api" to="/settings">{t("Рабочий режим")}</Link>
             <button
-              className="profile-button"
+              className="profile-button workspace-profile-top"
+              aria-label={t("Открыть профиль")}
               onClick={() => setModal("account")}
             >
-              <Icon name="user" />
-              {user.full_name || user.nickname || user.email}
+              <span className="avatar"><Icon name="user" size={18} /></span>
+              <span>{user.full_name || user.nickname || user.email}</span>
             </button>
           </div>
         </header>
-        <main id="main-content" className="main-content">
+        <main id="main-content" className="main-content" tabIndex={-1}>
+          <WorkspacePage>
           <StateNotice error={overview.error} retry={overview.refresh} />
           {pathname === "/workspace" && (
             <>
-              <div className="page-title-row">
+              <div className="page-title-row overview-intro">
                 <div>
                   <p className="eyebrow">{t(today)}</p>
                   <h1>{t("Контроль кассовых операций")}</h1>
@@ -243,14 +262,13 @@ function AuthenticatedWorkspace() {
                 >
                   <Icon name="plus" />{t("Загрузить видео")}</button>
               </div>
-              <div className="notice">{t("Статусы камер и события поступают от сервиса команды.")}</div>
               <StateNotice loading={overview.loading} />
               {overview.data && (
                 <>
                   <section className="monitoring-summary">
                     <div className="monitoring-summary-copy">
                       <h2>{t("События за сегодня")}</h2>
-                      <Link to="/notifications">{t("Открыть оповещения")}</Link>
+                      <Link className="monitoring-link" to="/notifications">{t("Открыть оповещения")}<Icon name="arrow" size={18} /></Link>
                     </div>
                     <dl className="monitoring-totals">
                       <div>
@@ -268,18 +286,20 @@ function AuthenticatedWorkspace() {
                     </dl>
                   </section>
                   {overview.data.monitoring_summary && (
-                    <section className="panel">
-                      <h2>{t("Доступность наблюдения")}</h2>
-                      <p>{t("Камер с проблемами:")}{" "}
-                        {overview.data.monitoring_summary.problems}{t(". Без свежих проверок: ")}{overview.data.monitoring_summary.unknown}.
-                      </p>
-                      <p>{t("Перерывы за день:")}{" "}
-                        {t(overview.data.monitoring_summary.unavailable_minutes.toLocaleString(
-                          localeCode(),
-                          { maximumFractionDigits: 1 },
-                        ))}{" "}{t("камера·мин.")}</p>
-                      <Link className="text-button" to="/monitoring">{t("Проверить интервалы наблюдения")}</Link>
-                      <Link className="button button-outline" to="/shift">{t("Смена за минуту")}</Link>
+                    <section className="panel observation-card" aria-labelledby="observation-title">
+                      <div className="observation-heading">
+                        <span className="observation-icon"><Icon name="eye" size={23} /></span>
+                        <div><h2 id="observation-title">{t("Доступность наблюдения")}</h2></div>
+                      </div>
+                      <dl className="observation-metrics">
+                        <div><dt>{t("Камер с проблемами")}</dt><dd>{overview.data.monitoring_summary.problems}</dd></div>
+                        <div><dt>{t("Без свежих проверок")}</dt><dd>{overview.data.monitoring_summary.unknown}</dd></div>
+                        <div><dt>{t("Перерывы за день")}</dt><dd>{overview.data.monitoring_summary.unavailable_minutes.toLocaleString(localeCode(), { maximumFractionDigits: 1 })}<small>{t("камера·мин.")}</small></dd></div>
+                      </dl>
+                      <div className="observation-actions">
+                        <Link className="button button-outline" to="/monitoring">{t("Проверить камеры")}<Icon name="arrow" size={17} /></Link>
+                        <Link className="button button-outline" to="/shift"><Icon name="play" size={16} />{t("Смена за минуту")}</Link>
+                      </div>
                     </section>
                   )}
                   <section className="panel">
@@ -327,22 +347,11 @@ function AuthenticatedWorkspace() {
                 <Link to="/workspace">{t("Вернуться к обзору")}</Link>
               </section>
             )}
+          </WorkspacePage>
         </main>
         <footer className="app-footer">{t("Forte Control · Локальный анализ видео")}</footer>
       </div>
-      <nav className="mobile-bottom-nav" aria-label={t("Навигация по кабинету")}>
-        {navigation.map((n) => (
-          <Link
-            className="mobile-tab"
-            key={n.path}
-            to={n.path}
-            aria-current={active === n.path ? "page" : undefined}
-          >
-            <Icon name={n.icon} />
-            <span>{t(n.label)}</span>
-          </Link>
-        ))}
-      </nav>
+      <MobileNavigation unread={overview.data?.unread_total || 0} onAccount={() => setModal("account")} />
       {modal === "account" && (
         <Modal title={t("Учётная запись")} onClose={() => setModal(null)}>
           <LoginPanel />
@@ -589,7 +598,7 @@ function History({
             <option value="oldest">{t("Сначала старые")}</option>
           </select>
         </div>
-        <StateNotice {...resource} retry={resource.refresh} />
+        <StateNotice {...resource} retry={resource.refresh} loadingLabel="Загружаем записи…" loadingLayout="records" />
         {resource.data && (
           <>
             <HistoryTable
@@ -612,9 +621,13 @@ function MediaDetail({ id }: { id: string }) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
   const [unplayable, setUnplayable] = useState(false);
-  const video = useRef<HTMLVideoElement>(null);
-  const resumeAt = useRef(0);
+  const [preparing, setPreparing] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const playback = useEvidencePlayback();
+  const { video, resumeAt } = playback;
   const refreshUrl = async () => {
+    if (preparing) return;
+    setPreparing(true);
     try {
       resumeAt.current = video.current?.currentTime || 0;
       const result = await apiRequest<{ url: string; expires_in: number }>(
@@ -626,6 +639,8 @@ function MediaDetail({ id }: { id: string }) {
       setUnplayable(false);
     } catch (e) {
       setError(message(e));
+    } finally {
+      setPreparing(false);
     }
   };
   useEffect(() => {
@@ -633,6 +648,8 @@ function MediaDetail({ id }: { id: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [record.data?.id]);
   const downloadReport = async () => {
+    if (downloading) return;
+    setDownloading(true);
     try {
       const report = await apiRequest(
         `/api/v1/media/${encodeURIComponent(id)}/report`,
@@ -649,6 +666,8 @@ function MediaDetail({ id }: { id: string }) {
       setTimeout(() => URL.revokeObjectURL(blob), 1000);
     } catch (e) {
       setError(message(e));
+    } finally {
+      setDownloading(false);
     }
   };
   return (
@@ -670,23 +689,26 @@ function MediaDetail({ id }: { id: string }) {
             </div>
             <button
               className="button button-outline"
+              disabled={downloading}
               onClick={() => void downloadReport()}
-            >{t("Скачать JSON")}</button>
+            >{downloading && <LoadingMark small />}{t(downloading ? "Готовим JSON…" : "Скачать JSON")}</button>
           </div>
-          <div className="notice">
-            <Icon name="info" />{t("Видео сохранено. Статус анализа и результаты показаны ниже. Вывод о наличии нарушений требует ручной проверки.")}</div>
-          <section className="panel live-video">
+          <section className="panel live-video" ref={playback.panel} tabIndex={-1} aria-label={t("Исходная видеозапись")}>
+            <div className="video-panel-heading"><div><p className="eyebrow">{t("ИСХОДНАЯ ЗАПИСЬ")}</p><h2>{t("Просмотр видео")}</h2></div><Icon name="video" size={25} /></div>
+            {playback.range && <div className="video-selected-range" role="status"><span><Icon name="play" size={17} /><strong>{intervalTime(playback.range.start, playback.range.end)}</strong> {playback.range.label}</span><button className="text-button" onClick={() => playback.seek(playback.range!.start, playback.range!)}>{t("Повторить фрагмент")}</button><button className="text-button" onClick={playback.clearRange}>{t("Смотреть всё видео")}</button></div>}
             <StateNotice error={error} />
+            {preparing && <LoadingState label="Подготовка видео…" variant={url ? "inline" : "panel"} />}
             {t(url && (
               <video
                 ref={video}
                 controls
+                playsInline
                 preload="metadata"
                 src={url}
-                onLoadedMetadata={() => {
-                  if (video.current && resumeAt.current > 0)
-                    video.current.currentTime = resumeAt.current;
-                }}
+                onLoadedMetadata={playback.onLoadedMetadata}
+                onTimeUpdate={playback.onTimeUpdate}
+                onSeeking={playback.onSeeking}
+                onPlay={playback.onPlay}
                 onError={() => setUnplayable(true)}
                 style={{
                   width: "100%",
@@ -695,14 +717,16 @@ function MediaDetail({ id }: { id: string }) {
                 }}
               />
             ))}
+            {playback.playBlocked && <p role="status">{t("Нажмите ▶ в плеере, чтобы воспроизвести выбранный фрагмент.")}</p>}
             {unplayable && (
               <p role="alert">{t("Браузер не смог воспроизвести видео. Обновите ссылку или скачайте оригинал; кодек MOV может не поддерживаться.")}</p>
             )}
             <div className="settings-save">
               <button
                 className="button button-outline"
+                disabled={preparing}
                 onClick={() => void refreshUrl()}
-              >{t("Обновить ссылку на видео")}</button>
+              >{preparing && <LoadingMark small />}{t("Обновить ссылку на видео")}</button>
               {t(url && (
                 <a
                   className="button button-outline"
@@ -711,15 +735,12 @@ function MediaDetail({ id }: { id: string }) {
                 >{t("Скачать оригинал")}</a>
               ))}
             </div>
-            <p className="muted">{t("Ссылка действует 15 минут. При истечении срока обновите её этой кнопкой.")}</p>
           </section>
           <MLAnalysisPanel
             key={id}
             mediaId={id}
-            onSeek={(sec) => {
-              resumeAt.current = sec;
-              if (video.current) video.current.currentTime = sec;
-            }}
+            context={{ fileName: record.data.file_name, uploadedAt: record.data.created_at, duration: record.data.duration_sec }}
+            onSeek={playback.seek}
           />
         </>
       )}
@@ -1019,36 +1040,38 @@ function Sources() {
     parsePage(v, parseSource),
   );
   return (
-    <>
-      <h1>{t("Нормативная база")}</h1>
-      <div className="notice">{t("Справочные ссылки. Актуальность и применимость документа проверяет специалист.")}</div>
-      <StateNotice {...resource} retry={resource.refresh} />
-      {resource.data && (
-        <>
-          {resource.data.items.map((s) => (
-            <article key={s.id} className="panel source-card">
-              <Icon name="book" />
-              <div>
-                <h2>{t(s.title)}</h2>
-                <p>
-                  {t(s.publisher)} · {t(s.number)} · {t(s.document_date)}
-                </p>
-                {t(safeSourceUrl(s.url) && (
-                  <a
-                    className="button button-outline"
-                    href={safeSourceUrl(s.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >{t("Открыть источник")}</a>
-                ))}
-              </div>
-            </article>
-          ))}
-          {!resource.data.items.length && <p>{t("Источники пока не добавлены.")}</p>}
-          <Pager page={page} total={resource.data.total} onPage={setPage} />
-        </>
-      )}
-    </>
+    <RegulatoryGuide>
+      <section className="regulatory-server-sources panel">
+        <h2>{t("Источники, добавленные в кабинет")}</h2>
+        <p>{t("Справочник сервера может содержать дополнительные документы. Их наличие в списке не включает новые правила в модель.")}</p>
+        <StateNotice {...resource} retry={resource.refresh} />
+        {resource.data && (
+          <>
+            {resource.data.items.map((s) => (
+              <article key={s.id} className="panel source-card">
+                <Icon name="book" />
+                <div>
+                  <h2>{t(s.title)}</h2>
+                  <p>
+                    {t(s.publisher)} · {t(s.number)} · {t(s.document_date)}
+                  </p>
+                  {t(safeSourceUrl(s.url) && (
+                    <a
+                      className="button button-outline"
+                      href={safeSourceUrl(s.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >{t("Открыть источник")}</a>
+                  ))}
+                </div>
+              </article>
+            ))}
+            {!resource.data.items.length && <p>{t("Источники пока не добавлены.")}</p>}
+            <Pager page={page} total={resource.data.total} onPage={setPage} />
+          </>
+        )}
+      </section>
+    </RegulatoryGuide>
   );
 }
 function Settings() {

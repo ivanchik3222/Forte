@@ -1,3 +1,5 @@
+import "./styles/workspace-polish.css";
+import "./styles/model-architecture.css";
 import { LanguageSwitcher, LanguageSettings } from "./components/LanguageSwitcher";
 import { t, useLocale } from "./i18n";
 import { useEffect, useState } from "react";
@@ -12,13 +14,14 @@ import { ApiAccessPage } from "./pages/ApiAccessPage";
 import { Icon, IconName } from "./components/Icon";
 import { Modal } from "./components/Modal";
 import { LoginPanel } from "./components/LoginPanel";
+import { MobileNavigation, SidebarAccount, WorkspacePage } from "./components/WorkspaceNavigation";
 import { useAuthStore } from "./store/useAuthStore";
 import { useAnalysisStore } from "./store/useAnalysisStore";
 import { AnalysisDetail } from "./features/analysis/AnalysisDetail";
 import { HistoryTable } from "./features/analysis/HistoryTable";
 import { UploadPanel } from "./features/analysis/UploadPanel";
 import { LiveWorkspace } from "./features/workspace/LiveWorkspace";
-import { regulatorySource } from "./data/demo";
+import { RegulatoryGuide } from "./components/RegulatoryGuide";
 import { OverviewPage } from "./pages/OverviewPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
 import { MonitoringPage } from "./pages/MonitoringPage";
@@ -32,14 +35,6 @@ const navigation: { id: string; label: string; icon: IconName }[] = [
   { id: "notifications", label: "Оповещения", icon: "bell" },
   { id: "history", label: "История проверок", icon: "history" },
   { id: "sources", label: "Нормативная база", icon: "book" },
-];
-
-const mobileNavigation: { id: string; label: string; icon: IconName }[] = [
-  { id: "overview", label: "Обзор", icon: "grid" },
-  { id: "notifications", label: "События", icon: "bell" },
-  { id: "history", label: "История", icon: "history" },
-  { id: "sources", label: "Правила", icon: "book" },
-  { id: "settings", label: "Настройки", icon: "settings" },
 ];
 
 function WorkspaceApp() {
@@ -64,9 +59,6 @@ function WorkspaceApp() {
   };
   const open = (id: string) => navigate(`analysis/${id}`);
   const active = route.startsWith("analysis/") ? "history" : route;
-  const mobileActive = ["shift", "monitoring"].includes(active)
-    ? "overview"
-    : active;
   const currentRecord = route.startsWith("analysis/")
     ? records.find((item) => item.id === route.slice(9))
     : undefined;
@@ -146,6 +138,7 @@ function WorkspaceApp() {
           <button className="nav-item" onClick={() => setModal("help")}>
             <Icon name="help" size={19} />{t("Как это работает")}<Icon name="external" size={14} />
           </button>
+          <SidebarAccount onOpen={() => setModal("account")} />
           <div className="sidebar-foot">
             <span>FORTE CONTROL</span>
             <span>Datathon ’26</span>
@@ -175,7 +168,7 @@ function WorkspaceApp() {
             </Link>
             <span className="topbar-divider" />
             <button
-              className="profile-button"
+              className="profile-button workspace-profile-top"
               onClick={() => setModal("account")}
               aria-label={t(user ? "Открыть профиль" : "Войти в аккаунт")}
             >
@@ -192,6 +185,7 @@ function WorkspaceApp() {
           </div>
         </header>
         <main id="main-content" className="main-content" tabIndex={-1}>
+          <WorkspacePage>
           {route === "overview" && (
             <OverviewPage
               onNew={() => setModal("upload")}
@@ -256,6 +250,7 @@ function WorkspaceApp() {
                 >{t("Начать новую проверку")}</button>
               </div>
             )}
+          </WorkspacePage>
         </main>
         <footer className="app-footer">
           <span>
@@ -263,29 +258,7 @@ function WorkspaceApp() {
           <span>{t("Прототип для Datathon 2026")}</span>
         </footer>
       </div>
-      <nav className="mobile-bottom-nav" aria-label={t("Навигация по кабинету")}>
-        {mobileNavigation.map((item) => (
-          <Link
-            key={item.id}
-            to={item.id === "overview" ? "/workspace" : `/${item.id}`}
-            className="mobile-tab"
-            aria-label={item.id === "notifications"
-                ? t("Оповещения, новых: {0}", [unread])
-                : undefined}
-            aria-current={mobileActive === item.id ? "page" : undefined}
-          >
-            <span className="mobile-tab-icon">
-              <Icon name={item.icon} size={23} />
-              {item.id === "notifications" && unread > 0 && (
-                <span className="mobile-notification-count" aria-hidden="true">
-                  {t(unread > 99 ? "99+" : unread)}
-                </span>
-              )}
-            </span>
-            <span>{t(item.label)}</span>
-          </Link>
-        ))}
-      </nav>
+      <MobileNavigation unread={unread} onAccount={() => setModal("account")} />
       {modal === "upload" && (
         <Modal title={t("Новая проверка")} onClose={() => setModal(null)}>
           <div className="new-check-layout">
@@ -359,64 +332,7 @@ function WorkspaceApp() {
 }
 
 function Sources() {
-  useLocale();
-  return (
-    <div className="page-enter">
-      <div className="page-title-row">
-        <div>
-          <p className="eyebrow">{t("ОБОСНОВАННЫЙ КОНТРОЛЬ")}</p>
-          <h1>{t("Нормативная база")}</h1>
-          <p>{t("Открытые источники Республики Казахстан для исследования правил")}</p>
-        </div>
-        <span className="source-count">{t("01 источник")}</span>
-      </div>
-      <div className="notice">
-        <Icon name="info" size={19} />
-        <span>{t("Ссылка на документ сама по себе не подтверждает нарушение. Применимый пункт и связь с наблюдаемым событием должны быть указаны в результате анализа.")}</span>
-      </div>
-      <article className="panel source-card">
-        <div className="source-document-icon">
-          <Icon name="book" size={31} />
-        </div>
-        <div className="source-content">
-          <div className="source-meta">
-            <span>{t("НАЦИОНАЛЬНЫЙ БАНК РК")}</span>
-            <span>{t("Официальный источник")}</span>
-          </div>
-          <h2>{t(regulatorySource.title)}</h2>
-          <p>
-            {t(regulatorySource.number)}{t(" от ")}{t(regulatorySource.date)}
-          </p>
-          <div className="source-tags">
-            <span>{t("Кассовые операции")}</span>
-            <span>{t("Инкассация")}</span>
-            <span>{t("Хранение ценностей")}</span>
-          </div>
-          <a
-            className="button button-outline"
-            href={regulatorySource.url}
-            target="_blank"
-            rel="noreferrer"
-          >{t("Открыть в «Әділет»")}<Icon name="external" size={16} />
-          </a>
-        </div>
-      </article>
-      <div className="source-guidelines">
-        <section className="panel">
-          <Icon name="eye" size={25} />
-          <h2>{t("Только то, что видно")}</h2>
-          <p>{t("Вывод должен опираться на действия в кадре. По видео нельзя подтвердить корректность проводки, системной сверки или полномочия человека.")}</p>
-        </section>
-        <section className="panel">
-          <Icon name="book" size={25} />
-          <h2>{t("От события к правилу")}</h2>
-          <p>{t("Для каждого события интерфейс показывает название документа, пункт и ссылку, если их передал сервис. Отсутствующее обоснование явно отмечается.")}</p>
-        </section>
-      </div>
-      <div className="page-footnote">
-        <Icon name="info" size={16} />{t("Перед использованием проверьте актуальную редакцию акта. Демо-категории не являются юридической квалификацией.")}</div>
-    </div>
-  );
+  return <RegulatoryGuide />;
 }
 
 function Settings() {

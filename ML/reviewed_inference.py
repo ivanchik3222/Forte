@@ -50,7 +50,7 @@ def save_evidence(source, events, times, output, deadline):
     return evidence
 
 
-def analyze(source, output, bundle_path, backbone, device='auto', timeout=280):
+def analyze(source, output, bundle_path, backbone, device='auto', timeout=280, allow_reserved_test=False):
     import av
     import numpy as np
     from reviewed_model import VIEWS, load_model
@@ -69,8 +69,12 @@ def analyze(source, output, bundle_path, backbone, device='auto', timeout=280):
     if metadata['variant'] != 'bank_only' or metadata['protocol']['threshold'] != .5:
         raise ValueError('Unexpected candidate variant or threshold')
     digest = sha256(source)
-    if digest in metadata['split']['holdout_source_hashes']:
+    reserved = digest in metadata['split']['holdout_source_hashes']
+    if reserved and not allow_reserved_test:
         raise ValueError('Reserved test video; use explicit research test workflow')
+    if reserved:
+        (output/'test-use.json').write_text(json.dumps(dict(source_sha256=digest,
+            used_at_unix=time.time(), purpose='inference_only', weights_updated=False)))
     with av.open(str(source)) as container:
         stream = container.streams.video[0]
         dimensions = (stream.codec_context.width, stream.codec_context.height)
@@ -78,7 +82,7 @@ def analyze(source, output, bundle_path, backbone, device='auto', timeout=280):
         return dict(engine='reviewed_temporal', candidate_status='unsupported_camera', events=[],
             frames=[], evidence_frames=[], processed_frames=0, sampled_fps=1.,
             elapsed_seconds=time.monotonic()-started, model_sha256=bundle['candidate']['sha256'],
-            source_sha256=digest, source_seen_during_training=digest in metadata['training_source_hashes'],
+            source_sha256=digest, source_seen_during_training=digest in metadata['training_source_hashes'], reserved_test=reserved,
             verdict='requires_review', violations=[], rule_evaluation='not_performed',
             limitations=['The frozen bank candidate model requires the original 464x848 camera view.'])
     encoder, device = load_encoder(device, backbone)
@@ -98,7 +102,7 @@ def analyze(source, output, bundle_path, backbone, device='auto', timeout=280):
         evidence_frames=evidence, processed_frames=len(times), sampled_fps=1.,
         duration_sec=duration, elapsed_seconds=time.monotonic()-started,
         model_sha256=bundle['candidate']['sha256'], backbone_sha256=bundle['backbone_sha256'],
-        source_sha256=digest, source_seen_during_training=digest in metadata['training_source_hashes'],
+        source_sha256=digest, source_seen_during_training=digest in metadata['training_source_hashes'], reserved_test=reserved,
         threshold=.5, max_score=float(scores.max()),
         score_interpretation='Uncalibrated model score, not a probability of a violation',
         candidate_model=bundle['model_name'], candidate_evaluation=bundle['development_evaluation'],
@@ -113,8 +117,9 @@ def main():
     parser.add_argument('--backbone', type=Path, required=True)
     parser.add_argument('--device', default='auto')
     parser.add_argument('--timeout', type=float, default=280)
+    parser.add_argument('--allow-reserved-test', action='store_true', help='Explicit inference only; records test usage, never trains')
     args = parser.parse_args()
-    report = analyze(args.source, args.output, args.bundle, args.backbone, args.device, args.timeout)
+    report = analyze(args.source, args.output, args.bundle, args.backbone, args.device, args.timeout, args.allow_reserved_test)
     (args.output/'result.json').write_text(json.dumps(report, ensure_ascii=False), encoding='utf-8')
     print(json.dumps({k:report[k] for k in ('candidate_status', 'processed_frames', 'elapsed_seconds')}))
 

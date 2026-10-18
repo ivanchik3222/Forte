@@ -1,3 +1,4 @@
+import { LoadingState } from "../components/LoadingState";
 import { t, useLocale } from "../i18n";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -77,7 +78,7 @@ export function ShiftPage({
         <Link className="button button-outline" to="/monitoring">
           <Icon name="eye" size={18} />{t("Контроль камер")}</Link>
       </div>
-      {live && resource.loading && <p role="status">{t("Загрузка обзора смены…")}</p>}
+      {live && resource.loading && <LoadingState label="Загрузка обзора смены…" variant={resource.data ? "inline" : "panel"} />}
       {t(live && resource.error && (
         <div className="notice" role="alert">
           {t(resource.error)}{t(" Показаны данные последнего успешного запроса, если они есть.")}{" "}

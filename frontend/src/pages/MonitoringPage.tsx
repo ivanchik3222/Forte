@@ -1,3 +1,4 @@
+import { LoadingState } from "../components/LoadingState";
 import { localeCode, t, useLocale } from "../i18n";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -87,7 +88,7 @@ export function MonitoringPage({ live = false }: { live?: boolean }) {
           <Icon name="play" size={17} />{t("Смена за минуту")}</Link>
       </div>
       {live && resource.loading && (
-        <p role="status">{t("Загрузка проверок камер…")}</p>
+        <LoadingState label="Загрузка проверок камер…" variant={resource.data ? "inline" : "panel"} />
       )}
       {t(live && resource.error && (
         <div className="notice" role="alert">

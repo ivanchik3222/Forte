@@ -1,3 +1,5 @@
+import { LoadingMark } from "./LoadingState";
+import { ProfileEditor } from "./ProfileEditor";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { t, useLocale } from "../i18n";
 import { FormEvent, useState } from "react";
@@ -65,6 +67,7 @@ export function LoginPanel() {
               <strong className="font-semibold text-ink">
                 {user.full_name || user.nickname || user.email}
               </strong>{t(". Учётная запись подключена.")}</p>
+            <ProfileEditor key={user.id} user={user} />
             <button
               type="button"
               onClick={() => void logout()}
@@ -128,8 +131,9 @@ export function LoginPanel() {
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="flex w-full items-center justify-center rounded-xl bg-forte-500 px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-forte-500/20 transition hover:bg-forte-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forte-500 disabled:cursor-wait disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-forte-500 px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-forte-500/20 transition hover:bg-forte-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forte-500 disabled:cursor-wait disabled:opacity-60"
               >
+                {status === "loading" && !testLogin && <LoadingMark small />}
                 {t(status === "loading" && !testLogin ? "Проверяем данные…" : "Войти")}
               </button>
               {demoEnabled && <>
@@ -137,8 +141,9 @@ export function LoginPanel() {
                 type="button"
                 disabled={status === "loading"}
                 onClick={() => void handleTestLogin()}
-                className="flex w-full items-center justify-center rounded-xl border border-forte-200 bg-forte-50 px-4 py-3.5 text-sm font-semibold text-forte-700 transition hover:border-forte-500 hover:bg-forte-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forte-500 disabled:cursor-wait disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-forte-200 bg-forte-50 px-4 py-3.5 text-sm font-semibold text-forte-700 transition hover:border-forte-500 hover:bg-forte-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forte-500 disabled:cursor-wait disabled:opacity-60"
               >
+                {status === "loading" && testLogin && <LoadingMark small />}
                 {t(status === "loading" && testLogin ? "Входим в тестовый аккаунт…" : "Войти в тестовый аккаунт")}
               </button>
               <p className="text-center text-xs leading-5 text-zinc-500">{t("Общий тестовый аккаунт: загруженные записи и изменения видны всем, кто в него вошёл.")}</p>

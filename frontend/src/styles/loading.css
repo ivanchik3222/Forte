@@ -1,0 +1,39 @@
+.loading-mark { position: relative; display: inline-grid; place-items: center; width: 44px; height: 44px; flex: 0 0 44px; color: var(--brand); }
+.loading-mark > .loading-ring { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 38 94; animation: forte-loading-turn 1.3s linear infinite; }
+.loading-mark::before { content: ""; position: absolute; inset: 2px; border: 2px solid #a3155115; border-radius: 50%; }
+.loading-mark-small { width: 18px; height: 18px; flex-basis: 18px; vertical-align: middle; }
+.loading-mark-small > .loading-ring { stroke-width: 4; }
+.loading-mark-small::before { border-width: 1px; inset: 1px; }
+.button .loading-mark, button.bg-forte-500 .loading-mark { color: inherit; }
+.loading-state { color: #6d5d68; font-size: 13px; line-height: 1.6; }
+.loading-state-panel { padding: 30px 24px; margin-block: 16px; background: linear-gradient(110deg, #fcf8fb, #f5f8fc); border: 1px solid var(--line); border-radius: 16px; min-height: 108px; display: grid; place-items: center; }
+.loading-status { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.loading-state-inline { margin-block: 12px; }
+.loading-state-inline .loading-status { justify-content: flex-start; gap: 9px; }
+.loading-state-records { padding: 23px 25px 10px; }
+.loading-state-records .loading-status { justify-content: flex-start; }
+.loading-records { margin-top: 20px; }
+.loading-record { display: flex; align-items: center; gap: 17px; padding: 19px 0; border-top: 1px solid var(--line); }
+.loading-thumbnail { width: 44px; height: 49px; flex: 0 0 44px; border-radius: 10px; }
+.loading-record-copy { flex: 1; display: grid; gap: 9px; min-width: 0; }
+.loading-record-copy i { display: block; height: 9px; width: 65%; border-radius: 6px; }
+.loading-record-copy i + i { height: 7px; width: 40%; }
+.loading-record:nth-child(2) .loading-record-copy i:first-child { width: 50%; }
+.loading-record-badge { width: 82px; height: 25px; border-radius: 7px; }
+.loading-thumbnail, .loading-record-copy i, .loading-record-badge { position: relative; overflow: hidden; background: #f0edf1; }
+.loading-thumbnail::after, .loading-record-copy i::after, .loading-record-badge::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, #ffffffc9 50%, transparent 80%); transform: translateX(-100%); animation: forte-loading-sheen 1.8s ease-in-out infinite; }
+.live-video .loading-state { margin: 16px; }
+.ml-analysis > .loading-state { margin-inline: 0; }
+@keyframes forte-loading-turn { to { transform: rotate(360deg); } }
+@keyframes forte-loading-sheen { to { transform: translateX(100%); } }
+@media (max-width: 760px) {
+  .loading-state-records { padding: 20px 18px 8px; }
+  .loading-record { gap: 12px; padding-block: 18px; }
+  .loading-record-badge { width: 54px; }
+  .loading-state-panel { padding: 25px 18px; }
+  .loading-state { font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-mark > .loading-ring { animation: none; }
+  .loading-thumbnail::after, .loading-record-copy i::after, .loading-record-badge::after { animation: none; display: none; }
+}

@@ -5,7 +5,8 @@ from pathlib import Path
 
 from filelock import FileLock, Timeout
 from flask import current_app
-from models import db, AnalysisJob, MediaRecord, utcnow
+from models import db, AnalysisJob, MediaRecord, User, utcnow, as_utc
+from services.api_result import TIMEOUT_MESSAGE
 from services.media import root, file_path
 from utils.errors import ApiError
 
@@ -43,7 +44,8 @@ def detector():
             current_app.extensions['caption_analyzer'] = CaptionAnalyzer(
                 current_app.config['ML_VLM_PYTHON'], current_app.config['ML_ROOT'],
                 current_app.config.get('ML_VLM_ADAPTER'), current_app.config.get('ML_VLM_MODEL_SIZE', '4b'),
-                current_app.config.get('ML_VLM_INPUT_MODE', 'images'),assess_rules=engine == 'reviewed_pipeline')
+                current_app.config.get('ML_VLM_INPUT_MODE', 'images'),assess_rules=engine == 'reviewed_pipeline',
+                allow_reserved_test=True)
         if engine == 'dense_vlm':
             return current_app.extensions['caption_analyzer']
     if engine in ('reviewed_temporal', 'reviewed_pipeline'):
@@ -54,7 +56,8 @@ def detector():
                 current_app.config['ML_REVIEWED_PYTHON'], current_app.config['ML_ROOT'],
                 current_app.config['ML_REVIEWED_BUNDLE'], current_app.config['ML_REVIEWED_BACKBONE'],
                 current_app.config.get('ML_DEVICE'),
-                current_app.extensions.get('caption_analyzer') if engine == 'reviewed_pipeline' else None)
+                current_app.extensions.get('caption_analyzer') if engine == 'reviewed_pipeline' else None,
+                allow_reserved_test=True)
         return current_app.extensions['reviewed_analyzer']
     if 'cash_detector' not in current_app.extensions:
         sys.path.insert(0, current_app.config['ML_ROOT'])
@@ -91,18 +94,27 @@ def enqueue_job(media_id, profile='forte_open', retry_failed=True, require_idle=
 
 
 def expire_pending_api_jobs():
-    """Fail public API uploads that have waited beyond their response deadline."""
+    """Release overdue API jobs, including the separate non-login jury identities."""
     cutoff = utcnow()-timedelta(seconds=current_app.config['API_JOB_DEADLINE'])
-    public_media = db.select(MediaRecord.id).where(MediaRecord.api_client_id.is_not(None))
+    jury_owners = db.select(User.id).where(User.nickname.startswith('jury-'))
+    public_media = db.select(MediaRecord.id).where(db.or_(
+        MediaRecord.api_client_id.is_not(None), MediaRecord.owner_id.in_(jury_owners)))
     AnalysisJob.query.filter(
         AnalysisJob.media_id.in_(public_media),
-        AnalysisJob.status == 'queued',
+        AnalysisJob.status.in_(['queued', 'processing']),
         AnalysisJob.created_at <= cutoff,
     ).update(
-        dict(status='failed', error='API queue deadline exceeded.', finished_at=utcnow()),
+        dict(status='failed', error=TIMEOUT_MESSAGE, finished_at=utcnow()),
         synchronize_session=False,
     )
     db.session.commit()
+
+
+def is_api_media(media):
+    if media.api_client_id is not None:
+        return True
+    owner = db.session.get(User, media.owner_id)
+    return owner is not None and (owner.nickname or '').startswith('jury-')
 
 
 def run_next_job():
@@ -126,8 +138,17 @@ def run_next_job():
             db.session.commit()
             try:
                 media = db.session.get(MediaRecord, job.media_id)
+                api_job = is_api_media(media)
+                timeout = current_app.config['ML_JOB_TIMEOUT']
+                if api_job:
+                    remaining = current_app.config['API_JOB_DEADLINE'] - (utcnow() - as_utc(job.created_at)).total_seconds()
+                    if remaining <= 0:
+                        raise TimeoutError(TIMEOUT_MESSAGE)
+                    timeout = min(timeout, remaining)
                 result = detector().analyze(file_path(media.storage_key), root()/'analysis'/job_id,
-                    job.camera_profile, current_app.config['ML_JOB_TIMEOUT'])
+                    job.camera_profile, timeout)
+                if api_job and (utcnow() - as_utc(job.created_at)).total_seconds() >= current_app.config['API_JOB_DEADLINE']:
+                    raise TimeoutError(TIMEOUT_MESSAGE)
                 job.result, job.status = result, 'done'
             except Exception as exc:
                 db.session.rollback()

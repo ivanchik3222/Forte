@@ -1,11 +1,10 @@
 """API-key-only jury identity and the exact flat case response (no JWT needed)."""
-import base64
 import hashlib
 import secrets
 from pathlib import Path
 from flask import current_app, request, g
 from filelock import FileLock
-from models import db, User, AnalysisJob, MediaRecord
+from models import db, User, MediaRecord
 from services.media import root
 from utils.errors import ApiError
 
@@ -37,25 +36,5 @@ def response(job):
     media = db.session.get(MediaRecord, job.media_id)
     if media is None or media.owner_id != g.user.id:
         raise ApiError(404,'not_found','Анализ не найден.')
-    dto = dict(job_id=job.id,status='processing' if job.status=='queued' else job.status)
-    if job.status == 'failed': dto['error'] = job.error
-    if job.status != 'done': return dto
-    result = job.result or {}
-    if result.get('verdict') not in ('violation','no_violation') or result.get('rule_evaluation') != 'performed':
-        return dict(job_id=job.id,status='failed',error='Бинарная оценка правил не выполнена.')
-    directory = (root()/'analysis'/job.id).resolve()
-    violations=[]
-    for v in result['violations']:
-        frames=[]
-        for ref in v['evidence']:
-            frame = result['evidence_frames'][ref['evidence_index']]
-            path = (directory/frame['image_file']).resolve()
-            if path.parent != directory or not path.is_file():
-                raise ApiError(503,'evidence_unavailable','Кадр-доказательство недоступен.')
-            frames.append(dict(timestamp_sec=frame['timestamp_sec'],image_base64=base64.b64encode(path.read_bytes()).decode(),
-                explanation=ref['explanation']))
-        violations.append(dict(type=v['type'],timecode_sec=v['timecode_sec'],description=v['description'],
-            evidence_frames=frames,rule=v['rule'],classification_status=v.get('classification_status','grounded')))
-    dto.update(verdict=result['verdict'],violations=violations,
-        coverage_status=result.get('assessment_coverage','partial'),decision_scope=result.get('decision_scope'))
-    return dto
+    from services.api_result import response as api_response
+    return api_response(job, media)

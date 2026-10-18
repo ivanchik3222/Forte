@@ -81,3 +81,28 @@
 }
 @media (max-width: 360px) { .mobile-bottom-nav { --nav-pad: 6px; } .mobile-tab { font-size: 10px; } }
 @media (prefers-reduced-motion: reduce) { .workspace-page { animation: none; } .mobile-active-indicator { transition: none; } .mobile-tab:active { transform: none; } }
+
+/* One primary action, readable metrics and explicit navigation targets. */
+.overview-intro > .button { min-height: 52px; padding-inline: 25px; }
+.live-workspace .monitoring-summary-copy h2 { font-size: 27px; }
+.live-workspace .monitoring-summary .monitoring-link { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; margin-top: 10px; font-size: 15px; }
+.live-workspace .monitoring-totals dt { font-size: 13px; }
+@media (max-width: 760px) {
+  .overview-intro > .button, .workspace-title > .new-check-button { width: 100%; align-self: stretch; min-height: 54px; font-size: 15px; }
+  .overview-intro { align-items: stretch; gap: 22px; }
+  .overview-intro h1 { font-size: 28px; line-height: 1.3; }
+  .overview-intro p:not(.eyebrow) { font-size: 14px; line-height: 1.8; }
+  .live-workspace .monitoring-summary { padding: 24px; }
+  .live-workspace .monitoring-summary-copy h2 { font-size: 24px; }
+  .live-workspace .monitoring-summary-copy::after { width: 45px; height: 45px; }
+  .live-workspace .monitoring-totals dt { font-size: 12px; }
+  .live-workspace .monitoring-totals dd { font-size: 29px; }
+  .live-workspace .observation-heading h2 { font-size: 19px; }
+  .live-workspace .observation-metrics { display: flex; flex-direction: column; gap: 0; margin-block: 18px; }
+  .live-workspace .observation-metrics > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 11px 0; }
+  .live-workspace .observation-metrics > div + div { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; }
+  .live-workspace .observation-metrics dt { font-size: 13px; }
+  .live-workspace .observation-metrics dd { flex-direction: row; align-items: baseline; justify-content: flex-end; gap: 6px; margin: 0; font-size: 23px; }
+  .live-workspace .observation-metrics dd small { font-size: 10px; }
+  .live-workspace .observation-actions .button { font-size: 13px; min-height: 46px; }
+}

@@ -35,6 +35,8 @@ import {
   validateVideo,
 } from "../analysis/types";
 import { HistoryTable } from "../analysis/HistoryTable";
+import { useEvidencePlayback } from "../analysis/useEvidencePlayback";
+import { intervalTime } from "../analysis/playback";
 import { MLAnalysisPanel } from "../analysis/MLAnalysisPanel";
 import { UploadProgress, uploadPercent } from "../analysis/UploadProgress";
 import { useCurrentDay } from "../notifications/types";
@@ -248,7 +250,7 @@ function AuthenticatedWorkspace() {
           <StateNotice error={overview.error} retry={overview.refresh} />
           {pathname === "/workspace" && (
             <>
-              <div className="page-title-row">
+              <div className="page-title-row overview-intro">
                 <div>
                   <p className="eyebrow">{t(today)}</p>
                   <h1>{t("Контроль кассовых операций")}</h1>
@@ -260,14 +262,13 @@ function AuthenticatedWorkspace() {
                 >
                   <Icon name="plus" />{t("Загрузить видео")}</button>
               </div>
-              <div className="notice">{t("Статусы камер и события поступают от сервиса команды.")}</div>
               <StateNotice loading={overview.loading} />
               {overview.data && (
                 <>
                   <section className="monitoring-summary">
                     <div className="monitoring-summary-copy">
                       <h2>{t("События за сегодня")}</h2>
-                      <Link to="/notifications">{t("Открыть оповещения")}</Link>
+                      <Link className="monitoring-link" to="/notifications">{t("Открыть оповещения")}<Icon name="arrow" size={18} /></Link>
                     </div>
                     <dl className="monitoring-totals">
                       <div>
@@ -288,7 +289,7 @@ function AuthenticatedWorkspace() {
                     <section className="panel observation-card" aria-labelledby="observation-title">
                       <div className="observation-heading">
                         <span className="observation-icon"><Icon name="eye" size={23} /></span>
-                        <div><p className="eyebrow">{t("КАМЕРЫ И ПОКРЫТИЕ")}</p><h2 id="observation-title">{t("Доступность наблюдения")}</h2></div>
+                        <div><h2 id="observation-title">{t("Доступность наблюдения")}</h2></div>
                       </div>
                       <dl className="observation-metrics">
                         <div><dt>{t("Камер с проблемами")}</dt><dd>{overview.data.monitoring_summary.problems}</dd></div>
@@ -296,7 +297,7 @@ function AuthenticatedWorkspace() {
                         <div><dt>{t("Перерывы за день")}</dt><dd>{overview.data.monitoring_summary.unavailable_minutes.toLocaleString(localeCode(), { maximumFractionDigits: 1 })}<small>{t("камера·мин.")}</small></dd></div>
                       </dl>
                       <div className="observation-actions">
-                        <Link className="button button-primary" to="/monitoring">{t("Проверить интервалы наблюдения")}<Icon name="arrow" size={17} /></Link>
+                        <Link className="button button-outline" to="/monitoring">{t("Проверить камеры")}<Icon name="arrow" size={17} /></Link>
                         <Link className="button button-outline" to="/shift"><Icon name="play" size={16} />{t("Смена за минуту")}</Link>
                       </div>
                     </section>
@@ -622,8 +623,8 @@ function MediaDetail({ id }: { id: string }) {
   const [unplayable, setUnplayable] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const video = useRef<HTMLVideoElement>(null);
-  const resumeAt = useRef(0);
+  const playback = useEvidencePlayback();
+  const { video, resumeAt } = playback;
   const refreshUrl = async () => {
     if (preparing) return;
     setPreparing(true);
@@ -692,21 +693,22 @@ function MediaDetail({ id }: { id: string }) {
               onClick={() => void downloadReport()}
             >{downloading && <LoadingMark small />}{t(downloading ? "Готовим JSON…" : "Скачать JSON")}</button>
           </div>
-          <div className="notice">
-            <Icon name="info" />{t("Видео сохранено. Статус анализа и результаты показаны ниже. Вывод о наличии нарушений требует ручной проверки.")}</div>
-          <section className="panel live-video">
+          <section className="panel live-video" ref={playback.panel} tabIndex={-1} aria-label={t("Исходная видеозапись")}>
+            <div className="video-panel-heading"><div><p className="eyebrow">{t("ИСХОДНАЯ ЗАПИСЬ")}</p><h2>{t("Просмотр видео")}</h2></div><Icon name="video" size={25} /></div>
+            {playback.range && <div className="video-selected-range" role="status"><span><Icon name="play" size={17} /><strong>{intervalTime(playback.range.start, playback.range.end)}</strong> {playback.range.label}</span><button className="text-button" onClick={() => playback.seek(playback.range!.start, playback.range!)}>{t("Повторить фрагмент")}</button><button className="text-button" onClick={playback.clearRange}>{t("Смотреть всё видео")}</button></div>}
             <StateNotice error={error} />
             {preparing && <LoadingState label="Подготовка видео…" variant={url ? "inline" : "panel"} />}
             {t(url && (
               <video
                 ref={video}
                 controls
+                playsInline
                 preload="metadata"
                 src={url}
-                onLoadedMetadata={() => {
-                  if (video.current && resumeAt.current > 0)
-                    video.current.currentTime = resumeAt.current;
-                }}
+                onLoadedMetadata={playback.onLoadedMetadata}
+                onTimeUpdate={playback.onTimeUpdate}
+                onSeeking={playback.onSeeking}
+                onPlay={playback.onPlay}
                 onError={() => setUnplayable(true)}
                 style={{
                   width: "100%",
@@ -715,6 +717,7 @@ function MediaDetail({ id }: { id: string }) {
                 }}
               />
             ))}
+            {playback.playBlocked && <p role="status">{t("Нажмите ▶ в плеере, чтобы воспроизвести выбранный фрагмент.")}</p>}
             {unplayable && (
               <p role="alert">{t("Браузер не смог воспроизвести видео. Обновите ссылку или скачайте оригинал; кодек MOV может не поддерживаться.")}</p>
             )}
@@ -732,15 +735,12 @@ function MediaDetail({ id }: { id: string }) {
                 >{t("Скачать оригинал")}</a>
               ))}
             </div>
-            <p className="muted">{t("Ссылка действует 15 минут. При истечении срока обновите её этой кнопкой.")}</p>
           </section>
           <MLAnalysisPanel
             key={id}
             mediaId={id}
-            onSeek={(sec) => {
-              resumeAt.current = sec;
-              if (video.current) video.current.currentTime = sec;
-            }}
+            context={{ fileName: record.data.file_name, uploadedAt: record.data.created_at, duration: record.data.duration_sec }}
+            onSeek={playback.seek}
           />
         </>
       )}

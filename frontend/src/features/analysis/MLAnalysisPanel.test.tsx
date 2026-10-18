@@ -20,13 +20,18 @@ const complete = {
 };
 beforeEach(() => request.mockReset());
 
-test('loads persistent observations and seeks original video from evidence', async () => {
+test('shows observations immediately and opens evidence in a modal before seeking', async () => {
   request.mockResolvedValue(complete);
   const seek = jest.fn();
   render(<MLAnalysisPanel mediaId="media-1" onSeek={seek} />);
   await screen.findByText('Наблюдения готовы. Требуется ручная проверка.');
-  fireEvent.click(screen.getByRole('button', { name: /00:01 · 0 объектов/ }));
-  expect(seek).toHaveBeenCalledWith(1);
+  expect(screen.getByRole('heading', { name: 'Наблюдаемые интервалы (1)' })).toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: /Увеличить кадр 00:01/ }));
+  expect(screen.getByRole('dialog', { name: 'Кадр 00:01' })).toBeVisible();
+  expect(seek).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', { name: 'Открыть этот момент в видео' }));
+  await waitFor(() => expect(seek).toHaveBeenCalledWith(1));
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   expect(screen.queryByText('Без признаков нарушений')).not.toBeInTheDocument();
 });
 
@@ -81,7 +86,7 @@ test('shows factual captions and explicit gaps without fabricated detector confi
   render(<MLAnalysisPanel mediaId="media-1" onSeek={seek} />);
   const caption = await screen.findByRole('button', { name: /Человек передаёт предмет через стол/ });
   fireEvent.click(caption);
-  expect(seek).toHaveBeenCalledWith(1);
+  expect(seek).toHaveBeenCalledWith(1, { start: 1, end: 2, label: 'Передача предмета' });
   expect(screen.getByText('Нет результата: 00:12–00:24.')).toBeInTheDocument();
   expect(screen.getByText('Запись обработана частично. Есть участки без результата.')).toBeInTheDocument();
   expect(screen.queryByText(/0 объектов/)).not.toBeInTheDocument();
@@ -103,14 +108,14 @@ const combined = () => ({ ...complete, result: { ...complete.result, engine: 're
     description: 'Человек открывает дверцу шкафа.', evidence_indices: [0] }],
 } });
 
-test('shows candidate episodes separately from Qwen descriptions and seeks the peak', async () => {
+test('shows candidate episodes separately from Qwen descriptions and plays the whole interval', async () => {
   request.mockResolvedValue(combined());
   const seek = jest.fn();
   render(<MLAnalysisPanel mediaId="media-1" onSeek={seek} />);
   await screen.findByText('Эпизоды для проверки (1)');
   expect(screen.getByText('Описания видимых действий (1)')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: /Модель выделила интервал/ }));
-  expect(seek).toHaveBeenCalledWith(2);
+  expect(seek).toHaveBeenCalledWith(1, { start: 1, end: 3, label: 'Эпизод для проверки' });
   expect(screen.queryByText(/73%/)).not.toBeInTheDocument();
   expect(screen.queryByText(/0 объектов/)).not.toBeInTheDocument();
 });
@@ -163,7 +168,9 @@ test('binary verdict groups each finding with its own evidence and normative lin
   expect(screen.getByText('Уход до завершения обслуживания')).toBeInTheDocument();
   expect(screen.getByRole('link',{name:/Правила НБРК № 231/})).toHaveAttribute('href','https://adilet.zan.kz/rus/docs/V1900019680');
   fireEvent.click(screen.getByRole('button',{name:/Клиент ждёт у окна/}));
-  expect(seek).toHaveBeenCalledWith(1);
+  expect(screen.getByRole('dialog', { name: 'Кадр 00:01' })).toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'Открыть этот момент в видео' }));
+  await waitFor(() => expect(seek).toHaveBeenCalledWith(1));
 });
 
 test('rejects a finding with unrelated evidence or inconsistent binary verdict',()=>{

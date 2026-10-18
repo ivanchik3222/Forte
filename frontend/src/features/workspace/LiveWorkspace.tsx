@@ -21,6 +21,7 @@ import {
 } from "../../api/workspace";
 import { LoginPanel } from "../../components/LoginPanel";
 import { Modal } from "../../components/Modal";
+import { MobileNavigation, SidebarAccount, WorkspacePage } from "../../components/WorkspaceNavigation";
 import { Icon, IconName } from "../../components/Icon";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useAnalysisStore } from "../../store/useAnalysisStore";
@@ -164,6 +165,7 @@ function AuthenticatedWorkspace() {
   const open = (id: string) => navigate(`/analysis/${id}`);
   return (
     <div className="app-shell live-workspace">
+      <a className="skip-link" href="#main-content">{t("Перейти к содержимому")}</a>
       <aside className="sidebar" aria-label={t("Основная навигация")}>
         <Link className="brand" to="/">
           <img src="/forte-logo.svg" width="112" height="34" alt="Forte" />
@@ -178,7 +180,7 @@ function AuthenticatedWorkspace() {
           </div>
         </div>
         <nav>
-          {navigation.map((n) => (
+          {navigation.filter(n => n.path !== "/settings").map((n) => (
             <Link
               className={`nav-item ${active === n.path ? "active" : ""}`}
               aria-current={active === n.path ? "page" : undefined}
@@ -202,9 +204,14 @@ function AuthenticatedWorkspace() {
         </nav>
         <div className="sidebar-bottom">
           <div className="local-card">
+            <span className="local-card-icon"><Icon name="shield" /></span>
             <strong>{t("Записи на сервере команды")}</strong>
             <p>{t("Видео сохраняются и автоматически отправляются на локальный анализ.")}</p>
           </div>
+          <Link to="/settings" className={`nav-item ${active === "/settings" ? "active" : ""}`} aria-current={active === "/settings" ? "page" : undefined}>
+            <Icon name="settings" size={19} /><span>{t("Настройки")}</span>
+          </Link>
+          <SidebarAccount onOpen={() => setModal("account")} />
         </div>
       </aside>
       <div className="main-shell">
@@ -219,15 +226,17 @@ function AuthenticatedWorkspace() {
             <LanguageSwitcher />
             <Link className="mode-badge mode-api" to="/settings">{t("Рабочий режим")}</Link>
             <button
-              className="profile-button"
+              className="profile-button workspace-profile-top"
+              aria-label={t("Открыть профиль")}
               onClick={() => setModal("account")}
             >
-              <Icon name="user" />
-              {user.full_name || user.nickname || user.email}
+              <span className="avatar"><Icon name="user" size={18} /></span>
+              <span>{user.full_name || user.nickname || user.email}</span>
             </button>
           </div>
         </header>
-        <main id="main-content" className="main-content">
+        <main id="main-content" className="main-content" tabIndex={-1}>
+          <WorkspacePage>
           <StateNotice error={overview.error} retry={overview.refresh} />
           {pathname === "/workspace" && (
             <>
@@ -268,18 +277,20 @@ function AuthenticatedWorkspace() {
                     </dl>
                   </section>
                   {overview.data.monitoring_summary && (
-                    <section className="panel">
-                      <h2>{t("Доступность наблюдения")}</h2>
-                      <p>{t("Камер с проблемами:")}{" "}
-                        {overview.data.monitoring_summary.problems}{t(". Без свежих проверок: ")}{overview.data.monitoring_summary.unknown}.
-                      </p>
-                      <p>{t("Перерывы за день:")}{" "}
-                        {t(overview.data.monitoring_summary.unavailable_minutes.toLocaleString(
-                          localeCode(),
-                          { maximumFractionDigits: 1 },
-                        ))}{" "}{t("камера·мин.")}</p>
-                      <Link className="text-button" to="/monitoring">{t("Проверить интервалы наблюдения")}</Link>
-                      <Link className="button button-outline" to="/shift">{t("Смена за минуту")}</Link>
+                    <section className="panel observation-card" aria-labelledby="observation-title">
+                      <div className="observation-heading">
+                        <span className="observation-icon"><Icon name="eye" size={23} /></span>
+                        <div><p className="eyebrow">{t("КАМЕРЫ И ПОКРЫТИЕ")}</p><h2 id="observation-title">{t("Доступность наблюдения")}</h2></div>
+                      </div>
+                      <dl className="observation-metrics">
+                        <div><dt>{t("Камер с проблемами")}</dt><dd>{overview.data.monitoring_summary.problems}</dd></div>
+                        <div><dt>{t("Без свежих проверок")}</dt><dd>{overview.data.monitoring_summary.unknown}</dd></div>
+                        <div><dt>{t("Перерывы за день")}</dt><dd>{overview.data.monitoring_summary.unavailable_minutes.toLocaleString(localeCode(), { maximumFractionDigits: 1 })}<small>{t("камера·мин.")}</small></dd></div>
+                      </dl>
+                      <div className="observation-actions">
+                        <Link className="button button-primary" to="/monitoring">{t("Проверить интервалы наблюдения")}<Icon name="arrow" size={17} /></Link>
+                        <Link className="button button-outline" to="/shift"><Icon name="play" size={16} />{t("Смена за минуту")}</Link>
+                      </div>
                     </section>
                   )}
                   <section className="panel">
@@ -327,22 +338,11 @@ function AuthenticatedWorkspace() {
                 <Link to="/workspace">{t("Вернуться к обзору")}</Link>
               </section>
             )}
+          </WorkspacePage>
         </main>
         <footer className="app-footer">{t("Forte Control · Локальный анализ видео")}</footer>
       </div>
-      <nav className="mobile-bottom-nav" aria-label={t("Навигация по кабинету")}>
-        {navigation.map((n) => (
-          <Link
-            className="mobile-tab"
-            key={n.path}
-            to={n.path}
-            aria-current={active === n.path ? "page" : undefined}
-          >
-            <Icon name={n.icon} />
-            <span>{t(n.label)}</span>
-          </Link>
-        ))}
-      </nav>
+      <MobileNavigation unread={overview.data?.unread_total || 0} onAccount={() => setModal("account")} />
       {modal === "account" && (
         <Modal title={t("Учётная запись")} onClose={() => setModal(null)}>
           <LoginPanel />

@@ -1,3 +1,4 @@
+import { ProfileEditor } from "./ProfileEditor";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { t, useLocale } from "../i18n";
 import { FormEvent, useState } from "react";
@@ -65,6 +66,7 @@ export function LoginPanel() {
               <strong className="font-semibold text-ink">
                 {user.full_name || user.nickname || user.email}
               </strong>{t(". Учётная запись подключена.")}</p>
+            <ProfileEditor key={user.id} user={user} />
             <button
               type="button"
               onClick={() => void logout()}

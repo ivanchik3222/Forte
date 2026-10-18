@@ -772,11 +772,11 @@ h1 {
   border: 1px solid var(--line);
   border-radius: var(--radius);
 }
-.live-workspace .main-content > .panel:not(.history-panel) {
+.live-workspace .workspace-page > .panel:not(.history-panel) {
   padding: 24px;
   margin-block: 20px;
 }
-.live-workspace .main-content > .panel > h2 {
+.live-workspace .workspace-page > .panel > h2 {
   margin: 0 0 20px;
 }
 .live-workspace .history-panel > h2 {
@@ -5334,13 +5334,6 @@ h1 {
     transition:
       color 180ms ease,
       background-color 180ms ease;
-  }
-  .live-workspace .mobile-bottom-nav {
-    display: flex;
-    overflow-x: auto;
-  }
-  .live-workspace .mobile-tab {
-    flex: 0 0 70px;
   }
   .mobile-tab-icon {
     display: grid;

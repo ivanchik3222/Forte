@@ -1,3 +1,4 @@
+import { ModelArchitecture, WorkspaceFeatures } from "../components/ModelArchitecture";
 import { LanguageSwitcher } from "../components/LanguageSwitcher";
 import { t, useLocale } from "../i18n";
 import { useState } from "react";
@@ -56,6 +57,18 @@ function ProductArt({
 
 const questions = () => [
   {
+    question: "Как модель анализирует видео?",
+    answer: "В полной локальной связке R3D-18 извлекает признаки движения из коротких клипов, а обученный банковский классификатор выделяет эпизоды для проверки. Qwen3-VL отдельно описывает видимые действия и проверяет их связь с правилами. Затем сервис объединяет выводы с таймкодами и исходными кадрами. Доступность этой связки на сервере зависит от развёртывания.",
+  },
+  {
+    question: "Откуда берутся таймкоды и кадры в результате?",
+    answer: "Из загруженной записи: при декодировании сохраняются реальные временные метки кадров. Для каждого события выбираются 1–3 JPEG-кадра, включая ключевой момент. API проверяет, что изображения существуют, читаются и соответствуют времени события.",
+  },
+  {
+    question: "Что происходит, если модель не уверена?",
+    answer: "Неопределённый тип отмечается явно. Положительный сигнал обученного классификатора сохраняется даже при сбое этапа описания, но правило не придумывается. Если проверка не завершена, сервис не выдаёт отсутствие нарушений. На новом ракурсе или незнакомой сцене результат требует дополнительной проверки.",
+  },
+  {
     question: "Что именно проверяет сервис?",
     answer:
       "Визуально наблюдаемые действия на записи кассовой операции. Сервис помогает найти признаки возможных нарушений, показывает время события, кадры и объяснение. Он не проверяет бухгалтерские проводки, внутренние журналы или другие данные за пределами видео.",
@@ -104,6 +117,7 @@ export function LandingPage() {
           >
             <a href="#capabilities" onClick={() => setMenuOpen(false)}>{t("Возможности")}</a>
             <a href="#workflow" onClick={() => setMenuOpen(false)}>{t("Как работает")}</a>
+            <a href="#model" onClick={() => setMenuOpen(false)}>{t("Модель")}</a>
             <a href="#security" onClick={() => setMenuOpen(false)}>{t("Безопасность")}</a>
             <a href="#questions" onClick={() => setMenuOpen(false)}>{t("Вопросы")}</a>
             <Link to="/api-access" onClick={() => setMenuOpen(false)}>API</Link>
@@ -294,10 +308,12 @@ export function LandingPage() {
             ))}
           </div>
         </section>
+        <ModelArchitecture />
+        <WorkspaceFeatures />
         <section className="landing-security" id="security">
           <div className="landing-container security-inner">
             <div>
-              <p className="landing-eyebrow">{t("03 / ДОВЕРИЕ И БЕЗОПАСНОСТЬ")}</p>
+              <p className="landing-eyebrow">{t("05 / ДОВЕРИЕ И БЕЗОПАСНОСТЬ")}</p>
               <h2>{t("Ваши записи.")}<br />
                 <span>{t("Ваш контур.")}</span>
               </h2>
@@ -338,7 +354,7 @@ export function LandingPage() {
           id="questions"
         >
           <div>
-            <p className="landing-eyebrow">{t("04 / ВОПРОСЫ И ОТВЕТЫ")}</p>
+            <p className="landing-eyebrow">{t("06 / ВОПРОСЫ И ОТВЕТЫ")}</p>
             <h2>{t("Важные детали.")}<br />
               <span>{t("Без мелкого шрифта.")}</span>
             </h2>
@@ -384,8 +400,10 @@ export function LandingPage() {
           <span>{t("Проект для кейса ForteBank · Datathon 2026")}</span>
           <p>{t("Демонстрационный прототип. Не официальный банковский продукт.")}</p>
         </div>
-        <a href="https://forte.kz" target="_blank" rel="noreferrer">{t("О ForteBank")}<Icon name="external" size={14} />
-        </a>
+        <div className="landing-footer-credit">
+          <p className="made-by">Made By <strong>ITshechka</strong></p>
+          <a href="https://forte.kz" target="_blank" rel="noreferrer">{t("О ForteBank")}<Icon name="external" size={14} /></a>
+        </div>
       </footer>
     </div>
   );

@@ -67,7 +67,7 @@ export function ApiAccessPage() {
       <pre><code>{`curl "${apiBaseUrl}/api/v1/jobs/JOB_ID" \\\n  -H "X-API-Key: YOUR_API_KEY"`}</code></pre>
       <p>Проверяйте статус раз в 3–5 секунд до <code>done</code> или <code>failed</code>. Готовый ответ содержит вердикт, события и JPEG-кадры в base64.</p>
       <p>Одна активная задача на ключ. При ответе 429 повторите запрос позже; частота выдачи ключей и загрузок ограничена.</p>
-      <p className="api-notice">Сейчас модель формирует наблюдения для проверки человеком. Автоматический вердикт о нарушениях ещё не подключён: такой анализ завершается ответом <code>failed</code> с кодом <code>verdict_unavailable</code>, а не выводом об отсутствии нарушений.</p>
+      <p className="api-notice">Сейчас API использует R3D: при обнаружении признаков возможного нарушения возвращает <code>status=done</code>, <code>verdict=violation</code> и <code>classification_status=unclassified</code>. Qwen пока не подключён, поэтому проверка правил не выполняется: <code>rule_evaluation=not_performed</code>, <code>coverage_status=partial</code>, <code>rule=null</code>. Если положительного сигнала нет, анализ завершается <code>status=failed</code>; результат <code>no_violation</code> без проверки правил не формируется. Выделенные эпизоды требуют проверки специалистом.</p>
       <h3>Отзыв сохранённого ключа</h3>
       <pre><code>{`curl -X DELETE "${apiBaseUrl}/api/v1/api-keys/current" \\\n  -H "X-API-Key: YOUR_API_KEY"`}</code></pre>
     </section>

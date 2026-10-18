@@ -1,0 +1,165 @@
+{
+  "version": "cash-rules-v1",
+  "source": {
+    "title": "Правила осуществления кассовых операций, постановление Правления НБРК от 29.11.2019 № 231",
+    "url": "https://adilet.zan.kz/rus/docs/V1900019680",
+    "snapshot_url": "https://law.gov.kz/api/documents/136659/rus/download/pdf",
+    "revision": "16.03.2026",
+    "retrieved_on": "2026-10-18",
+    "snapshot_sha256": "3a32346283c08082506fa462efe97e1197fa8d5722f65178fd73ab700acf49c7"
+  },
+  "rules": [
+    {
+      "id": "personal_belongings",
+      "title": "Личные вещи в кассовом узле",
+      "section": "12",
+      "basis": "Личные вещи, наличные деньги и ценности работников хранятся вне кассового узла; допускаются лекарства, медицинские изделия и средства связи без фото- и видеофиксации.",
+      "conditions": {
+        "c1": "A person visibly working as cashier stores an identifiable personal item in the cash work area",
+        "c2": "The item is visibly personal, e.g. a handbag with personal contents, not merely an unidentified bag"
+      },
+      "exceptions": {
+        "x1": "Medicine or medical equipment",
+        "x2": "Cash collection bag, work supplies or permitted communication device",
+        "x3": "Ownership or purpose of the item unclear"
+      },
+      "auto_enabled": true
+    },
+    {
+      "id": "cash_count_without_customer",
+      "title": "Пересчёт принятых денег без клиента",
+      "section": "20",
+      "basis": "Приём и пересчёт наличных денег выполняются в присутствии клиента.",
+      "conditions": {
+        "c1": "Customer cash acceptance transaction is visible",
+        "c2": "Cashier counts accepted banknotes after the customer visibly leaves",
+        "c3": "The entire customer service area remains visible"
+      },
+      "exceptions": {
+        "x1": "Internal sorting or recount unrelated to customer acceptance",
+        "x2": "Customer may be off-camera or obscured"
+      },
+      "auto_enabled": true
+    },
+    {
+      "id": "previous_cash_left_on_desk",
+      "title": "Ранее принятые деньги оставлены на рабочей поверхности",
+      "section": "20",
+      "basis": "На рабочем месте находятся деньги текущего клиента; ранее принятые деньги хранятся в специальных устройствах, закрывающихся на ключ.",
+      "conditions": {
+        "c1": "Banknotes from an earlier completed customer transaction are identifiable",
+        "c2": "The same banknotes remain on the desk as a different customer transaction starts"
+      },
+      "exceptions": {
+        "x1": "Money belongs to current transaction",
+        "x2": "Object may be documents rather than banknotes",
+        "x3": "Boundary between transactions is not visible"
+      },
+      "auto_enabled": true
+    },
+    {
+      "id": "cash_to_personal_storage",
+      "title": "Ранее принятые наличные перемещены в одежду или личную сумку",
+      "section": "20",
+      "basis": "Для ранее принятых наличных предусмотрены специальные устройства хранения на рабочем месте кассира.",
+      "conditions": {
+        "c1": "The object is clearly banknotes from a visible completed cash acceptance",
+        "c2": "The banknotes visibly enter a clothing pocket or a clearly personal bag"
+      },
+      "exceptions": {
+        "x1": "Paper, document or unidentified object",
+        "x2": "Cash collection bag or designated cash storage",
+        "x3": "Movement ends behind an occlusion without visible destination"
+      },
+      "auto_enabled": true
+    },
+    {
+      "id": "cash_storage_left_open",
+      "title": "Хранилище с принятыми деньгами оставлено открытым",
+      "section": "20",
+      "basis": "Ранее принятые наличные хранятся в специальных устройствах, закрывающихся на ключ.",
+      "conditions": {
+        "c1": "Previously accepted banknotes are visible inside a cash storage device",
+        "c2": "Cashier leaves the working area while its door remains visibly open"
+      },
+      "exceptions": {
+        "x1": "Opening storage during active cash handling",
+        "x2": "Ordinary furniture or unclear contents",
+        "x3": "Closed door with unknown lock state"
+      },
+      "auto_enabled": true
+    },
+    {
+      "id": "cashier_leaves_customer",
+      "title": "Кассир покинул место до завершения обслуживания",
+      "section": "22",
+      "basis": "Кассовый работник не должен покидать рабочее место до окончания обслуживания клиента.",
+      "conditions": {
+        "c1": "Cash acceptance service is visibly ongoing and unfinished",
+        "c2": "Customer remains waiting at the service position",
+        "c3": "Cashier visibly leaves the workstation"
+      },
+      "exceptions": {
+        "x1": "Service visibly completed",
+        "x2": "Cashier only reaches within the workstation",
+        "x3": "Roles or transaction context unclear"
+      },
+      "auto_enabled": true
+    },
+    {
+      "id": "id_check_not_visible",
+      "title": "Проверка личности не наблюдается",
+      "section": "19(1), 31(1)",
+      "basis": "Допускаются документ, удостоверяющий личность, и сведения сервиса цифровых документов.",
+      "conditions": {
+        "c1": "Complete customer transaction visible"
+      },
+      "exceptions": {
+        "x1": "Digital identification or earlier verification cannot be excluded from silent CCTV"
+      },
+      "auto_enabled": false
+    },
+    {
+      "id": "receipt_not_visible",
+      "title": "Выдача подтверждающего документа не наблюдается",
+      "section": "19(6), 31(6)",
+      "basis": "Клиенту выдаётся документ, подтверждающий кассовую операцию; учитывается электронный документооборот по п. 10-1.",
+      "conditions": {
+        "c1": "Complete cash transaction visible"
+      },
+      "exceptions": {
+        "x1": "Electronic delivery or obscured handover cannot be excluded"
+      },
+      "auto_enabled": false
+    },
+    {
+      "id": "counting_without_controller",
+      "title": "Пересчёт без контролирующего работника",
+      "section": "42",
+      "basis": "Внутренние пересчёт, сортировка и упаковка выполняются при контролирующем работнике; приём и выдача клиенту исключены.",
+      "conditions": {
+        "c1": "Internal recounting and absence of controller established"
+      },
+      "exceptions": {
+        "x1": "Roles unknown",
+        "x2": "Controller off-camera",
+        "x3": "Customer acceptance or payout"
+      },
+      "auto_enabled": false
+    },
+    {
+      "id": "key_handover",
+      "title": "Передача ключей требует проверки внутренних правил",
+      "section": "80",
+      "basis": "Порядок обращения с ключами определяется внутренними документами банка.",
+      "conditions": {
+        "c1": "Key handover visible"
+      },
+      "exceptions": {
+        "x1": "Internal rules unavailable",
+        "x2": "Authorization unknown"
+      },
+      "auto_enabled": false
+    }
+  ]
+}

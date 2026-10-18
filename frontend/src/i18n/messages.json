@@ -3482,5 +3482,385 @@
   "Ошибка при обновлении профиля": {
     "kk": "Профильді жаңарту кезінде қате пайда болды",
     "en": "Could not update your profile"
+  },
+  "ОТ НАБЛЮДЕНИЯ К ОСНОВАНИЮ": {
+    "kk": "БАҚЫЛАУДАН НЕГІЗДЕМЕГЕ",
+    "en": "FROM OBSERVATION TO EVIDENCE"
+  },
+  "Какие нормы использует проект, что проверяется по видео и где требуется решение специалиста.": {
+    "kk": "Жоба қандай нормаларды қолданады, бейнеден не тексеріледі және қай жерде маманның шешімі қажет.",
+    "en": "The rules used by the project, what video can establish, and where specialist review is required."
+  },
+  "Состав нормативной базы": {
+    "kk": "Нормативтік базаның құрамы",
+    "en": "Regulatory coverage"
+  },
+  "основной нормативный акт": {
+    "kk": "негізгі нормативтік акт",
+    "en": "primary regulation"
+  },
+  "сценариев в реестре проверки": {
+    "kk": "тексеру тізіліміндегі сценарий",
+    "en": "scenarios in the assessment registry"
+  },
+  "сценария только для ручной проверки": {
+    "kk": "тек қолмен тексерілетін сценарий",
+    "en": "scenarios requiring manual review"
+  },
+  "НАЦИОНАЛЬНЫЙ БАНК РЕСПУБЛИКИ КАЗАХСТАН": {
+    "kk": "ҚАЗАҚСТАН РЕСПУБЛИКАСЫНЫҢ ҰЛТТЫҚ БАНКІ",
+    "en": "NATIONAL BANK OF THE REPUBLIC OF KAZAKHSTAN"
+  },
+  "Постановление № 231": {
+    "kk": "№ 231 қаулы",
+    "en": "Resolution No. 231"
+  },
+  "29 ноября 2019 · государственная регистрация № 19680": {
+    "kk": "2019 жылғы 29 қараша · мемлекеттік тіркеу № 19680",
+    "en": "29 November 2019 · state registration No. 19680"
+  },
+  "Основа реестра": {
+    "kk": "Тізілімнің негізі",
+    "en": "Registry foundation"
+  },
+  "Открытый нормативный акт НБРК устанавливает требования к кассовым операциям, хранению наличных и инкассации, в том числе в банках второго уровня. Для проекта выбраны нормы, отдельные признаки соблюдения которых можно сопоставить с изображением.": {
+    "kk": "ҚРҰБ-ның ашық нормативтік актісі кассалық операцияларға, қолма-қол ақшаны сақтауға және инкассацияға, соның ішінде екінші деңгейдегі банктерге қойылатын талаптарды белгілейді. Жоба үшін орындалуының кейбір белгілерін бейнемен салыстыруға болатын нормалар таңдалды.",
+    "en": "This public NBK regulation sets requirements for cash operations, cash storage and collection, including at second-tier banks. The project selects provisions whose observable aspects can be compared with video."
+  },
+  "Экспорт ЭКБ · PDF": {
+    "kk": "ЭББ экспорты · PDF",
+    "en": "Reference Control Bank export · PDF"
+  },
+  "Редакция в проекте": {
+    "kk": "Жобадағы редакция",
+    "en": "Project source revision"
+  },
+  "Версия реестра": {
+    "kk": "Тізілім нұсқасы",
+    "en": "Registry version"
+  },
+  "Снимок получен": {
+    "kk": "Көшірме алынған күн",
+    "en": "Snapshot retrieved"
+  },
+  "Это редакция, закреплённая в проекте. Последующие изменения акта полностью не сверены; перед применением нужно проверить действующую редакцию и дату операции.": {
+    "kk": "Бұл — жобада бекітілген редакция. Актінің кейінгі өзгерістері толық салыстырылмаған; қолданар алдында қолданыстағы редакцияны және операция күнін тексеру қажет.",
+    "en": "This is the revision pinned in the project. Later amendments have not been fully checked; verify the applicable revision and transaction date before use."
+  },
+  "Как можно проверить источник": {
+    "kk": "Дереккөзді қалай тексеруге болады",
+    "en": "How to verify the source"
+  },
+  "В проекте сохранены полный PDF и извлечённый текст. Перед проверкой правил сервер сверяет контрольную сумму PDF. Она подтверждает неизменность файла, но не юридическую актуальность и не подлинность электронной подписи.": {
+    "kk": "Жобада толық PDF пен алынған мәтін сақталған. Ережелерді тексеру алдында сервер PDF бақылау сомасын салыстырады. Ол файлдың өзгермегенін растайды, бірақ заңдық өзектілікті немесе электрондық қолтаңбаның түпнұсқалығын растамайды.",
+    "en": "The project stores the full PDF and extracted text. Before rule assessment, the server verifies the PDF checksum. This confirms file integrity, not legal currency or the authenticity of an electronic signature."
+  },
+  "При первоначальном скачивании снимка цепочка TLS-сертификата государственного сервера не проверялась. Проверка электронной подписи ЭКБ отдельно не проводилась; источник можно независимо сверить по официальным ссылкам выше.": {
+    "kk": "Көшірмені алғаш жүктегенде мемлекеттік сервердің TLS сертификаттар тізбегі тексерілмеген. ЭББ электрондық қолтаңбасы бөлек тексерілмеді; дереккөзді жоғарыдағы ресми сілтемелер арқылы тәуелсіз салыстыруға болады.",
+    "en": "The government server’s TLS certificate chain was not verified during the initial snapshot download. The Reference Control Bank’s electronic signature was not independently validated; use the official links above to check the source independently."
+  },
+  "ПРИНЦИП СОПОСТАВЛЕНИЯ": {
+    "kk": "САЛЫСТЫРУ ҚАҒИДАСЫ",
+    "en": "ASSESSMENT PRINCIPLE"
+  },
+  "Норма → условия → кадр → вывод": {
+    "kk": "Норма → шарттар → кадр → қорытынды",
+    "en": "Rule → conditions → frame → finding"
+  },
+  "Наличие ссылки на закон недостаточно. Для каждого вывода нужна проверяемая связь с конкретным действием.": {
+    "kk": "Заңға сілтеме жеткіліксіз. Әр қорытындының нақты әрекетпен тексерілетін байланысы болуы керек.",
+    "en": "A legal reference alone is insufficient. Each finding needs a verifiable link to a specific action."
+  },
+  "Выбираем применимую норму": {
+    "kk": "Қолданылатын норманы таңдаймыз",
+    "en": "Select the applicable rule"
+  },
+  "Название документа, пункт и ссылка берутся из фиксированного реестра. Модель не может придумать нормативное основание.": {
+    "kk": "Құжат атауы, тармақ және сілтеме бекітілген тізілімнен алынады. Модель нормативтік негізді ойдан шығара алмайды.",
+    "en": "The document title, clause and link come from a fixed registry. The model cannot invent a regulatory reference."
+  },
+  "Проверяем видимые условия": {
+    "kk": "Көрінетін шарттарды тексереміз",
+    "en": "Check observable conditions"
+  },
+  "Модель должна объяснить каждое обязательное условие и исключить альтернативные объяснения. Неясный предмет, роль или граница операции не считаются установленным фактом.": {
+    "kk": "Модель әрбір міндетті шартты түсіндіріп, балама түсіндірулерді жоққа шығаруы керек. Анық емес зат, рөл немесе операция шекарасы анықталған факт болып саналмайды.",
+    "en": "The model must explain every required condition and rule out alternative explanations. An unclear object, role or transaction boundary is not an established fact."
+  },
+  "Прикладываем доказательства": {
+    "kk": "Дәлелдерді қосамыз",
+    "en": "Attach supporting evidence"
+  },
+  "К событию привязываются таймкод и 1–3 исходных кадра с объяснением. Сервер проверяет структуру ответа и ссылки на кадры; правильность понимания сцены оценивает человек.": {
+    "kk": "Оқиғаға таймкод және түсіндірмесі бар 1–3 бастапқы кадр тіркеледі. Сервер жауап құрылымы мен кадр сілтемелерін тексереді; көріністің дұрыс түсіндірілгенін адам бағалайды.",
+    "en": "Each event includes a timestamp and 1–3 original frames with an explanation. The server validates response structure and frame references; a person assesses whether the scene was interpreted correctly."
+  },
+  "ВКЛЮЧЕНЫ В РЕЕСТР МОДЕЛИ": {
+    "kk": "МОДЕЛЬ ТІЗІЛІМІНЕ ЕНГІЗІЛГЕН",
+    "en": "ENABLED IN THE MODEL REGISTRY"
+  },
+  "Какие признаки проверяем": {
+    "kk": "Қандай белгілерді тексереміз",
+    "en": "What we check"
+  },
+  "Ниже — пересказ норм и наша визуальная трактовка, а не цитаты закона. Эти сценарии используются при включённом этапе нормативной оценки; наличие их в интерфейсе не означает, что полная модель уже развёрнута на сервере.": {
+    "kk": "Төменде заң дәйексөздері емес, нормалардың мазмұны мен біздің визуалды түсіндіруіміз берілген. Бұл сценарийлер нормативтік бағалау кезеңі қосылғанда қолданылады; интерфейсте болуы толық модельдің серверде іске қосылғанын білдірмейді.",
+    "en": "Below are summaries and our visual interpretations, rather than legal quotations. These scenarios apply when regulatory assessment is enabled; their presence here does not establish that the full model is deployed on the server."
+  },
+  "Пункт {0}": {
+    "kk": "{0}-тармақ",
+    "en": "Clause {0}"
+  },
+  "Что ищем в кадре и что исключаем": {
+    "kk": "Кадрдан не іздейміз және нені алып тастаймыз",
+    "en": "Visible conditions and exclusions"
+  },
+  "Нужны видимые признаки": {
+    "kk": "Көрінетін белгілер қажет",
+    "en": "Required visible evidence"
+  },
+  "Когда вывод недопустим": {
+    "kk": "Қорытынды жасауға болмайтын жағдайлар",
+    "en": "When a finding is not justified"
+  },
+  "Источник: № 231, пункт {0}": {
+    "kk": "Дереккөз: № 231, {0}-тармақ",
+    "en": "Source: No. 231, clause {0}"
+  },
+  "АВТОМАТИЧЕСКИЙ ВЫВОД ОТКЛЮЧЁН": {
+    "kk": "АВТОМАТТЫ ҚОРЫТЫНДЫ ӨШІРІЛГЕН",
+    "en": "AUTOMATED FINDINGS DISABLED"
+  },
+  "Что нельзя установить по одному видео": {
+    "kk": "Тек бейнеден нені анықтау мүмкін емес",
+    "en": "What video alone cannot establish"
+  },
+  "Эти нормы исследованы и сохранены в реестре, но не используются для автоматического вывода о нарушении.": {
+    "kk": "Бұл нормалар зерттеліп, тізілімде сақталған, бірақ бұзушылық туралы автоматты қорытынды үшін қолданылмайды.",
+    "en": "These provisions were researched and retained in the registry, but are not used to automatically determine a violation."
+  },
+  "Почему отключено:": {
+    "kk": "Неліктен өшірілген:",
+    "en": "Why disabled:"
+  },
+  "Граница результата": {
+    "kk": "Нәтиженің шегі",
+    "en": "Limits of the result"
+  },
+  "Сервис выделяет признаки возможного процедурного нарушения. Он не устанавливает кражу, виновность, намерения человека, полномочия работников или корректность бухгалтерских проводок. Сигнал классификатора без подтверждённого правила остаётся эпизодом для ручной проверки.": {
+    "kk": "Сервис ықтимал рәсімдік бұзушылық белгілерін бөліп көрсетеді. Ол ұрлықты, кінәні, адамның ниетін, қызметкерлердің өкілеттігін немесе бухгалтерлік жазбалардың дұрыстығын анықтамайды. Расталған ережесіз жіктеуіш сигналы қолмен тексерілетін эпизод болып қалады.",
+    "en": "The service identifies signs of a possible procedural violation. It does not establish theft, guilt, intent, staff authority or the correctness of accounting entries. A classifier signal without a confirmed rule remains an episode for manual review."
+  },
+  "Полный внутренний регламент ForteBank не предоставлен по условиям кейса. Мы не подменяем его догадками. Итог требует просмотра исходной записи, применимого пункта и контекста специалистом.": {
+    "kk": "Кейс шарттарына сәйкес ForteBank-тің толық ішкі регламенті берілмеген. Біз оны жорамалмен алмастырмаймыз. Қорытынды үшін маман бастапқы жазбаны, қолданылатын тармақты және мәнмәтінді қарап шығуы керек.",
+    "en": "The case does not provide ForteBank’s complete internal procedures. We do not replace them with assumptions. A specialist must review the original recording, applicable clause and context before reaching a conclusion."
+  },
+  "Что ещё исследовали": {
+    "kk": "Тағы не зерттелді",
+    "en": "Other research"
+  },
+  "Постановление НБРК № 14 от 24.02.2020 изучалось как источник требований к устройству и охране помещений. Оно не входит в действующий реестр автоматической оценки. Открытая дверь сама по себе не доказывает нарушение требований к оборудованию помещения.": {
+    "kk": "ҚРҰБ-ның 24.02.2020 күнгі № 14 қаулысы үй-жайларды жабдықтау және күзету талаптарының дереккөзі ретінде зерттелді. Ол қолданыстағы автоматты бағалау тізіліміне кірмейді. Ашық есіктің өзі үй-жайды жабдықтау талаптарының бұзылғанын дәлелдемейді.",
+    "en": "NBK Resolution No. 14 of 24 February 2020 was researched for premises and security requirements. It is not part of the current automated assessment registry. An open door alone does not establish a breach of premises equipment requirements."
+  },
+  "Открыть постановление № 14": {
+    "kk": "№ 14 қаулыны ашу",
+    "en": "Open Resolution No. 14"
+  },
+  "Работник, выполняющий кассовые операции, хранит в кассовой рабочей зоне предмет, личное назначение которого различимо на записи.": {
+    "kk": "Кассалық операцияларды орындайтын қызметкер кассалық жұмыс аймағында жеке мақсатта қолданылатыны жазбадан көрінетін затты сақтайды.",
+    "en": "A person performing cashier duties stores an item in the cash work area whose personal purpose is identifiable in the recording."
+  },
+  "Лекарства, медицинские изделия, разрешённые средства связи, рабочие принадлежности и инкассаторские сумки. Неопознанную сумку нельзя автоматически считать личной.": {
+    "kk": "Дәрілер, медициналық бұйымдар, рұқсат етілген байланыс құралдары, жұмыс жабдықтары және инкассаторлық сөмкелер. Анықталмаған сөмкені автоматты түрде жеке зат деп санауға болмайды.",
+    "en": "Medicines, medical devices, permitted communication devices, work supplies and cash collection bags. An unidentified bag cannot automatically be treated as personal."
+  },
+  "Виден приём наличных от клиента, его уход и последующий пересчёт этих денег. Вся клиентская зона остаётся в кадре.": {
+    "kk": "Клиенттен қолма-қол ақша қабылдау, оның кетуі және сол ақшаны кейін қайта санау көрінеді. Клиент аймағы түгелдей кадрда қалады.",
+    "en": "Cash acceptance from a customer, their departure and subsequent counting of that cash are visible. The entire customer area remains in view."
+  },
+  "Внутренняя сортировка или пересчёт вне приёма денег. Клиент мог оказаться за границей кадра или за перекрытием.": {
+    "kk": "Ақша қабылдауға қатысы жоқ ішкі сұрыптау немесе қайта санау. Клиент кадрдан тыс немесе кедергінің артында болуы мүмкін.",
+    "en": "Internal sorting or counting unrelated to accepting cash. The customer may be outside the frame or obscured."
+  },
+  "Операция предыдущего клиента завершена; его банкноты остаются на поверхности, когда начинается обслуживание другого клиента.": {
+    "kk": "Алдыңғы клиенттің операциясы аяқталған; басқа клиентке қызмет көрсету басталғанда оның банкноттары жұмыс бетінде қалады.",
+    "en": "The previous customer’s transaction is complete; their banknotes remain on the work surface when service for another customer begins."
+  },
+  "Деньги текущей операции, документы вместо банкнот или неразличимая граница между операциями.": {
+    "kk": "Ағымдағы операцияның ақшасы, банкнот орнына құжаттар немесе операциялар арасындағы анық емес шекара.",
+    "en": "Cash from the current transaction, documents mistaken for banknotes or an unclear boundary between transactions."
+  },
+  "Банкноты из завершённого приёма наличных явно перемещаются в карман одежды или предмет с подтверждённым личным назначением.": {
+    "kk": "Аяқталған ақша қабылдаудан алынған банкноттар киім қалтасына немесе жеке мақсатта қолданылатыны расталған затқа анық салынады.",
+    "en": "Banknotes from a completed cash acceptance visibly enter a clothing pocket or an item with an established personal purpose."
+  },
+  "Неопознанная бумага, инкассаторская сумка, предназначенное для денег устройство или движение, конец которого скрыт.": {
+    "kk": "Анықталмаған қағаз, инкассаторлық сөмке, ақшаға арналған құрылғы немесе соңы көрінбейтін қозғалыс.",
+    "en": "Unidentified paper, a cash collection bag, designated cash storage or a movement whose destination is hidden."
+  },
+  "Это наша визуальная интерпретация требования к хранению ранее принятых денег. Она не устанавливает хищение, намерение или виновность.": {
+    "kk": "Бұл — бұрын қабылданған ақшаны сақтау талабының біздің визуалды түсіндірмеміз. Ол жымқыруды, ниетті немесе кінәні анықтамайды.",
+    "en": "This is our visual interpretation of the storage requirement for previously accepted cash. It does not establish misappropriation, intent or guilt."
+  },
+  "В устройстве различимы ранее принятые банкноты; кассир уходит из рабочей зоны, а дверца остаётся открытой.": {
+    "kk": "Құрылғыда бұрын қабылданған банкноттар көрінеді; кассир жұмыс аймағынан кетеді, ал есік ашық қалады.",
+    "en": "Previously accepted banknotes are visible inside a storage device; the cashier leaves the work area while its door remains open."
+  },
+  "Открывание во время работы с наличными, обычная мебель или неизвестное содержимое. Закрытая дверца не доказывает запирание на ключ.": {
+    "kk": "Қолма-қол ақшамен жұмыс кезінде ашу, кәдімгі жиһаз немесе белгісіз ішіндегісі. Жабық есік оның кілтпен құлыпталғанын дәлелдемейді.",
+    "en": "Opening storage during cash handling, ordinary furniture or unknown contents. A closed door does not prove it is locked."
+  },
+  "Визуальная гипотеза на основе требования к хранению. Само открывание сейфа не является нарушением; состояние замка по закрытой дверце не определяется.": {
+    "kk": "Сақтау талабына негізделген визуалды болжам. Сейфті ашудың өзі бұзушылық емес; жабық есік арқылы құлып күйін анықтау мүмкін емес.",
+    "en": "A visual hypothesis based on the storage requirement. Opening a safe is not itself a violation; a closed door does not reveal the lock state."
+  },
+  "Приём наличных ещё не завершён, клиент продолжает ждать у места обслуживания, а кассир покидает рабочее место.": {
+    "kk": "Қолма-қол ақша қабылдау әлі аяқталмаған, клиент қызмет көрсету орнында күтуде, ал кассир жұмыс орнынан кетеді.",
+    "en": "Cash acceptance is not yet complete, the customer is still waiting at the service position, and the cashier leaves the workstation."
+  },
+  "Завершённое обслуживание, движение в пределах рабочего места или неясные роли участников и контекст операции.": {
+    "kk": "Аяқталған қызмет көрсету, жұмыс орны шегіндегі қозғалыс немесе қатысушылардың рөлдері мен операция мәнмәтінінің анық еместігі.",
+    "en": "Completed service, movement within the workstation or unclear participant roles and transaction context."
+  },
+  "На записи не видно предъявления бумажного удостоверения личности.": {
+    "kk": "Жазбада қағаз жеке куәліктің ұсынылуы көрінбейді.",
+    "en": "The recording does not show a physical identity document being presented."
+  },
+  "Правила допускают цифровые документы. Проверка могла произойти раньше или вне видимости камеры; отсутствие бумажного документа не доказывает пропуск идентификации.": {
+    "kk": "Ережелер цифрлық құжаттарға рұқсат береді. Тексеру бұрынырақ немесе камерадан тыс өтуі мүмкін; қағаз құжаттың болмауы сәйкестендірудің өткізілмегенін дәлелдемейді.",
+    "en": "The rules allow digital documents. Verification may have happened earlier or outside the camera’s view; no physical document does not prove that identification was skipped."
+  },
+  "После операции не наблюдается передача бумажного подтверждения клиенту.": {
+    "kk": "Операциядан кейін клиентке қағаз растау құжатын беру байқалмайды.",
+    "en": "No handover of a paper confirmation to the customer is visible after the transaction."
+  },
+  "Нельзя исключить электронный документооборот по пункту 10-1 или передачу за перекрытием. Поэтому автоматический вывод отключён.": {
+    "kk": "10-1-тармаққа сәйкес электрондық құжат айналымын немесе кедергі артындағы беруді жоққа шығару мүмкін емес. Сондықтан автоматты қорытынды өшірілген.",
+    "en": "Electronic document exchange under clause 10-1 or an obscured handover cannot be ruled out. Automated findings are therefore disabled."
+  },
+  "В кадре не виден второй работник при пересчёте наличных.": {
+    "kk": "Қолма-қол ақшаны қайта санау кезінде кадрда екінші қызметкер көрінбейді.",
+    "en": "No second employee is visible during cash counting."
+  },
+  "Пункт 42 исключает приём и выдачу денег клиенту. Роли людей неизвестны, контролирующий работник может находиться вне кадра.": {
+    "kk": "42-тармақ клиенттен ақша қабылдау мен оған беруді қоспайды. Адамдардың рөлдері белгісіз, бақылаушы қызметкер кадрдан тыс болуы мүмкін.",
+    "en": "Clause 42 excludes accepting cash from and paying cash to a customer. People’s roles are unknown, and the supervising employee may be off-camera."
+  },
+  "Видна передача предмета, похожего на ключ.": {
+    "kk": "Кілтке ұқсас заттың берілуі көрінеді.",
+    "en": "An object resembling a key is visibly handed over."
+  },
+  "Порядок обращения с ключами задают внутренние документы банка. У проекта нет полного регламента ForteBank и данных о полномочиях участников.": {
+    "kk": "Кілттерді пайдалану тәртібін банктің ішкі құжаттары белгілейді. Жобада ForteBank-тің толық регламенті және қатысушылардың өкілеттіктері туралы деректер жоқ.",
+    "en": "Key-handling procedures are set by the bank’s internal documents. The project lacks ForteBank’s complete procedures and information on participants’ authority."
+  },
+  "Загружаем данные…": {
+    "kk": "Деректер жүктелуде…",
+    "en": "Loading data…"
+  },
+  "Обновляем данные…": {
+    "kk": "Деректер жаңартылуда…",
+    "en": "Updating data…"
+  },
+  "Загружаем записи…": {
+    "kk": "Жазбалар жүктелуде…",
+    "en": "Loading recordings…"
+  },
+  "Готовим JSON…": {
+    "kk": "JSON дайындалуда…",
+    "en": "Preparing JSON…"
+  },
+  "Источники, добавленные в кабинет": {
+    "kk": "Кабинетке қосылған дереккөздер",
+    "en": "Sources added to the workspace"
+  },
+  "Справочник сервера может содержать дополнительные документы. Их наличие в списке не включает новые правила в модель.": {
+    "kk": "Сервер анықтамалығында қосымша құжаттар болуы мүмкін. Олардың тізімде болуы модельге жаңа ережелер қоспайды.",
+    "en": "The server catalogue may contain additional documents. Listing them does not enable new rules in the model."
+  },
+  "Загружаем результат анализа…": {
+    "kk": "Талдау нәтижесі жүктелуде…",
+    "en": "Loading analysis results…"
+  },
+  "Личные вещи в кассовом узле": {
+    "kk": "Касса торабындағы жеке заттар",
+    "en": "Personal belongings in the cash area"
+  },
+  "Личные вещи, наличные деньги и ценности работников хранятся вне кассового узла; допускаются лекарства, медицинские изделия и средства связи без фото- и видеофиксации.": {
+    "kk": "Қызметкерлердің жеке заттары, қолма-қол ақшасы мен құндылықтары касса торабынан тыс сақталады; дәрілерге, медициналық бұйымдарға және фото-бейнетүсірілімсіз байланыс құралдарына рұқсат етіледі.",
+    "en": "Employees’ personal belongings, cash and valuables are stored outside the cash area; medicines, medical devices and communication devices without photo or video recording are permitted."
+  },
+  "Пересчёт принятых денег без клиента": {
+    "kk": "Қабылданған ақшаны клиентсіз қайта санау",
+    "en": "Counting accepted cash without the customer"
+  },
+  "Приём и пересчёт наличных денег выполняются в присутствии клиента.": {
+    "kk": "Қолма-қол ақшаны қабылдау және қайта санау клиенттің қатысуымен орындалады.",
+    "en": "Cash is accepted and counted in the customer’s presence."
+  },
+  "Ранее принятые деньги оставлены на рабочей поверхности": {
+    "kk": "Бұрын қабылданған ақша жұмыс бетінде қалдырылған",
+    "en": "Previously accepted cash left on the work surface"
+  },
+  "На рабочем месте находятся деньги текущего клиента; ранее принятые деньги хранятся в специальных устройствах, закрывающихся на ключ.": {
+    "kk": "Жұмыс орнында ағымдағы клиенттің ақшасы болады; бұрын қабылданған ақша кілтпен жабылатын арнайы құрылғыларда сақталады.",
+    "en": "Only the current customer’s cash is kept at the workstation; previously accepted cash is stored in designated lockable devices."
+  },
+  "Ранее принятые наличные перемещены в одежду или личную сумку": {
+    "kk": "Бұрын қабылданған ақша киімге немесе жеке сөмкеге салынған",
+    "en": "Previously accepted cash moved into clothing or a personal bag"
+  },
+  "Для ранее принятых наличных предусмотрены специальные устройства хранения на рабочем месте кассира.": {
+    "kk": "Бұрын қабылданған қолма-қол ақша үшін кассирдің жұмыс орнында арнайы сақтау құрылғылары қарастырылған.",
+    "en": "Designated storage devices at the cashier’s workstation are required for previously accepted cash."
+  },
+  "Хранилище с принятыми деньгами оставлено открытым": {
+    "kk": "Қабылданған ақша бар сақтау құрылғысы ашық қалдырылған",
+    "en": "Storage containing accepted cash left open"
+  },
+  "Ранее принятые наличные хранятся в специальных устройствах, закрывающихся на ключ.": {
+    "kk": "Бұрын қабылданған қолма-қол ақша кілтпен жабылатын арнайы құрылғыларда сақталады.",
+    "en": "Previously accepted cash is stored in designated lockable devices."
+  },
+  "Кассир покинул место до завершения обслуживания": {
+    "kk": "Кассир қызмет көрсету аяқталғанға дейін орнынан кеткен",
+    "en": "Cashier leaves before completing service"
+  },
+  "Кассовый работник не должен покидать рабочее место до окончания обслуживания клиента.": {
+    "kk": "Касса қызметкері клиентке қызмет көрсету аяқталғанға дейін жұмыс орнынан кетпеуі керек.",
+    "en": "The cashier must not leave the workstation before completing service for the customer."
+  },
+  "Проверка личности не наблюдается": {
+    "kk": "Жеке басты тексеру байқалмайды",
+    "en": "Identity verification not observed"
+  },
+  "Допускаются документ, удостоверяющий личность, и сведения сервиса цифровых документов.": {
+    "kk": "Жеке басты куәландыратын құжатқа және цифрлық құжаттар сервисінің мәліметтеріне рұқсат етіледі.",
+    "en": "An identity document or information from the digital document service is permitted."
+  },
+  "Выдача подтверждающего документа не наблюдается": {
+    "kk": "Растайтын құжатты беру байқалмайды",
+    "en": "Confirmation document handover not observed"
+  },
+  "Клиенту выдаётся документ, подтверждающий кассовую операцию; учитывается электронный документооборот по п. 10-1.": {
+    "kk": "Клиентке кассалық операцияны растайтын құжат беріледі; 10-1-тармаққа сәйкес электрондық құжат айналымы ескеріледі.",
+    "en": "The customer receives a document confirming the cash transaction; electronic document exchange under clause 10-1 is taken into account."
+  },
+  "Пересчёт без контролирующего работника": {
+    "kk": "Бақылаушы қызметкерсіз қайта санау",
+    "en": "Counting without a supervising employee"
+  },
+  "Внутренние пересчёт, сортировка и упаковка выполняются при контролирующем работнике; приём и выдача клиенту исключены.": {
+    "kk": "Ішкі қайта санау, сұрыптау және орау бақылаушы қызметкердің қатысуымен орындалады; клиенттен қабылдау және оған беру бұған кірмейді.",
+    "en": "Internal counting, sorting and packing require a supervising employee; accepting cash from and paying cash to a customer are excluded."
+  },
+  "Передача ключей требует проверки внутренних правил": {
+    "kk": "Кілттерді беру ішкі ережелерді тексеруді қажет етеді",
+    "en": "Key handover requires a check of internal procedures"
+  },
+  "Порядок обращения с ключами определяется внутренними документами банка.": {
+    "kk": "Кілттерді пайдалану тәртібі банктің ішкі құжаттарымен анықталады.",
+    "en": "Key-handling procedures are determined by the bank’s internal documents."
   }
 }

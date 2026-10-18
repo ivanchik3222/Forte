@@ -1,3 +1,4 @@
+import { LoadingMark, LoadingState } from "../../components/LoadingState";
 import { t, useLocale } from "../../i18n";
 import { useEffect, useState } from 'react';
 import { apiRequest, mediaUrl } from '../../api/client';
@@ -45,15 +46,16 @@ export function MLAnalysisPanel({ mediaId, onSeek }: { mediaId: string; onSeek: 
       <p>{t("Вывод по записи, доказательства и нормативные основания.")}</p></div></div>
     <p className="notice">{t("Автоматический результат показывает признаки возможных нарушений. Окончательное решение принимает специалист.")}</p>
     {locale !== "ru" && <p className="muted" lang={locale}>{t("Описание модели показано на языке источника.")}</p>}
+    {resource.loading && !active && <LoadingState label="Загружаем результат анализа…" variant={job ? "inline" : "panel"} />}
     {(!job || job.status === 'failed') && <div className="settings-save">
       <label>{t("Профиль камеры ")}<select aria-label={t("Профиль камеры")} value={profile} onChange={e => setProfile(e.target.value)}>
         <option value="forte_open">Forte Open · 464×848</option><option value="full_frame">{t("Другая камера · полный кадр")}</option>
       </select></label>
       <button className="button button-primary" disabled={busy || resource.loading} onClick={() => void run()}>
-        {t(busy ? 'Постановка в очередь…' : 'Запустить анализ')}</button>
+        {busy && <LoadingMark small />}{t(busy ? 'Постановка в очередь…' : 'Запустить анализ')}</button>
     </div>}
     {t((error || resource.error || job?.error) && <p role="alert">{t(error || resource.error || job?.error)}</p>)}
-    {active && <p role="status">{t(job?.status === 'queued' ? 'Видео в очереди. Анализ начнётся автоматически.' : job?.stage === 'assessing_rules' ? 'Проверяем действия по нормативам и выбираем доказательства…' : job?.stage === 'describing_actions' ? 'Интервалы проверены. Локальная модель описывает действия…' : 'Ищем эпизоды, требующие внимания…')}{t(" Статус обновляется автоматически.")}</p>}
+    {active && <LoadingState label={t(job?.status === 'queued' ? 'Видео в очереди. Анализ начнётся автоматически.' : job?.stage === 'assessing_rules' ? 'Проверяем действия по нормативам и выбираем доказательства…' : job?.stage === 'describing_actions' ? 'Интервалы проверены. Локальная модель описывает действия…' : 'Ищем эпизоды, требующие внимания…') + t(" Статус обновляется автоматически.")} />}
     {result && <>
       {assessed ? <div className={`ml-verdict ml-verdict-${result.verdict}`} role="status">
         <span>{t("Итог проверки")}</span>

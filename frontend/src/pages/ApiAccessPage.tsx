@@ -1,3 +1,4 @@
+import { LoadingMark } from "../components/LoadingState";
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiBaseUrl } from '../api/client';
@@ -45,13 +46,13 @@ export function ApiAccessPage() {
     <section className="api-access-card" aria-labelledby="key-heading">
       <h2 id="key-heading">Ваш API-ключ</h2>
       <p>Ключ действует 30 дней и открывает только ваши задачи. Сохраните его: после закрытия страницы восстановить ключ нельзя. Новый ключ не открывает прежние загрузки.</p>
-      {!key ? <button className="button button-primary" onClick={issue} disabled={busy}>{busy ? 'Создаём…' : 'Создать API-ключ'}</button> : <>
+      {!key ? <button className="button button-primary" onClick={issue} disabled={busy}>{busy && <LoadingMark small />}{busy ? 'Создаём…' : 'Создать API-ключ'}</button> : <>
         <label htmlFor="api-key-value">Сохраните ключ в безопасном месте</label>
         <input id="api-key-value" className="api-key-value" readOnly value={key} autoComplete="off" spellCheck={false} />
         <p>Действует до {new Date(expires).toLocaleString('ru-RU')}.</p>
         <div className="api-key-actions">
           <button className="button button-primary" onClick={copy}>Копировать ключ</button>
-          <button className="button" onClick={revoke} disabled={busy}>Отозвать ключ</button>
+          <button className="button" onClick={revoke} disabled={busy}>{busy && <LoadingMark small />}Отозвать ключ</button>
         </div>
       </>}
       <p role="status" aria-live="polite">{message}</p>

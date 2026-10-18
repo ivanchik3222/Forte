@@ -28,7 +28,8 @@
     "build": "npm run css:build && react-scripts build",
     "pretest": "npm run css:build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "regulations:sync": "node scripts/sync-regulations.cjs"
   },
   "eslintConfig": {
     "extends": [

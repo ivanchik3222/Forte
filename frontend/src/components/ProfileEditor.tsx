@@ -1,3 +1,4 @@
+import { LoadingMark } from "./LoadingState";
 import { FormEvent, useState } from "react";
 import { demoAccount } from "../api/demoAccount";
 import { apiRequest, User } from "../api/client";
@@ -43,7 +44,7 @@ export function ProfileEditor({ user }: { user: User }) {
     {error && <p className="profile-feedback is-error" role="alert">{t(error)}</p>}
     {saved && <p className="profile-feedback" role="status"><Icon name="checkCircle" size={17} />{t("Профиль сохранён")}</p>}
     <button className="button button-primary" type="submit" disabled={saving}>
-      <Icon name={saving ? "refresh" : "check"} size={17} />{t(saving ? "Сохраняем…" : "Сохранить изменения")}
+      {saving ? <LoadingMark small /> : <Icon name="check" size={17} />}{t(saving ? "Сохраняем…" : "Сохранить изменения")}
     </button>
   </form>;
 }

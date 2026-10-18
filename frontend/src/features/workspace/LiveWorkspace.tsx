@@ -20,6 +20,8 @@ import {
   parseSource,
 } from "../../api/workspace";
 import { LoginPanel } from "../../components/LoginPanel";
+import { LoadingMark, LoadingState } from "../../components/LoadingState";
+import { RegulatoryGuide } from "../../components/RegulatoryGuide";
 import { Modal } from "../../components/Modal";
 import { MobileNavigation, SidebarAccount, WorkspacePage } from "../../components/WorkspaceNavigation";
 import { Icon, IconName } from "../../components/Icon";
@@ -66,15 +68,21 @@ function StateNotice({
   error,
   loading,
   retry,
+  data,
+  loadingLabel = "Загружаем данные…",
+  loadingLayout = "panel",
 }: {
   error?: string;
   loading?: boolean;
   retry?: () => void;
+  data?: unknown;
+  loadingLabel?: string;
+  loadingLayout?: "panel" | "inline" | "records";
 }) {
   useLocale();
   return (
     <>
-      {loading && <p role="status">{t("Загрузка…")}</p>}
+      {loading && !error && <LoadingState label={data === undefined ? loadingLabel : "Обновляем данные…"} variant={data === undefined ? loadingLayout : "inline"} />}
       {t(error && (
         <div className="notice" role="alert">
           <span>{t(error)}</span>
@@ -589,7 +597,7 @@ function History({
             <option value="oldest">{t("Сначала старые")}</option>
           </select>
         </div>
-        <StateNotice {...resource} retry={resource.refresh} />
+        <StateNotice {...resource} retry={resource.refresh} loadingLabel="Загружаем записи…" loadingLayout="records" />
         {resource.data && (
           <>
             <HistoryTable
@@ -612,9 +620,13 @@ function MediaDetail({ id }: { id: string }) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
   const [unplayable, setUnplayable] = useState(false);
+  const [preparing, setPreparing] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const video = useRef<HTMLVideoElement>(null);
   const resumeAt = useRef(0);
   const refreshUrl = async () => {
+    if (preparing) return;
+    setPreparing(true);
     try {
       resumeAt.current = video.current?.currentTime || 0;
       const result = await apiRequest<{ url: string; expires_in: number }>(
@@ -626,6 +638,8 @@ function MediaDetail({ id }: { id: string }) {
       setUnplayable(false);
     } catch (e) {
       setError(message(e));
+    } finally {
+      setPreparing(false);
     }
   };
   useEffect(() => {
@@ -633,6 +647,8 @@ function MediaDetail({ id }: { id: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [record.data?.id]);
   const downloadReport = async () => {
+    if (downloading) return;
+    setDownloading(true);
     try {
       const report = await apiRequest(
         `/api/v1/media/${encodeURIComponent(id)}/report`,
@@ -649,6 +665,8 @@ function MediaDetail({ id }: { id: string }) {
       setTimeout(() => URL.revokeObjectURL(blob), 1000);
     } catch (e) {
       setError(message(e));
+    } finally {
+      setDownloading(false);
     }
   };
   return (
@@ -670,13 +688,15 @@ function MediaDetail({ id }: { id: string }) {
             </div>
             <button
               className="button button-outline"
+              disabled={downloading}
               onClick={() => void downloadReport()}
-            >{t("Скачать JSON")}</button>
+            >{downloading && <LoadingMark small />}{t(downloading ? "Готовим JSON…" : "Скачать JSON")}</button>
           </div>
           <div className="notice">
             <Icon name="info" />{t("Видео сохранено. Статус анализа и результаты показаны ниже. Вывод о наличии нарушений требует ручной проверки.")}</div>
           <section className="panel live-video">
             <StateNotice error={error} />
+            {preparing && <LoadingState label="Подготовка видео…" variant={url ? "inline" : "panel"} />}
             {t(url && (
               <video
                 ref={video}
@@ -701,8 +721,9 @@ function MediaDetail({ id }: { id: string }) {
             <div className="settings-save">
               <button
                 className="button button-outline"
+                disabled={preparing}
                 onClick={() => void refreshUrl()}
-              >{t("Обновить ссылку на видео")}</button>
+              >{preparing && <LoadingMark small />}{t("Обновить ссылку на видео")}</button>
               {t(url && (
                 <a
                   className="button button-outline"
@@ -1019,36 +1040,38 @@ function Sources() {
     parsePage(v, parseSource),
   );
   return (
-    <>
-      <h1>{t("Нормативная база")}</h1>
-      <div className="notice">{t("Справочные ссылки. Актуальность и применимость документа проверяет специалист.")}</div>
-      <StateNotice {...resource} retry={resource.refresh} />
-      {resource.data && (
-        <>
-          {resource.data.items.map((s) => (
-            <article key={s.id} className="panel source-card">
-              <Icon name="book" />
-              <div>
-                <h2>{t(s.title)}</h2>
-                <p>
-                  {t(s.publisher)} · {t(s.number)} · {t(s.document_date)}
-                </p>
-                {t(safeSourceUrl(s.url) && (
-                  <a
-                    className="button button-outline"
-                    href={safeSourceUrl(s.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >{t("Открыть источник")}</a>
-                ))}
-              </div>
-            </article>
-          ))}
-          {!resource.data.items.length && <p>{t("Источники пока не добавлены.")}</p>}
-          <Pager page={page} total={resource.data.total} onPage={setPage} />
-        </>
-      )}
-    </>
+    <RegulatoryGuide>
+      <section className="regulatory-server-sources panel">
+        <h2>{t("Источники, добавленные в кабинет")}</h2>
+        <p>{t("Справочник сервера может содержать дополнительные документы. Их наличие в списке не включает новые правила в модель.")}</p>
+        <StateNotice {...resource} retry={resource.refresh} />
+        {resource.data && (
+          <>
+            {resource.data.items.map((s) => (
+              <article key={s.id} className="panel source-card">
+                <Icon name="book" />
+                <div>
+                  <h2>{t(s.title)}</h2>
+                  <p>
+                    {t(s.publisher)} · {t(s.number)} · {t(s.document_date)}
+                  </p>
+                  {t(safeSourceUrl(s.url) && (
+                    <a
+                      className="button button-outline"
+                      href={safeSourceUrl(s.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >{t("Открыть источник")}</a>
+                  ))}
+                </div>
+              </article>
+            ))}
+            {!resource.data.items.length && <p>{t("Источники пока не добавлены.")}</p>}
+            <Pager page={page} total={resource.data.total} onPage={setPage} />
+          </>
+        )}
+      </section>
+    </RegulatoryGuide>
   );
 }
 function Settings() {

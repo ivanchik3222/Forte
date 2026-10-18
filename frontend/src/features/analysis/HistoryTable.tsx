@@ -1,6 +1,7 @@
 import { formatDate, eventLabel, localeCode, t, useLocale } from "../../i18n";
 import { useState } from "react";
 import { Icon } from "../../components/Icon";
+import { LoadingMark } from "../../components/LoadingState";
 import { AnalysisRecord, fileSize, timecode } from "./types";
 
 export function StatusBadge({ record }: { record: AnalysisRecord }) {
@@ -23,7 +24,7 @@ export function StatusBadge({ record }: { record: AnalysisRecord }) {
   } as const;
   return (
     <span className={`status-badge status-${status}`}>
-      <Icon name={config[status].icon} size={14} />
+      {status === "uploading" || status === "processing" ? <LoadingMark small /> : <Icon name={config[status].icon} size={14} />}
       {t(config[status].text)}
     </span>
   );

@@ -94,6 +94,42 @@ afterEach(() => {
   global.fetch = originalFetch;
 });
 
+test("history keeps an animated status until records arrive and clears it on success", async () => {
+  const fallback = global.fetch;
+  let finish!: (value: Response) => void;
+  global.fetch = jest.fn(input => String(input).includes("/media?")
+    ? new Promise<Response>(resolve => { finish = resolve; })
+    : fallback(input));
+  window.history.replaceState(null, "", "/history");
+  render(<App />);
+  expect(await screen.findByText("Загружаем записи…")).toBeVisible();
+  expect(screen.queryByText("Записи не найдены")).not.toBeInTheDocument();
+  await act(async () => finish(response({ items: [record], total: 1, page: 1, per_page: 20 })));
+  expect(await screen.findByText("camera.mp4")).toBeVisible();
+  expect(screen.queryByText("Загружаем записи…")).not.toBeInTheDocument();
+});
+
+test("history stops loading on failure and retry can complete with an empty result", async () => {
+  const fallback = global.fetch;
+  const pending: Array<(value: Response) => void> = [];
+  global.fetch = jest.fn(input => String(input).includes("/media?")
+    ? new Promise<Response>(resolve => pending.push(resolve))
+    : fallback(input));
+  window.history.replaceState(null, "", "/history");
+  render(<App />);
+  expect(await screen.findByText("Загружаем записи…")).toBeVisible();
+  await act(async () => pending[0](response({ error: { code: "unavailable", message: "Сервис записей недоступен" } }, 503)));
+  expect(await screen.findByText("Сервис записей недоступен")).toBeVisible();
+  expect(screen.queryByText("Загружаем записи…")).not.toBeInTheDocument();
+  expect(screen.queryByText("Записи не найдены")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Повторить" }));
+  expect(await screen.findByText("Загружаем записи…")).toBeVisible();
+  await act(async () => pending[1](response({ items: [], total: 0, page: 1, per_page: 20 })));
+  expect(await screen.findByText("Записи не найдены")).toBeVisible();
+  expect(screen.queryByText("Загружаем записи…")).not.toBeInTheDocument();
+  expect(screen.queryByText("Сервис записей недоступен")).not.toBeInTheDocument();
+});
+
 test("upload uses multipart JWT API and shows stored without a verdict", async () => {
   render(<App />);
   fireEvent.click(screen.getByRole("button", { name: "Загрузить видео" }));

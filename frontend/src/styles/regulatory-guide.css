@@ -1,0 +1,112 @@
+.regulatory-guide { display: grid; gap: 30px; min-width: 0; }
+.regulatory-guide > .page-title-row { margin-bottom: 0; }
+.regulatory-guide .page-title-row p:last-child { max-width: 730px; }
+.regulatory-overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; padding: 25px 28px; border: 1px solid #e6d9e1; border-radius: 18px; background: linear-gradient(110deg, #faf2f6, #f4f7fc); }
+.regulatory-overview > div { display: flex; align-items: center; gap: 15px; min-width: 0; }
+.regulatory-overview > div + div { border-left: 1px solid #e2d6df; padding-left: 24px; }
+.regulatory-overview strong { color: var(--brand); font-size: 34px; font-weight: 550; line-height: 1; font-variant-numeric: tabular-nums; }
+.regulatory-overview span { font-size: 12px; line-height: 1.6; color: #77636f; max-width: 145px; }
+.regulatory-source { padding: 30px; position: relative; overflow: hidden; }
+.regulatory-source::before { content: ""; position: absolute; right: 28px; top: 100px; width: 90px; height: 90px; background: url("../assets/forte-oyu.png") center / contain no-repeat; opacity: .09; pointer-events: none; }
+.regulatory-source-top { display: flex; gap: 17px; align-items: center; padding-bottom: 25px; border-bottom: 1px solid var(--line); margin-bottom: 25px; }
+.regulatory-book { display: grid; place-items: center; flex: 0 0 58px; height: 66px; border: 1px solid #ead4df; border-radius: 15px; color: var(--brand); background: #fbf2f7; }
+.regulatory-source-top .eyebrow { margin-bottom: 7px; color: #866276; line-height: 1.8; }
+.regulatory-source h2 { font-size: 25px; font-weight: 600; letter-spacing: -.5px; }
+.regulatory-source-top p:last-child { margin-top: 7px; font-size: 12px; color: #786977; }
+.regulatory-source-label { margin-left: auto; border: 1px solid #dce7f3; background: #f1f6fc; color: #446b8e; padding: 7px 11px; border-radius: 7px; font-size: 10px; white-space: nowrap; }
+.regulatory-source > h3 { max-width: 790px; padding-right: 35px; font-size: 19px; font-weight: 600; line-height: 1.55; }
+.regulatory-source > p:not(.regulatory-version-note) { max-width: 860px; margin-top: 14px; color: #70626d; font-size: 13px; line-height: 1.9; }
+.regulatory-source-links { display: flex; flex-wrap: wrap; gap: 12px; margin-block: 24px; }
+.regulatory-source-links .button { min-height: 44px; }
+.regulatory-version { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; padding: 20px; background: #f7f6f8; border-radius: 12px; margin: 0; }
+.regulatory-version dt { color: #756774; font-size: 11px; }
+.regulatory-version dd { margin: 5px 0 0; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.regulatory-version-note { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; line-height: 1.8; padding-block: 20px; color: #78636f; }
+.regulatory-version-note svg { margin-top: 3px; color: #966c30; }
+.regulatory-guide summary { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 44px; list-style: none; cursor: pointer; }
+.regulatory-guide summary::-webkit-details-marker { display: none; }
+.regulatory-guide details[open] > summary > svg { transform: rotate(45deg); }
+.regulatory-guide a:not(.button) { display: inline-flex; align-items: center; gap: 6px; color: var(--brand); text-decoration: underline; text-underline-offset: 3px; }
+.regulatory-guide a:focus-visible, .regulatory-guide summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; border-radius: 4px; }
+.regulatory-provenance { border-top: 1px solid var(--line); font-size: 12px; }
+.regulatory-provenance summary { color: #6c5866; }
+.regulatory-provenance > div { display: grid; gap: 13px; color: #756774; line-height: 1.9; padding-top: 10px; }
+.regulatory-provenance code { font-size: 11px; color: #705064; padding: 13px; border-radius: 9px; background: #f8f3f6; overflow-wrap: anywhere; }
+.regulatory-section-heading { margin-bottom: 23px; }
+.regulatory-section-heading .eyebrow { color: #8b6076; }
+.regulatory-section-heading h2 { font-size: 23px; font-weight: 600; letter-spacing: -.5px; }
+.regulatory-section-heading > p:last-child { margin-top: 12px; color: #766774; max-width: 850px; font-size: 13px; line-height: 1.9; }
+.regulatory-method ol { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; padding: 0; margin: 0; list-style: none; counter-reset: none; }
+.regulatory-method li { padding: 24px; border: 1px solid var(--line); border-radius: 15px; background: #fff; }
+.regulatory-method li > span { display: grid; place-items: center; width: 31px; height: 31px; margin-bottom: 18px; color: var(--brand); background: #f6e7ef; border-radius: 10px; font-size: 11px; font-weight: 650; }
+.regulatory-method h3 { font-size: 14px; line-height: 1.6; margin-bottom: 10px; }
+.regulatory-method li p { color: #746773; font-size: 12px; line-height: 1.9; }
+.regulatory-rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 18px; }
+.regulatory-rule { padding: 25px; min-width: 0; }
+.regulatory-rule-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 17px; color: #946179; }
+.regulatory-rule-meta > span { font-size: 10px; font-weight: 650; border: 1px solid #eddae4; border-radius: 6px; padding: 4px 9px; background: #fcf4f8; color: #8e3c63; }
+.regulatory-rule h3 { font-size: 17px; font-weight: 600; line-height: 1.55; margin-bottom: 12px; }
+.regulatory-basis { font-size: 13px; line-height: 1.85; color: #736371; }
+.regulatory-rule details { margin-top: 17px; border-top: 1px solid var(--line); }
+.regulatory-rule summary { font-size: 11px; font-weight: 600; color: var(--brand); padding-top: 6px; }
+.regulatory-rule-details { padding-top: 16px; }
+.regulatory-rule-details h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 7px; font-size: 12px; color: #52718e; font-weight: 600; }
+.regulatory-rule-details p { font-size: 12px; line-height: 1.9; color: #6e606d; margin-bottom: 18px; }
+.regulatory-rule-details .regulatory-interpretation { padding: 13px; border-radius: 10px; background: #f3f6fb; color: #536c85; }
+.regulatory-rule-details a { font-size: 11px; min-height: 44px; }
+.regulatory-manual { padding: 28px; }
+.regulatory-manual-rule { border-top: 1px solid var(--line); }
+.regulatory-manual-rule summary { padding-block: 18px; }
+.regulatory-manual-rule summary span { display: grid; gap: 5px; }
+.regulatory-manual-rule small { font-size: 10px; color: #7e6d7b; }
+.regulatory-manual-rule strong { font-size: 14px; font-weight: 600; }
+.regulatory-manual-rule > div { display: grid; gap: 12px; padding-bottom: 21px; color: #736371; font-size: 13px; line-height: 1.9; max-width: 900px; }
+.regulatory-manual-rule > div strong { font-size: 13px; }
+.regulatory-boundaries { display: flex; align-items: flex-start; gap: 20px; border: 1px solid #dce4ef; border-radius: 17px; padding: 27px; background: #f0f5fb; color: #4f6a85; }
+.regulatory-boundaries > svg { margin-top: 2px; }
+.regulatory-boundaries h2 { font-size: 19px; font-weight: 600; margin-bottom: 12px; }
+.regulatory-boundaries p { font-size: 13px; line-height: 1.9; }
+.regulatory-boundaries p + p { margin-top: 12px; }
+.regulatory-research { padding-inline: 3px; font-size: 12px; color: #756774; }
+.regulatory-research p { margin: 12px 0; line-height: 1.9; max-width: 900px; }
+.regulatory-research > a { min-height: 44px; }
+.regulatory-server-sources { padding: 26px; }
+.regulatory-server-sources > h2 { font-size: 19px; margin-bottom: 12px; }
+.regulatory-server-sources > p { font-size: 12px; line-height: 1.8; color: #756774; }
+.regulatory-server-sources .source-card { padding: 22px; margin-top: 18px; }
+.regulatory-server-sources .source-card h2 { font-size: 15px; }
+@media (max-width: 1080px) {
+  .regulatory-method ol { grid-template-columns: 1fr; gap: 12px; }
+  .regulatory-method li { padding: 21px; }
+  .regulatory-method li > span { float: left; margin: 0 15px 8px 0; }
+  .regulatory-method li p { clear: both; }
+  .regulatory-source-label { display: none; }
+  .regulatory-overview { gap: 15px; padding: 23px; }
+  .regulatory-overview > div { flex-direction: column; align-items: flex-start; gap: 9px; }
+  .regulatory-overview > div + div { padding-left: 15px; }
+}
+@media (max-width: 760px) {
+  .regulatory-guide { gap: 24px; }
+  .regulatory-overview { padding: 20px 18px; gap: 12px; }
+  .regulatory-overview strong { font-size: 29px; }
+  .regulatory-overview span { font-size: 10px; }
+  .regulatory-overview > div + div { padding-left: 12px; }
+  .regulatory-source, .regulatory-manual, .regulatory-server-sources { padding: 21px; }
+  .regulatory-source-top { gap: 12px; align-items: flex-start; }
+  .regulatory-book { flex-basis: 42px; height: 49px; border-radius: 12px; }
+  .regulatory-book svg { width: 23px; }
+  .regulatory-source h2 { font-size: 21px; }
+  .regulatory-source-top .eyebrow { font-size: 8px; }
+  .regulatory-source-top p:last-child { font-size: 11px; }
+  .regulatory-source > h3 { font-size: 17px; padding: 0; }
+  .regulatory-source-links { flex-direction: column; }
+  .regulatory-source-links .button { font-size: 12px; width: 100%; }
+  .regulatory-version { grid-template-columns: 1fr; gap: 14px; padding: 16px; }
+  .regulatory-version > div { display: flex; align-items: baseline; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
+  .regulatory-version dd { margin: 0; }
+  .regulatory-rules { grid-template-columns: 1fr; gap: 14px; }
+  .regulatory-rule { padding: 22px; }
+  .regulatory-section-heading h2 { font-size: 21px; }
+  .regulatory-boundaries { padding: 22px; gap: 12px; }
+  .regulatory-server-sources .source-card { padding: 16px; gap: 12px; }
+}

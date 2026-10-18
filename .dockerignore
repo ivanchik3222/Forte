@@ -4,11 +4,11 @@
 !ML/
 !ML/deployment/
 !ML/deployment/**
-!ML/inference.py
-!ML/predict_objects.py
-!ML/train_detector.py
-!ML/interaction_timeline.py
+!ML/*.py
+!ML/regulations/
+!ML/regulations/**
 !ML/requirements-inference.txt
+ML/test_*.py
 **/.env
 **/.env.*
 **/__pycache__/**
@@ -19,3 +19,4 @@ backend/.venv/**
 backend/venv/**
 backend/venv_back/**
 backend/env/**
+backend/instance/**

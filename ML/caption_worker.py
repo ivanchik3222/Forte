@@ -66,6 +66,15 @@ def convert_report(report,output):
     return converted
 
 
+class DeferredCaptionAnalyzer:
+    """Qwen is not provisioned; never manufacture a clean rule assessment."""
+    assess_rules = True
+    unavailable_status = 'not_configured'
+
+    def analyze(self, *args, **kwargs):
+        raise RuntimeError('External Qwen service has not been configured')
+
+
 class CaptionAnalyzer:
     def __init__(self,python,ml_root,adapter=None,model_size='4b',input_mode='images',assess_rules=False,allow_reserved_test=False):
         self.python=Path(python);self.root=Path(ml_root);self.adapter=Path(adapter) if adapter else None

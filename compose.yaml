@@ -2,7 +2,8 @@ services:
   backend:
     build:
       context: .
-      dockerfile: backend/Dockerfile
+      dockerfile: backend/Dockerfile.ml
+      target: api
     env_file: .env
     ports:
       - "${BACKEND_PORT:-6767}:6767"
@@ -11,8 +12,13 @@ services:
       DATABASE_URL: sqlite:////app/database/database.db
       MEDIA_ROOT: /app/media
       DEMO_MODE: ${DEMO_MODE:-true}
-      # Bundled Linux image uses YOLO. Full MLX pipeline runs natively on the Mac.
-      ML_ENGINE: ${ML_ENGINE:-objects}
+      ML_ENGINE: ${ML_ENGINE:-reviewed_pipeline}
+      # External Qwen is not provisioned yet. Positive R3D signals remain
+      # explicitly unclassified; no clean verdict is possible without Qwen.
+      ML_VLM_BACKEND: ${ML_VLM_BACKEND:-disabled}
+      ML_REVIEWED_PYTHON: /usr/local/bin/python
+      ML_REVIEWED_BUNDLE: /app/ML/deployment/reviewed/model_bundle.json
+      ML_REVIEWED_BACKBONE: /app/ML/models/r3d_18-b3b3357e.pth
     volumes:
       - database:/app/database
       - media_data:/app/media
@@ -44,13 +50,18 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile.ml
+      target: worker
     env_file: .env
     environment:
       FLASK_ENV: production
       DATABASE_URL: sqlite:////app/database/database.db
       MEDIA_ROOT: /app/media
       ML_DEVICE: cpu
-      ML_ENGINE: ${ML_ENGINE:-objects}
+      ML_ENGINE: ${ML_ENGINE:-reviewed_pipeline}
+      ML_VLM_BACKEND: ${ML_VLM_BACKEND:-disabled}
+      ML_REVIEWED_PYTHON: /usr/local/bin/python
+      ML_REVIEWED_BUNDLE: /app/ML/deployment/reviewed/model_bundle.json
+      ML_REVIEWED_BACKBONE: /app/ML/models/r3d_18-b3b3357e.pth
     volumes:
       - database:/app/database
       - media_data:/app/media

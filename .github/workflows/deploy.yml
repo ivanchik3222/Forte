@@ -84,6 +84,11 @@ jobs:
           python -m pip install -r ML/requirements-inference.txt
       - name: Offline inference with shipped weights
         run: python ML/smoke_inference.py
+      - name: Verify reviewed R3D runtime and deferred Qwen behavior
+        run: |
+          python ML/download_models.py --r3d
+          python ML/check_reviewed_runtime.py
+          python -m unittest discover -s ML -p test_reviewed_pipeline.py
 
   deploy:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'

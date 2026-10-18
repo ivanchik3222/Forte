@@ -1,9 +1,11 @@
 services:
   ml-worker:
     environment:
+      ML_ENGINE: reviewed_pipeline
       DATABASE_URL: postgresql+psycopg://forte:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/forte
   backend:
     environment:
+      ML_ENGINE: reviewed_pipeline
       DATABASE_URL: postgresql+psycopg://forte:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/forte
       COOKIE_SECURE: "true"
     depends_on:

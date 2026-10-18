@@ -163,6 +163,27 @@ def test_pipeline_availability_checks_both_models(app, monkeypatch, local_ml):
     assert available()
 
 
+def test_deferred_qwen_requires_r3d_but_no_local_qwen(app, monkeypatch, local_ml):
+    _, folder = local_ml
+    monkeypatch.setitem(app.config, 'ML_ENGINE', 'reviewed_pipeline')
+    monkeypatch.setitem(app.config, 'ML_VLM_BACKEND', 'disabled')
+    monkeypatch.setitem(app.config, 'ML_VLM_PYTHON', str(folder/'absent-qwen-python'))
+    for setting, name in [('ML_REVIEWED_PYTHON', 'python'), ('ML_REVIEWED_BACKBONE', 'backbone.pth'),
+                          ('ML_REVIEWED_BUNDLE', 'model_bundle.json')]:
+        monkeypatch.setitem(app.config, setting, str(folder/name))
+        (folder/name).write_bytes(b'test')
+    (folder/'bank_only.npz').write_bytes(b'test')
+    assert available()
+    from services.analysis import detector
+    runner = detector()
+    from caption_worker import DeferredCaptionAnalyzer
+    assert isinstance(runner.caption, DeferredCaptionAnalyzer)
+    (folder/'backbone.pth').unlink()
+    assert not available()
+    monkeypatch.setitem(app.config, 'ML_ENGINE', 'dense_vlm')
+    assert not available()
+
+
 def test_processing_stage_is_visible_and_old_progress_ignored_on_retry(client, auth_headers, local_ml):
     import json
     media_id, folder = local_ml

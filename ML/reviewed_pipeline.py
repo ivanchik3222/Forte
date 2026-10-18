@@ -120,8 +120,9 @@ class ReviewedPipeline:
             return candidate
         progress(output, 'assessing_rules' if getattr(self.caption,'assess_rules',False) else 'describing_actions')
         remaining = timeout - (time.monotonic()-started)
-        caption, status = None, 'time_budget_exceeded'
-        if remaining > 25:
+        unavailable = getattr(self.caption, 'unavailable_status', None)
+        caption, status = None, unavailable or 'time_budget_exceeded'
+        if remaining > 25 and not unavailable:
             try:
                 caption = self.caption.analyze(source, output/'caption', camera_profile, remaining)
                 status = caption['coverage_status']

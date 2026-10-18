@@ -65,6 +65,8 @@ class Config:
     _local_ml_python = Path(ML_ROOT) / ('.venv/Scripts/python.exe' if os.name == 'nt' else '.venv/bin/python')
     ML_REVIEWED_PYTHON = os.environ.get('ML_REVIEWED_PYTHON', str(_local_ml_python) if _local_ml_python.is_file() else sys.executable)
     ML_VLM_PYTHON = os.environ.get('ML_VLM_PYTHON', str(Path(BACKEND_DIR).parent / 'ML/.venv-review/bin/python'))
+    # Local Mac keeps MLX; Linux deployment defers Qwen until its server exists.
+    ML_VLM_BACKEND = os.environ.get('ML_VLM_BACKEND', 'local')
     ML_VLM_ADAPTER = os.environ.get('ML_VLM_ADAPTER') or None
     ML_VLM_MODEL_SIZE = os.environ.get('ML_VLM_MODEL_SIZE', '4b')
     ML_VLM_INPUT_MODE = os.environ.get('ML_VLM_INPUT_MODE', 'images')

@@ -27,7 +27,44 @@ API работает на `127.0.0.1:6767`, frontend — `localhost:3000`.
 Энкодер: `ML/.venv/bin/python ML/download_models.py --r3d`.
 Qwen: `ML/.venv-review/bin/python ML/download_review_model.py --size 4b`.
 Инференс офлайн; старые LoRA-адаптеры до исправления DeepStack не применяются.
-Полная связка MLX работает на Apple Silicon; Linux Docker сохраняет `objects`.
+Полная связка MLX работает на Apple Silicon. Linux Compose использует
+`reviewed_pipeline`; Qwen будет подключён с отдельного сервера.
+
+### VPS без установленного Qwen
+
+Backend и worker собираются из `backend/Dockerfile.ml` (targets `api` и `worker`).
+Оба получают одинаковые код и артефакты: reviewed pipeline, R3D18, банковскую
+голову, декодирование видео, реестр правил и его PDF-снимок. При сборке
+`download_models.py --r3d` скачивает базовые веса с фиксированным SHA-256;
+`check_reviewed_runtime.py` проверяет обе модели, зависимости и снимок правил.
+Веса Qwen, MLX, локальные venv, видео и секреты в контекст сборки не включаются.
+
+В production Compose принудительно задан `ML_ENGINE=reviewed_pipeline` для обеих
+служб. Пути одинаковы: `/app/ML/deployment/reviewed/model_bundle.json`,
+`/app/ML/models/r3d_18-b3b3357e.pth`, `/usr/local/bin/python`.
+`ML_VLM_BACKEND=disabled` означает, что отдельный Qwen ещё не настроен.
+Положительный сигнал R3D возвращается как `violation`, `classification_status=unclassified`,
+`rule=null`, `rule_evaluation=not_performed`, `coverage_status=partial`.
+Это не завершённая нормативная проверка. Без положительного R3D-сигнала
+бинарного результата пока нет; `no_violation` не подставляется.
+Локальный Mac сохраняет `ML_VLM_BACKEND=local`. Контракт внешнего Qwen пока
+не согласован; одного переключения переменной недостаточно для его подключения.
+
+Production обновляется через `.github/workflows/deploy.yml`: изменения сначала
+коммитятся и отправляются в `main`, затем CI проверяет код и собирает релиз из
+`git archive HEAD`. Каталог `/root/Forte/releases/<commit SHA>` и ссылка
+`/root/Forte/current` связывают сервер с конкретной версией Git. Не разворачивать
+архивы незакоммиченного рабочего дерева: следующий автодеплой их перезапишет.
+Для проверки уже развёрнутой версии на VPS:
+
+```bash
+cd /root/Forte/current
+docker compose -p forte -f compose.yaml -f compose.production.yaml exec -T ml-worker python /app/ML/check_reviewed_runtime.py
+```
+
+Тома `forte_postgres_data`, `forte_database`, `forte_media_data` сохраняются;
+`down -v` при обновлении не выполнять. Перед переключением сделать `pg_dump`
+и резервную копию media при остановленных backend/worker.
 
 ### Общая семантика веба и API
 
@@ -172,7 +209,7 @@ ML_ENGINE=dense_vlm ../ML/.venv/bin/python -m flask --app app analysis-worker
 `ML_VLM_ADAPTER` — необязательный путь к каталогу исследовательского LoRA-адаптера.
 По умолчанию адаптер не включается: снижение loss не подтвердило хорошую точность
 конкретных действий. Этот режим рассчитан на Apple Silicon; существующий Linux
-Docker-worker продолжает использовать YOLO.
+Docker-worker использует R3D reviewed pipeline с отложенным внешним Qwen.
 
 VLM запускается из worker отдельным процессом с реальным wall-clock timeout.
 В кабинет передаются текст действия, таймкоды и JPEG через существующие подписанные

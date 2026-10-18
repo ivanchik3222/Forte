@@ -24,6 +24,11 @@ def available():
         if engine == 'reviewed_temporal':
             return True
     if engine in ('dense_vlm', 'reviewed_pipeline'):
+        provider = current_app.config.get('ML_VLM_BACKEND', 'local')
+        if provider == 'disabled':
+            return engine == 'reviewed_pipeline'
+        if provider != 'local':
+            return False
         size = current_app.config.get('ML_VLM_MODEL_SIZE', '4b')
         if size not in ('4b', '8b') or current_app.config.get('ML_VLM_INPUT_MODE', 'images') not in ('images', 'native_video'):
             return False
@@ -40,12 +45,18 @@ def detector():
     if engine in ('dense_vlm', 'reviewed_pipeline'):
         if 'caption_analyzer' not in current_app.extensions:
             sys.path.insert(0, current_app.config['ML_ROOT'])
-            from caption_worker import CaptionAnalyzer
-            current_app.extensions['caption_analyzer'] = CaptionAnalyzer(
-                current_app.config['ML_VLM_PYTHON'], current_app.config['ML_ROOT'],
-                current_app.config.get('ML_VLM_ADAPTER'), current_app.config.get('ML_VLM_MODEL_SIZE', '4b'),
-                current_app.config.get('ML_VLM_INPUT_MODE', 'images'),assess_rules=engine == 'reviewed_pipeline',
-                allow_reserved_test=True)
+            from caption_worker import CaptionAnalyzer, DeferredCaptionAnalyzer
+            provider = current_app.config.get('ML_VLM_BACKEND', 'local')
+            if provider == 'disabled' and engine == 'reviewed_pipeline':
+                current_app.extensions['caption_analyzer'] = DeferredCaptionAnalyzer()
+            elif provider == 'local':
+                current_app.extensions['caption_analyzer'] = CaptionAnalyzer(
+                    current_app.config['ML_VLM_PYTHON'], current_app.config['ML_ROOT'],
+                    current_app.config.get('ML_VLM_ADAPTER'), current_app.config.get('ML_VLM_MODEL_SIZE', '4b'),
+                    current_app.config.get('ML_VLM_INPUT_MODE', 'images'),assess_rules=engine == 'reviewed_pipeline',
+                    allow_reserved_test=True)
+            else:
+                raise RuntimeError('Unsupported Qwen backend')
         if engine == 'dense_vlm':
             return current_app.extensions['caption_analyzer']
     if engine in ('reviewed_temporal', 'reviewed_pipeline'):

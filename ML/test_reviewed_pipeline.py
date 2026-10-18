@@ -74,6 +74,25 @@ class PipelineTests(unittest.TestCase):
         with patch('reviewed_pipeline.subprocess.run'), self.assertRaisesRegex(RuntimeError, 'Rule assessment'):
             runner.analyze(source, self.root)
 
+    def test_deferred_qwen_preserves_positive_and_never_produces_clean_verdict(self):
+        from caption_worker import DeferredCaptionAnalyzer
+        source = self.root/'video.mov'; source.write_bytes(b'video')
+        self.base['source_sha256'] = hashlib.sha256(b'video').hexdigest()
+        (self.root/'candidate/result.json').write_text(json.dumps(self.base))
+        caption = DeferredCaptionAnalyzer()
+        runner = ReviewedPipeline('python', self.root, self.root/'bundle', self.root/'backbone', caption=caption)
+        with patch('reviewed_pipeline.subprocess.run'), patch.object(caption, 'analyze') as call:
+            result = runner.analyze(source, self.root)
+        call.assert_not_called()
+        self.assertEqual(result['caption_status'], 'not_configured')
+        self.assertEqual(result['verdict'], 'violation')
+        self.assertEqual(result['rule_evaluation'], 'not_performed')
+        self.assertEqual(result['violations'][0]['classification_status'], 'unclassified')
+        self.base['events'] = []
+        (self.root/'candidate/result.json').write_text(json.dumps(self.base))
+        with patch('reviewed_pipeline.subprocess.run'), self.assertRaisesRegex(RuntimeError, 'Rule assessment'):
+            runner.analyze(source, self.root)
+
     def test_rule_finding_keeps_its_own_evidence_after_stage_merge(self):
         self.caption.update(verdict='violation',rule_evaluation='performed',assessment_coverage='done',
             assessment_version='test',decision_scope='visible_signs_of_possible_violations',

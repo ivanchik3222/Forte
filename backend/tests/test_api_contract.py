@@ -20,7 +20,7 @@ def api_key(request, client, jury):
 
 def completed(client, headers):
     queued = upload(client, headers)
-    assert queued.status_code == 202
+    assert queued.status_code == 202, queued.json
     job_id = queued.json['job_id']
     assert run_next_job() == job_id
     assert client.get('/api/v1/jobs/' + job_id, headers=headers).json['status'] == 'done'

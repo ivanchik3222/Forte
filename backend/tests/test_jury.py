@@ -13,6 +13,9 @@ def jury(app,tmp_path,monkeypatch):
     monkeypatch.setitem(app.config,'ML_ENGINE','reviewed_pipeline')
     monkeypatch.setitem(app.config,'JURY_API_KEY','synthetic-test-key')
     monkeypatch.setattr('services.analysis.available',lambda:True)
+    # Issued keys use the function imported by public_api at module load time.
+    # Stub that reference too so contract tests never need real model files.
+    monkeypatch.setattr('routes.public_api.available',lambda:True)
     monkeypatch.setattr('services.media.probe',lambda *args:10)
     class Engine:
         def analyze(self,source,output,*args):

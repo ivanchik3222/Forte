@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="480" viewBox="0 0 1280 480" role="img" aria-labelledby="title desc">
+  <title id="title">Forte Control — от видеозаписи к проверяемому эпизоду</title>
+  <desc id="desc">Видео поступает в анализ. Система выделяет эпизод, таймкод и кадры, сопоставляет признаки с правилами. Итог проверяет специалист. Схема показывает назначение полной связки, а не скриншот приложения.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#231627"/><stop offset="1" stop-color="#451731"/></linearGradient>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8" fill="none" stroke="#e393b8" stroke-width="1.4"/></marker>
+  </defs>
+  <rect width="1280" height="480" rx="24" fill="url(#bg)"/>
+  <circle cx="1180" cy="40" r="225" fill="#b52366" opacity=".12"/>
+  <circle cx="1170" cy="60" r="150" fill="none" stroke="#e393b8" opacity=".15"/>
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <text x="48" y="57" fill="#efb1cf" font-size="16" font-weight="700" letter-spacing="3">FORTE CONTROL</text>
+    <text x="48" y="116" fill="#ffffff" font-size="38" font-weight="700">От видеозаписи — к проверяемому эпизоду</text>
+    <text x="48" y="153" fill="#ddc9dc" font-size="19">Видеоаналитика кассовых операций с контекстом для решения специалиста</text>
+    <g transform="translate(48 207)">
+      <rect width="266" height="170" rx="16" fill="#ffffff" fill-opacity=".07" stroke="#745067"/>
+      <text x="20" y="33" fill="#efb1cf" font-size="13" font-weight="700">01 / ИСТОЧНИК</text>
+      <rect x="20" y="52" width="62" height="43" rx="7" fill="#b52366"/>
+      <path d="M44 63 L44 84 L62 73.5Z" fill="#fff"/>
+      <text x="20" y="124" fill="#fff" font-size="23" font-weight="600">Видеозапись</text>
+      <text x="20" y="150" fill="#ddc9dc" font-size="16">MOV · MP4 · WebM</text>
+    </g>
+    <path d="M325 291 H351" stroke="#e393b8" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(362 207)">
+      <rect width="406" height="170" rx="16" fill="#ffffff" fill-opacity=".10" stroke="#b66b94"/>
+      <text x="20" y="33" fill="#efb1cf" font-size="13" font-weight="700">02 / ПОЛНЫЙ АНАЛИЗ</text>
+      <text x="20" y="77" fill="#fff" font-size="25" font-weight="600">R3D + Qwen + реестр правил</text>
+      <text x="20" y="114" fill="#ddc9dc" font-size="17">Эпизод → таймкод → кадры → основание</text>
+      <text x="20" y="148" fill="#efb1cf" font-size="15">Покрытие и неопределённость видны в результате</text>
+    </g>
+    <path d="M779 291 H805" stroke="#e393b8" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(816 207)">
+      <rect width="416" height="170" rx="16" fill="#ffffff" fill-opacity=".07" stroke="#745067"/>
+      <text x="20" y="33" fill="#efb1cf" font-size="13" font-weight="700">03 / ПРОВЕРКА ЧЕЛОВЕКОМ</text>
+      <text x="20" y="77" fill="#fff" font-size="25" font-weight="600">Кабинет · API · отчёт</text>
+      <text x="20" y="114" fill="#ddc9dc" font-size="17">Открыть фрагмент и проверить вывод</text>
+      <text x="20" y="148" fill="#efb1cf" font-size="15">Окончательное решение принимает специалист</text>
+    </g>
+    <text x="48" y="430" fill="#ddc9dc" font-size="16">Модели в контуре команды</text>
+    <text x="510" y="430" fill="#ddc9dc" font-size="16">Проверяемые кадры</text>
+    <text x="855" y="430" fill="#ddc9dc" font-size="16">Қазақша · Русский · English</text>
+  </g>
+</svg>
